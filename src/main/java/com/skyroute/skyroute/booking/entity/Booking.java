@@ -20,19 +20,19 @@ public class Booking /*extends Auditable*/ {
     @Column(name= "booking_number", nullable = false, length = 50)
     private String bookingNumber;
 
-    @Column(name= "seats_booked")
+    @Column(name= "seat_booked")
     private int seatBooked;
 
-    @Column(name= "passenger_Name")
+    @Column(name= "passenger_name")
     private String passengerName;
 
     @Column(name= "passenger_booked")
     private String passengerPassport;
 
-    @Column(name= "passenger_booked")
+    @Column(name= "passenger_birth_date")
     private LocalDate passengerBirthDate;
 
-    @Column(name= "total_price", nullable = false)
+    @Column(nullable = false)
     private Double price;
 
     /*@Enumerated(EnumType.STRING)
