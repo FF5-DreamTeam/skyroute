@@ -14,6 +14,7 @@ public record BookingResponse(
         LocalDateTime arrivalTime,
         String passengerName,
         String passengerPassport,
+        String passengerBirthDate,
         int seatBooked,
         Double price,
         LocalDateTime createdAt
