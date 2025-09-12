@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public record BookingResponse(
         Long bookingId,
         String bookingNumber,
-        String bookingStatus,
+        /*BookingStatus bookingStatus,*/
         Long flightId,
         String flightNumber,
         String origin,

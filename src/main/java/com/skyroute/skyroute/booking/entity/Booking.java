@@ -1,5 +1,7 @@
 package com.skyroute.skyroute.booking.entity;
 
+import com.skyroute.skyroute.booking.enums.BookingStatus;
+import com.skyroute.skyroute.shared.Auditable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "booking")
@@ -14,7 +17,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Booking /*extends Auditable*/ {
+public class Booking extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,24 +25,24 @@ public class Booking /*extends Auditable*/ {
     @Column(name= "booking_number", nullable = false, length = 50)
     private String bookingNumber;
 
-    @Column(name= "seat_booked")
-    private int seatBooked;
+    @Column(name= "seats_booked")
+    private int seatsBooked;
 
-    @Column(name= "passenger_name")
-    private String passengerName;
+    @Column(name= "passenger_names")
+    private List<String> passengerNames;
 
-    @Column(name= "passenger_booked")
-    private String passengerPassport;
+    @Column(name= "passenger_passports")
+    private List<String> passengerPassports;
 
-    @Column(name= "passenger_birth_date")
-    private LocalDate passengerBirthDate;
+    @Column(name= "passenger_birth_dates")
+    private List<LocalDate> passengerBirthDates;
 
     @Column(nullable = false)
     private Double price;
 
-    /*@Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     @Column(name= "booking_status")
-    private BookingStatus bookingStatus;*/
+    private BookingStatus bookingStatus;
 
     /*@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
