@@ -20,7 +20,7 @@ public record BookingRequest(
     @Past(message = "Birth date must be in the past")
     @JsonFormat(pattern = "dd-MM-yyyy")
     LocalDate passengerBirthDate,
-
-    int seatBooked
+    int seatBooked/*,
+    User user*/
 ) {
 }
