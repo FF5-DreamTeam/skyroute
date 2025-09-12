@@ -2,6 +2,7 @@ package com.skyroute.skyroute.booking.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Booking /*extends Auditable*/ {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
