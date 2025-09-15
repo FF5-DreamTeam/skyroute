@@ -1,4 +1,4 @@
-package com.skyroute.skyroute.features.flight.entity;
+package com.skyroute.skyroute.flight.entity;
 
 import com.skyroute.skyroute.shared.BaseEntity;
 import jakarta.persistence.*;
