@@ -1,5 +1,6 @@
 package com.skyroute.skyroute.booking.dto;
 
+import com.skyroute.skyroute.airport.entity.Airport;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 
 import java.time.LocalDateTime;
@@ -11,8 +12,8 @@ public record BookingResponse(
         BookingStatus bookingStatus,
         Long flightId,
         String flightNumber,
-        String origin,
-        String destination,
+        Airport origin,
+        Airport destination,
         LocalDateTime departureTime,
         LocalDateTime arrivalTime,
         List<String> passengerNames,
