@@ -41,7 +41,7 @@ public class FlightEntity extends BaseEntity {
     private double price;
 
     @Column(nullable = false)
-    private boolean isAvailable;
+    private boolean available;
 
 //    @ManyToOne(fetch = FetchType.Lazy)
 //    @JoinColumn(name = "aircraft_id", nullable = false)
