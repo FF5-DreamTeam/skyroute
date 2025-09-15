@@ -3,6 +3,7 @@ package com.skyroute.skyroute.booking.dto;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record BookingResponse(
         Long bookingId,
@@ -14,8 +15,8 @@ public record BookingResponse(
         String destination,
         LocalDateTime departureTime,
         LocalDateTime arrivalTime,
-        String passengerNames,
-        String passengerBirthDates,
+        List<String> passengerNames,
+        List<String> passengerBirthDates,
         int seatsBooked,
         Double totalPrice,
         LocalDateTime createdAt,
