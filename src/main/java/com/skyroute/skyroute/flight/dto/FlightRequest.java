@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record FlightRequest(
         String flightNumber,
-        int availablesSeats,
+        int availableSeats,
         LocalDateTime departureTime,
         LocalDateTime arrivalTime,
         double price,
