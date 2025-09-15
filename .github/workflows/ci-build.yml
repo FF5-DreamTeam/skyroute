@@ -31,7 +31,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Run unit tests (only *ServiceTest)
+      - name: Run tests (if any)
         run: mvn -q -B test || echo "No tests found, continuing..."
 
       - name: Package app (skip tests during package)
