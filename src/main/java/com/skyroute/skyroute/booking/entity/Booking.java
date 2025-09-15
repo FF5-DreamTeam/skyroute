@@ -1,6 +1,7 @@
 package com.skyroute.skyroute.booking.entity;
 
 import com.skyroute.skyroute.booking.enums.BookingStatus;
+import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.shared.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -50,7 +51,7 @@ public class Booking extends BaseEntity {
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;*/
 
-   /* @ManyToOne(fetch = FetchType.LAZY)
+   @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "flight_id", referencedColumnName = "id", nullable = false)
-    private Flight flight;*/
+    private Flight flight;
 }
