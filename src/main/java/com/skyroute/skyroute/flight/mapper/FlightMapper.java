@@ -2,16 +2,16 @@ package com.skyroute.skyroute.flight.mapper;
 
 import com.skyroute.skyroute.flight.dto.FlightRequest;
 import com.skyroute.skyroute.flight.dto.FlightResponse;
-import com.skyroute.skyroute.flight.entity.FlightEntity;
+import com.skyroute.skyroute.flight.entity.Flight;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FlightMapper {
 
-    public FlightEntity toEntity(FlightRequest request) {
+    public Flight toEntity(FlightRequest request) {
         if (request == null) return null;
 
-        return FlightEntity.builder()
+        return Flight.builder()
                 .flightNumber(request.flightNumber())
                 .availableSeats(request.availableSeats())
                 .departureTime(request.departureTime())
@@ -21,7 +21,7 @@ public class FlightMapper {
                 .build();
     }
 
-    public FlightResponse toResponse(FlightEntity entity) {
+    public FlightResponse toResponse(Flight entity) {
         if (entity == null) return null;
 
         return new FlightResponse(
@@ -37,7 +37,7 @@ public class FlightMapper {
         );
     }
 
-    public void updateEntityFromRequest(FlightRequest request, FlightEntity entity) {
+    public void updateEntityFromRequest(FlightRequest request, Flight entity) {
         if (request == null || entity == null) return;
 
         entity.setFlightNumber(request.flightNumber());
