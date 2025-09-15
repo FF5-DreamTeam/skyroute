@@ -18,7 +18,6 @@ public record BookingRequest(
     @Size(min = 1, max = 10, message = "Between 1 and 10 passenger allowed")
     List<@NotBlank(message = "Passenger name required") @Size(min = 2, max = 100, message = "Passenger name must contain between 2 and 100 characters") String> passengerNames,
 
-
     @NotEmpty(message = "At least one birth date is required")
     @Size(min = 1, max = 10, message = "birth dates must match the number of passengers")
     List<@NotNull(message = "Birth date cannot be null") @Past(message = "Birth date must be in the past") LocalDate> passengerBirthDates
