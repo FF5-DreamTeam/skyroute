@@ -10,7 +10,7 @@ public record BookingRequest(
     @Positive(message = "Flight ID must be positive")
     Long flightId,
 
-    @Positive(message = "Seats booked must be positive")
+    @Positive(message = "Flight ID must be positive")
     @Max(value = 10, message = "Maximum 10 seats per booking")
     int seatsBooked,
 
@@ -19,7 +19,7 @@ public record BookingRequest(
     List<@NotBlank(message = "Passenger name required") @Size(min = 2, max = 100, message = "Passenger name must contain between 2 and 100 characters") String> passengerNames,
 
     @NotEmpty(message = "At least one birth date is required")
-    @Size(min = 1, max = 10, message = "Birth dates must match the number of passengers")
+    @Size(min = 1, max = 10, message = "birth dates must match the number of passengers")
     List<@NotNull(message = "Birth date cannot be null") @Past(message = "Birth date must be in the past") LocalDate> passengerBirthDates
 ) {
     public BookingRequest {

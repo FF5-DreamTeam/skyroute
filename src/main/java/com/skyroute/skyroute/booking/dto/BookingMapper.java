@@ -2,26 +2,25 @@ package com.skyroute.skyroute.booking.dto;
 
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
-import com.skyroute.skyroute.flight.entity.Flight;
-import com.skyroute.skyroute.user.entity.User;
 
+import java.sql.Date;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
 public class BookingMapper {
-   private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+   /* private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-   public static Booking toEntity(BookingRequest request, User user, Flight flight, Double totalPrice) {
+    public static Booking toEntity(BookingRequest request, Long userId, Double totalPrice) {
         return Booking.builder()
                 .bookingNumber(generateBookingNumber())
-                .seatsBooked(request.seatsBooked())
+                .flightId(request.flightId())
+                *//*.userId(userId)*//*
+                .seatBooked(request.seatsBooked())
                 .passengerNames(request.passengerNames())
-                .passengerBirthDates(request.passengerBirthDates())
+                .passengerBirthDate(request.passengerBirthDates())
                 .totalPrice(totalPrice)
                 .bookingStatus(BookingStatus.CREATED)
-                .user(user)
-                .flight(flight)
                 .build();
     }
 
@@ -35,12 +34,12 @@ public class BookingMapper {
                 booking.getId(),
                 booking.getBookingNumber(),
                 booking.getBookingStatus(),
-                booking.getFlight().getId(),
+                *//*booking.getFlight().getFlightId(),
                 booking.getFlight().getFlightNumber(),
-                booking.getFlight().getRoute().getOrigin().getCity(),
-                booking.getFlight().getRoute().getDestination().getCity(),
+                booking.getFlight().getRoute().getOrigin(),
+                booking.getFlight().getRoute().getDestination(),
                 booking.getFlight().getDepartureTime(),
-                booking.getFlight().getArrivalTime(),
+                booking.getFlight().getArrivalTime(),*//*
                 booking.getPassengerNames(),
                 formatBirthDates,
                 booking.getSeatsBooked(),
@@ -49,7 +48,7 @@ public class BookingMapper {
                 booking.getUpdatedAt()
         );
     }
-
+*/
     private static String generateBookingNumber() {
         return "SR-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
     }
