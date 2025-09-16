@@ -37,6 +37,7 @@ public class BookingServiceImpl implements BookingService{
         return bookingRepository.findAllByUser(pageable, user).map(booking -> BookingMapper.toDto(booking));
     }
 
+    @Override
     public BookingResponse getBookingById(Long id, User user) {
         Booking booking = bookingRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Booking not found"));
 
