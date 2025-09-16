@@ -54,5 +54,5 @@ public class Flight extends BaseEntity {
     private Route route;
 
     @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Booking> bookings;
+    private List<Booking> booking;
 }
