@@ -36,7 +36,7 @@ public class BookingServiceImpl implements BookingService{
     }
 
     public BookingResponse getBookingById(Long id) {
-        Booking booking = bookingRepository.findById(id).orElseThrow(() -> new EntityNotFoundException());
+        Booking booking = bookingRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Booking not found"));
         return BookingMapper.toDto(booking);
     }
 

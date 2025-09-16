@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
+
     @EntityGraph(attributePaths = {"flight", "flight.route", "user"})
     Page<Booking> findAllByUser(Pageable pageable, User user);
 }
