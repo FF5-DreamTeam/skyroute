@@ -4,6 +4,7 @@ import com.skyroute.skyroute.booking.dto.BookingMapper;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
+import com.skyroute.skyroute.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +31,7 @@ public class BookingService {
 
     public Page<BookingResponse> getAllBookingsUser(User user, int page, int size, String sortBy, String sortDirection) {
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
-        return bookingRepository.findByUser(pageable, user).map(booking -> BookingMapper.toDto(booking));
+        return bookingRepository.findAllByUser(pageable, user).map(booking -> BookingMapper.toDto(booking));
     }
 
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
