@@ -4,6 +4,7 @@ import com.skyroute.skyroute.booking.dto.BookingMapper;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
+import com.skyroute.skyroute.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
