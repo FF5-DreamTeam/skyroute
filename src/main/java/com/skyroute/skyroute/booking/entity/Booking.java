@@ -41,7 +41,7 @@ public class Booking extends BaseEntity {
     @Column(name= "passenger_birth_dates")
     private List<LocalDate> passengerBirthDates;
 
-    @Column(nullable = false, precision = 8)
+    @Column(nullable = false)
     private Double totalPrice;
 
     @Enumerated(EnumType.STRING)
