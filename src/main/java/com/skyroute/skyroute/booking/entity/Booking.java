@@ -3,6 +3,7 @@ package com.skyroute.skyroute.booking.entity;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.shared.BaseEntity;
+import com.skyroute.skyroute.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,16 +41,16 @@ public class Booking extends BaseEntity {
     @Column(name= "passenger_birth_dates")
     private List<LocalDate> passengerBirthDates;
 
-    @Column(nullable = false, precision = 8, scale = 2)
+    @Column(nullable = false, precision = 8)
     private Double totalPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(name= "booking_status", nullable = false)
     private BookingStatus bookingStatus;
 
-    /*@ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;*/
+    private User user;
 
    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "flight_id", referencedColumnName = "id", nullable = false)
