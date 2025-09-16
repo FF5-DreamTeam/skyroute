@@ -1,4 +1,4 @@
-package com.skyroute.skyroute.auth;
+package com.skyroute.skyroute.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
