@@ -1,5 +1,6 @@
 package com.skyroute.skyroute.flight.entity;
 
+import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.route.Route;
 import com.skyroute.skyroute.shared.BaseEntity;
 import jakarta.persistence.*;
@@ -44,9 +45,9 @@ public class Flight extends BaseEntity {
     @Column(nullable = false)
     private boolean available;
 
-//   @ManyToOne(fetch = FetchType.Lazy)
-//   @JoinColumn(name = "aircraft_id", nullable = false)
-//   private AircraftEntity aircraft;
+   @ManyToOne(fetch = FetchType.LAZY)
+   @JoinColumn(name = "aircraft_id", nullable = false)
+   private Aircraft aircraft;
 
     @ManyToOne
     @JoinColumn(name = "route_id", nullable = false)
