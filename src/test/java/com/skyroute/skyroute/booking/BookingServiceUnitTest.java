@@ -5,7 +5,7 @@ import com.skyroute.skyroute.airport.entity.Airport;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
-import com.skyroute.skyroute.booking.exception.custom_exception.EntityNotFoundException;
+import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
 import com.skyroute.skyroute.booking.service.BookingServiceImpl;
 import com.skyroute.skyroute.flight.entity.Flight;
@@ -87,7 +87,7 @@ public class BookingServiceUnitTest {
         void getBookingById_shouldReturnBooking_whenExist() {
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BookingResponse response = bookingServiceImpl.getBookingById(1L);
+            BookingResponse response = bookingServiceImpl.getBookingById(1L, testUser);
 
             assertEquals(testBooking.getBookingNumber(), response.bookingNumber());
             assertEquals(testBooking.getTotalPrice(), response.totalPrice());
@@ -99,7 +99,7 @@ public class BookingServiceUnitTest {
         void getBookingById_shouldReturnBooking_whenNoExist() {
             when(bookingRepository.findById(99L)).thenReturn(Optional.empty());
 
-            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> bookingServiceImpl.getBookingById(99L));
+            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> bookingServiceImpl.getBookingById(99L, testUser));
 
             assertEquals("Booking not found", exception.getMessage());
 

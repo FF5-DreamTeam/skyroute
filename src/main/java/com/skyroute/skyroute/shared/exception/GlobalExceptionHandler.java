@@ -1,6 +1,6 @@
-package com.skyroute.skyroute.booking.exception;
+package com.skyroute.skyroute.shared.exception;
 
-import com.skyroute.skyroute.booking.exception.custom_exception.EntityNotFoundException;
+import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

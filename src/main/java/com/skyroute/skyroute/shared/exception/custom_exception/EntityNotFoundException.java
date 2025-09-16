@@ -1,4 +1,4 @@
-package com.skyroute.skyroute.booking.exception.custom_exception;
+package com.skyroute.skyroute.shared.exception.custom_exception;
 
 public class EntityNotFoundException extends RuntimeException {
     public EntityNotFoundException(String message) {
