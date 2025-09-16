@@ -4,10 +4,7 @@ import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.shared.BaseEntity;
 import com.skyroute.skyroute.user.enums.Role;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -26,10 +23,12 @@ public class User extends BaseEntity {
     private Long id;
 
     @NotBlank
+    @Size(min = 2, max = 50)
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
     @NotBlank
+    @Size(min = 2, max = 50)
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
@@ -45,12 +44,13 @@ public class User extends BaseEntity {
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
-    @Email
     @NotBlank
+    @Email
     @Column(unique = true, nullable = false)
     private String email;
 
     @NotBlank
+    @Size(min = 6)
     @Column(nullable = false)
     private String password;
 
