@@ -1,4 +1,4 @@
-package com.skyroute.skyroute.route;
+package com.skyroute.skyroute.route.entity;
 
 import com.skyroute.skyroute.airport.entity.Airport;
 import jakarta.persistence.*;

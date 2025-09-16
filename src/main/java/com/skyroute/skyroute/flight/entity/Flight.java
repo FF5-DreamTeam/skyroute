@@ -1,18 +1,18 @@
 package com.skyroute.skyroute.flight.entity;
 
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
-import com.skyroute.skyroute.route.Route;
+import com.skyroute.skyroute.booking.entity.Booking;
+import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.shared.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -45,15 +45,14 @@ public class Flight extends BaseEntity {
     @Column(nullable = false)
     private boolean available;
 
-   @ManyToOne(fetch = FetchType.LAZY)
-   @JoinColumn(name = "aircraft_id", nullable = false)
-   private Aircraft aircraft;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "aircraft_id", nullable = false)
+    private Aircraft aircraft;
 
     @ManyToOne
     @JoinColumn(name = "route_id", nullable = false)
     private Route route;
 
-
-//  @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL, orphanRemoval = true)
-//   private List<BookingEntity> bookings;
+    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Booking> bookings;
 }
