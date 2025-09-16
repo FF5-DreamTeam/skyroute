@@ -5,7 +5,7 @@ import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
 import com.skyroute.skyroute.booking.service.BookingService;
 import com.skyroute.skyroute.flight.entity.Flight;
-import com.skyroute.skyroute.route.Route;
+import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
