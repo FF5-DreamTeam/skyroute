@@ -13,7 +13,7 @@ public class UserMapper {
                 .lastName(request.lastName())
                 .email(request.email())
                 .password(request.password())
-                .role(Role.valueOf(String.valueOf(Role.USER)))
+                .role(Role.USER)
                 .build();
     }
 
