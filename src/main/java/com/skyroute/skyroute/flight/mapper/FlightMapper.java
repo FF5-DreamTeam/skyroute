@@ -1,7 +1,7 @@
 package com.skyroute.skyroute.flight.mapper;
 
-import com.skyroute.skyroute.flight.dto.FlightRequest;
-import com.skyroute.skyroute.flight.dto.FlightResponse;
+import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
+import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +17,7 @@ public class FlightMapper {
                 .departureTime(request.departureTime())
                 .arrivalTime(request.arrivalTime())
                 .price(request.price())
-                .available(request.isAvailable())
+                .available(request.available())
                 .build();
     }
 
