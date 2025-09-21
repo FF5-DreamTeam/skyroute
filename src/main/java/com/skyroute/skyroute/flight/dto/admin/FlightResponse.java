@@ -1,4 +1,7 @@
-package com.skyroute.skyroute.flight.dto;
+package com.skyroute.skyroute.flight.dto.admin;
+
+import com.skyroute.skyroute.aircraft.dto.AircraftResponse;
+import com.skyroute.skyroute.route.dto.RouteResponse;
 
 import java.time.LocalDateTime;
 
@@ -9,7 +12,9 @@ public record FlightResponse(
         LocalDateTime departureTime,
         LocalDateTime arrivalTime,
         double price,
-        boolean isAvailable,
+        boolean available,
+        AircraftResponse aircraft,
+        RouteResponse route,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
