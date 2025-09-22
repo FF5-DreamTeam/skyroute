@@ -12,4 +12,5 @@ public interface AirportService {
     List<AirportResponse> getAllAirports();
     AirportResponse getAirportById(Long id);
     AirportResponse updateAirport(Long id, AirportUpdateRequest request, MultipartFile image);
+    void deleteAirport(Long id);
 }

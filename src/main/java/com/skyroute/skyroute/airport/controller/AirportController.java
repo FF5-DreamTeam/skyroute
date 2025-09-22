@@ -56,4 +56,12 @@ public class AirportController {
         AirportResponse response = airportService.updateAirport(id, request, image);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete Airport")
+    public ResponseEntity<Void> deleteAirport(@PathVariable Long id){
+        airportService.deleteAirport(id);
+        return ResponseEntity.noContent().build();
+    }
 }
