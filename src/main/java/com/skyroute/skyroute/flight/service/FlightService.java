@@ -2,6 +2,7 @@ package com.skyroute.skyroute.flight.service;
 
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
+import com.skyroute.skyroute.flight.entity.Flight;
 
 import java.util.List;
 
@@ -16,5 +17,12 @@ public interface FlightService {
 
     void deleteFlight(Long id);
 
+    boolean isFlightAvailable(Long flightId);
+
+    boolean hasAvailableSeats(Long flightId, int requiredSeats);
+
+    Flight findById(Long id);
+
+    void bookSeats(Long flightId, int seatsBooked);
 }
 

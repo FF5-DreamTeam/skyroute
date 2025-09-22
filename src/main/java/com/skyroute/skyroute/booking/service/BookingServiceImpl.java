@@ -4,7 +4,6 @@ import com.skyroute.skyroute.booking.dto.BookingMapper;
 import com.skyroute.skyroute.booking.dto.BookingRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
-import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.flight.service.FlightService;
@@ -48,19 +47,21 @@ public class BookingServiceImpl implements BookingService{
 
     @Override
     public BookingResponse getBookingById(Long id, User user) {
-        Booking booking = bookingRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Booking not found"));
-
-        if (user.getRole().equals(Role.USER) && !booking.getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException("User cannot access this booking");
-        }
-
+        Booking booking = findBookingById(id);
+        validateUserAccess(booking, user);
         return BookingMapper.toDto(booking);
     }
 
     @Override
     public BookingResponse createBooking(BookingRequest request, User user) {
-        Flight flight = flightService.getFlightById(request.flightId());
+        Flight flight = flightService.findById(request.flightId());
+        validateFlightBookingEligibility(request.flightId(), request.seatsBooked());
+        Double totalPrice = calculateTotalPrice(flight, request.seatsBooked());
+        Booking booking = BookingMapper.toEntity(request, user, flight, totalPrice);
+        flightService.bookSeats(request.flightId(), request.seatsBooked());
+        Booking savedBooking = bookingRepository.save(booking);
 
+        return BookingMapper.toDto(savedBooking);
     }
 
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
@@ -82,14 +83,32 @@ public class BookingServiceImpl implements BookingService{
         return PageRequest.of(page, size, sort);
     }
 
+    private Booking findBookingById(Long id) {
+        return bookingRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Booking not found"));
+    }
+
+    private void validateUserAccess(Booking booking, User user) {
+        if (user.getRole() == Role.USER && !booking.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("User cannot access this booking");
+            }
+    }
+
     private void validateFlightBookingEligibility(Long flightId, int requestedSeats) {
-        if (!flightService.isFLightAvailable(flightId)) {
+        if (!flightService.isFlightAvailable(flightId)) {
             throw new BusinessException("Flight not available for booking");
         }
 
         if(!flightService.hasAvailableSeats(flightId, requestedSeats)) {
             Flight flight = flightService.findById(flightId);
-            throw new BusinessException("Not enough seats available. Requested: " + requestedSeats + ". Available: " + flight.getAbailableSeats());
+            throw new BusinessException("Not enough seats available. Requested: " + requestedSeats + ". Available: " + flight.getAvailableSeats());
         }
+    }
+
+    private Double calculateTotalPrice(Flight flight, int seatsBooked) {
+        if (seatsBooked <= 0) {
+            throw  new IllegalArgumentException("Number of seats booked mut be positive");
+        }
+
+        return flight.getPrice() * seatsBooked;
     }
 }
