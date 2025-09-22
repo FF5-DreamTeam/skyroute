@@ -2,6 +2,7 @@ package com.skyroute.skyroute.airport.controller;
 
 import com.skyroute.skyroute.airport.dto.AirportCreateRequest;
 import com.skyroute.skyroute.airport.dto.AirportResponse;
+import com.skyroute.skyroute.airport.dto.AirportUpdateRequest;
 import com.skyroute.skyroute.airport.service.AirportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,5 +44,16 @@ public class AirportController {
     @Operation(summary = "Get Airport by ID", description = "Retrieve a single airport by its ID")
     public ResponseEntity<AirportResponse> getAirportById(@PathVariable Long id){
         return ResponseEntity.ok(airportService.getAirportById(id));
+    }
+
+    @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update Airport", description = "Update airport - all fields and image optional (partial update)")
+    public ResponseEntity<AirportResponse> updateAirport(
+            @PathVariable Long id,
+            @RequestPart("airport") @Valid AirportUpdateRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image){
+        AirportResponse response = airportService.updateAirport(id, request, image);
+        return ResponseEntity.ok(response);
     }
 }
