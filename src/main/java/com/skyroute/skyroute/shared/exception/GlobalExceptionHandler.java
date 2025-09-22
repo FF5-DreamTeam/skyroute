@@ -1,8 +1,5 @@
 package com.skyroute.skyroute.shared.exception;
 
-import com.skyroute.skyroute.shared.exception.custom_exception.EntityAlreadyExistsException;
-import com.skyroute.skyroute.shared.exception.custom_exception.ImageUploadException;
-import org.springframework.security.access.AccessDeniedException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EmailAlreadyExistsException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,7 +64,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST,
-                "Validation failed: " + exception.getBindingResult().getFieldErrors().getFirst().getDefaultMessage(),
+                "Validation failed: " + exception.getBindingResult().getFieldErrors().get(0).getDefaultMessage(),
                 request.getRequestURI());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -83,35 +80,5 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException exception, HttpServletRequest request){
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.FORBIDDEN,
-                "You do not have permission to perform this action",
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(EntityAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEntityAlreadyExists(EntityAlreadyExistsException exception, HttpServletRequest request){
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.CONFLICT,
-                exception.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler(ImageUploadException.class)
-    public ResponseEntity<ErrorResponse> handleImageUploadException(ImageUploadException exception, HttpServletRequest request){
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                exception.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
