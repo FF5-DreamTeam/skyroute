@@ -3,17 +3,18 @@ services:
     image: mysql:8.0
     container_name: skyroute-mysql
     environment:
-      MYSQL_DATABASE: skyroute
-      MYSQL_USER: skyroute
-      MYSQL_PASSWORD: skyroute_pwd
-      MYSQL_ROOT_PASSWORD: root_pwd
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot_pwd --silent"]
+      test:
+        ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot_pwd --silent"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -29,14 +30,26 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_URL: jdbc:mysql://mysql:3306/skyroute?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      DB_USER: skyroute
-      DB_PASSWORD: skyroute_pwd
-      # Email (if used)
-      # MAIL_HOST: smtp.gmail.com
-      # MAIL_PORT: 587
-      # MAIL_USERNAME: your_email
-      # MAIL_PASSWORD: your_password_or_app_password
+      # Database Configuration
+      MYSQL_URL: ${MYSQL_URL}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
+      # Cloudinary Configuration
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      # Email Configuration
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED: true
     ports:
       - "8080:8080"
     restart: unless-stopped

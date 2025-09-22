@@ -1,31 +1,22 @@
 spring:
   datasource:
     url: ${DB_URL}
+    driver-class-name: org.h2.Driver
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    driverClassName: org.h2.Driver
+
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: none
+    show-sql: true
+
   sql:
     init:
       mode: always
+      continue-on-error: true
       schema-locations: classpath:db/migration/V1__Create_users_table.sql,classpath:db/migration/V2__Create_airports_table.sql,classpath:db/migration/V3__Create_aircrafts_table.sql,classpath:db/migration/V4__Create_routes_table.sql,classpath:db/migration/V5__Create_flights_table.sql,classpath:db/migration/V6__Create_booking_table.sql
       data-locations: classpath:db/migration/V7__Insert_test_data.sql
+
   flyway:
     enabled: false
-  h2:
-    console:
-      enabled: true
-  mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: ${MAIL_PROPERTIES_MAIL_SMTP_AUTH}
-          starttls:
-            enable: ${MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE}
-            required: ${MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED}
