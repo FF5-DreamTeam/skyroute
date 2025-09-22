@@ -14,41 +14,41 @@ import java.util.Optional;
 public interface FlightRepository extends JpaRepository<Flight, Long> {
 
     // =====================================================================
-    // DISPONIBILIDAD DE VUELOS
+    // FLIGHT AVAILABILITY
     // =====================================================================
 
     /**
-     * Vuelos disponibles (available=true y en el futuro)
+     * Available flights (available=true and in the future)
      */
     @Query("SELECT f FROM Flight f WHERE f.available = true AND f.departureTime > :now")
     List<Flight> findAvailableFlights(@Param("now") LocalDateTime now);
 
     /**
-     * Vuelos disponibles por ruta específica
+     * Available flights for a specific route
      */
     @Query("SELECT f FROM Flight f WHERE f.route.id = :routeId AND f.available = true AND f.departureTime > :now")
     List<Flight> findAvailableFlightsByRoute(@Param("routeId") Long routeId, @Param("now") LocalDateTime now);
 
     /**
-     * Vuelos con asientos disponibles
+     * Flights with available seats
      */
     @Query("SELECT f FROM Flight f WHERE f.availableSeats > 0 AND f.available = true AND f.departureTime > :now")
     List<Flight> findFlightsWithAvailableSeats(@Param("now") LocalDateTime now);
 
     /**
-     * Vuelos que requieren actualización de estado
-     * (ya salieron o no tienen asientos disponibles)
+     * Flights requiring status update
+     * (already departed or have no available seats)
      */
     @Query("SELECT f FROM Flight f WHERE (f.departureTime <= :now AND f.available = true) OR " +
             "(f.availableSeats = 0 AND f.available = true)")
     List<Flight> findFlightsRequiringStatusUpdate(@Param("now") LocalDateTime now);
 
     // =====================================================================
-    // BÚSQUEDA POR ORIGEN Y DESTINO
+    // SEARCH BY ORIGIN AND DESTINATION
     // =====================================================================
 
     /**
-     * Flexible: busca vuelos por ciudad o código de origen/destino
+     * Flexible: search flights by origin/destination city or code
      */
     @Query("SELECT f FROM Flight f WHERE " +
             "(f.route.origin.city = :origin OR f.route.origin.code = :origin) AND " +
@@ -59,7 +59,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
                                                             @Param("now") LocalDateTime now);
 
     // =====================================================================
-    // BÚSQUEDA POR NÚMERO DE VUELO
+    // SEARCH BY FLIGHT NUMBER
     // =====================================================================
 
     Optional<Flight> findByFlightNumber(String flightNumber);
@@ -67,7 +67,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     boolean existsByFlightNumber(String flightNumber);
 
     // =====================================================================
-    // BÚSQUEDA POR AERONAVE
+    // SEARCH BY AIRCRAFT
     // =====================================================================
 
     @Query("SELECT f FROM Flight f WHERE f.aircraft.id = :aircraftId")
@@ -77,7 +77,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     List<Flight> findByAircraftModel(@Param("model") String model);
 
     // =====================================================================
-    // BÚSQUEDA POR FECHAS Y RANGOS
+    // SEARCH BY DATES AND RANGES
     // =====================================================================
 
     @Query("SELECT f FROM Flight f WHERE f.departureTime BETWEEN :startDate AND :endDate")
@@ -89,11 +89,11 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
                                         @Param("futureTime") LocalDateTime futureTime);
 
     // =====================================================================
-    // FILTROS AVANZADOS
+    // ADVANCED FILTERS
     // =====================================================================
 
     /**
-     * Búsqueda avanzada con filtros opcionales
+     * Advanced search with optional filters
      */
     @Query("SELECT f FROM Flight f WHERE " +
             "(:origin IS NULL OR f.route.origin.city = :origin OR f.route.origin.code = :origin) AND " +
@@ -113,7 +113,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
                                           @Param("now") LocalDateTime now);
 
     /**
-     * Buscar vuelos similares (misma ruta, fecha cercana)
+     * Find similar flights (same route, close date)
      */
     @Query("SELECT f FROM Flight f WHERE f.route.id = :routeId " +
             "AND f.departureTime BETWEEN :startRange AND :endRange " +
@@ -125,7 +125,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
                                     @Param("excludeFlightId") Long excludeFlightId);
 
     // =====================================================================
-    // ESTADÍSTICAS
+    // STATISTICS
     // =====================================================================
 
     @Query("SELECT COUNT(f) FROM Flight f WHERE f.available = true AND f.departureTime > :now")
@@ -144,7 +144,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     List<Flight> findCheapestFlightsByRoute(@Param("routeId") Long routeId, @Param("now") LocalDateTime now);
 
     // =====================================================================
-    // ALERTAS Y NOTIFICACIONES
+    // ALERTS AND NOTIFICATIONS
     // =====================================================================
 
     @Query("SELECT f FROM Flight f WHERE f.departureTime BETWEEN :now AND :notificationTime AND f.available = true")
@@ -156,5 +156,3 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
     List<Flight> findFlightsWithLowAvailability(@Param("threshold") Integer threshold,
                                                 @Param("now") LocalDateTime now);
 }
-
-
