@@ -36,6 +36,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**")
                                                 .permitAll()
                                                 .requestMatchers("/api/auth/**").permitAll()
+                                                .requestMatchers("/api/email/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/airports/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/flights/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/routes/**").permitAll()
@@ -54,7 +55,7 @@ public class SecurityConfig {
                                                                 "/api/aircrafts/**", "/api/airports/**",
                                                                 "/api/routes/**", "/api/flights/**")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/bookings")
+                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/bookings", "/api/aircrafts" )
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/bookings/flight/**")
                                                 .hasRole("ADMIN")
