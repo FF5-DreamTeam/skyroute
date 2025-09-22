@@ -76,6 +76,14 @@ public class AirportServiceImpl implements AirportService {
         return AirportMapper.toDto(updated);
     }
 
+    @Override
+    public void deleteAirport(Long id) {
+        Airport airport = airportRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Airport not found with ID: " + id));
+        deleteOldImage(airport.getImageUrl());
+        airportRepository.delete(airport);
+    }
+
     private String uploadImage(MultipartFile image){
         if (image == null || image.isEmpty()){
             throw new ImageUploadException("Image file is required");
