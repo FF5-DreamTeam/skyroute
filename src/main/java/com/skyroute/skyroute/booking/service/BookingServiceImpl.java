@@ -1,9 +1,15 @@
 package com.skyroute.skyroute.booking.service;
 
 import com.skyroute.skyroute.booking.dto.BookingMapper;
+import com.skyroute.skyroute.booking.dto.BookingRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
+import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
+import com.skyroute.skyroute.flight.entity.Flight;
+import com.skyroute.skyroute.flight.repository.FlightRepository;
+import com.skyroute.skyroute.flight.service.FlightService;
 import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
+import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
 import com.skyroute.skyroute.user.entity.User;
@@ -19,10 +25,13 @@ import java.util.Set;
 @Service
 public class BookingServiceImpl implements BookingService{
     private final BookingRepository bookingRepository;
+    private final FlightService flightService;
+
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "bookingNumber", "bookingStatus", "createdAt", "flightNumber");
 
-    public BookingServiceImpl(BookingRepository bookingRepository) {
+    public BookingServiceImpl(BookingRepository bookingRepository, FlightService flightService, FlightRepository flightRepository, FlightService flightService1) {
         this.bookingRepository = bookingRepository;
+        this.flightService = flightService;
     }
 
     @Override
@@ -48,6 +57,12 @@ public class BookingServiceImpl implements BookingService{
         return BookingMapper.toDto(booking);
     }
 
+    @Override
+    public BookingResponse createBooking(BookingRequest request, User user) {
+        Flight flight = flightService.getFlightById(request.flightId());
+
+    }
+
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
         if (page < 0) throw new IllegalArgumentException("Page index must be 0 or greater");
         if (size <= 0) throw new IllegalArgumentException("Page size must be greater than 0");
@@ -65,5 +80,16 @@ public class BookingServiceImpl implements BookingService{
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         return PageRequest.of(page, size, sort);
+    }
+
+    private void validateFlightBookingEligibility(Long flightId, int requestedSeats) {
+        if (!flightService.isFLightAvailable(flightId)) {
+            throw new BusinessException("Flight not available for booking");
+        }
+
+        if(!flightService.hasAvailableSeats(flightId, requestedSeats)) {
+            Flight flight = flightService.findById(flightId);
+            throw new BusinessException("Not enough seats available. Requested: " + requestedSeats + ". Available: " + flight.getAbailableSeats());
+        }
     }
 }
