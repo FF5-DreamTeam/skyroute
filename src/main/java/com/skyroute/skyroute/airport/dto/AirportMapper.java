@@ -19,12 +19,4 @@ public class AirportMapper {
                 airport.getImageUrl()
         );
     }
-
-    public static Airport toEntityFromCreate(AirportCreateRequest dto, String imageUrl){
-        return Airport.builder()
-                .code(dto.code())
-                .city(dto.city())
-                .imageUrl(imageUrl)
-                .build();
-    }
 }
