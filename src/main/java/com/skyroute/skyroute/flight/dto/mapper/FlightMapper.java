@@ -1,22 +1,20 @@
-package com.skyroute.skyroute.flight.mapper;
+package com.skyroute.skyroute.flight.dto.mapper;
 
 import com.skyroute.skyroute.aircraft.dto.AircraftMapper;
-import com.skyroute.skyroute.route.dto.RouteMapper;
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
 import com.skyroute.skyroute.flight.dto.publicapi.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
+import com.skyroute.skyroute.route.dto.RouteMapper;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FlightMapper {
 
     public Flight toEntity(FlightRequest request) {
-        if (request == null) {
-            return null;
-        }
+        if (request == null) return null;
 
-        Flight flight = Flight.builder()
+        return Flight.builder()
                 .flightNumber(request.flightNumber())
                 .availableSeats(request.availableSeats())
                 .departureTime(request.departureTime())
@@ -24,14 +22,21 @@ public class FlightMapper {
                 .price(request.price())
                 .available(request.available() != null ? request.available() : true)
                 .build();
+    }
 
-        return flight;
+    public void updateEntityFromRequest(FlightRequest request, Flight flight) {
+        if (request == null || flight == null) return;
+
+        flight.setFlightNumber(request.flightNumber());
+        flight.setAvailableSeats(request.availableSeats());
+        flight.setDepartureTime(request.departureTime());
+        flight.setArrivalTime(request.arrivalTime());
+        flight.setPrice(request.price());
+        flight.setAvailable(request.available() != null ? request.available() : flight.isAvailable());
     }
 
     public FlightResponse toResponse(Flight flight) {
-        if (flight == null) {
-            return null;
-        }
+        if (flight == null) return null;
 
         return new FlightResponse(
                 flight.getId(),
@@ -48,25 +53,8 @@ public class FlightMapper {
         );
     }
 
-    public void updateEntityFromRequest(FlightRequest request, Flight flight) {
-        if (request == null || flight == null) {
-            return;
-        }
-
-        flight.setFlightNumber(request.flightNumber());
-        flight.setAvailableSeats(request.availableSeats());
-        flight.setDepartureTime(request.departureTime());
-        flight.setArrivalTime(request.arrivalTime());
-        flight.setPrice(request.price());
-        if (request.available() != null) {
-            flight.setAvailable(request.available());
-        }
-    }
-
     public FlightSimpleResponse toSimpleResponse(Flight flight) {
-        if (flight == null) {
-            return null;
-        }
+        if (flight == null) return null;
 
         return new FlightSimpleResponse(
                 flight.getId(),
@@ -82,4 +70,3 @@ public class FlightMapper {
         );
     }
 }
-
