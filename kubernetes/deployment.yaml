@@ -1,0 +1,144 @@
+# DreamSky Application Deployment
+# This deployment manages the main application pods for the DreamSky service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  labels:
+    tier: backend
+spec:
+  # Run 4 replicas for high availability
+  replicas: 4
+  selector:
+    matchLabels:
+      tier: backend
+  template:
+    metadata:
+      labels:
+        tier: backend
+    spec:
+      containers:
+        - name: app
+          # Application container image
+          image: fyrfigrabbaf6kyhpi/skyroute:latest
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            # Spring Boot profile configuration
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            # Application server port
+            - name: SERVER_PORT
+              value: "8080"
+            # Database connection URL from ConfigMap
+            - name: DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: db-url
+            # Database credentials from Secret
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: password
+            # SQL logging configuration from ConfigMap
+            - name: SHOW_SQL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: show-sql
+          # Resource limits and requests for proper scheduling
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          # Health check to determine if container is running properly
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          # Health check to determine if container is ready to receive traffic
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+        - name: mysql
+          # MySQL database container
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+              name: mysql
+          env:
+            # Root password for MySQL
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: root-password
+            # Database name to create
+            - name: MYSQL_DATABASE
+              value: "skyroute"
+            # User to create
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: username
+            # Password for the user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: password
+          # Resource limits and requests for MySQL
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          # MySQL readiness probe
+          readinessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          # MySQL liveness probe
+          livenessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+      # Always restart containers on failure
+      restartPolicy: Always
