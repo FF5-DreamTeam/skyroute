@@ -27,4 +27,13 @@ public class AirportMapper {
                 .imageUrl(imageUrl)
                 .build();
     }
+
+    public static void toEntityFromUpdate(Airport airport, AirportUpdateRequest dto){
+        if (dto.code() != null){
+            airport.setCode(dto.code());
+        }
+        if (dto.city() != null){
+            airport.setCity(dto.city());
+        }
+    }
 }

@@ -1,10 +1,7 @@
 package com.skyroute.skyroute.shared.exception;
 
-import com.skyroute.skyroute.shared.exception.custom_exception.EntityAlreadyExistsException;
-import com.skyroute.skyroute.shared.exception.custom_exception.ImageUploadException;
+import com.skyroute.skyroute.shared.exception.custom_exception.*;
 import org.springframework.security.access.AccessDeniedException;
-import com.skyroute.skyroute.shared.exception.custom_exception.EmailAlreadyExistsException;
-import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -113,5 +110,15 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(InvalidUpdateRequestException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidUpdateRequest(InvalidUpdateRequestException exception, HttpServletRequest request){
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 }
