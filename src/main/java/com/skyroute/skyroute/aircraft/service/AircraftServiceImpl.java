@@ -5,7 +5,9 @@ import com.skyroute.skyroute.aircraft.dto.AircraftResponse;
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.dto.AircraftMapper;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
-import com.skyroute.skyroute.aircraft.service.AircraftService;
+import com.skyroute.skyroute.shared.exception.custom_exception.AircraftDeletionException;
+import com.skyroute.skyroute.shared.exception.custom_exception.AircraftNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -53,10 +55,21 @@ public class AircraftServiceImpl implements AircraftService {
     }
 
     @Override
+    @Transactional
     public void deleteAircraft(Long id) {
-        if (!aircraftRepository.existsById(id)) {
-            throw new RuntimeException("Aircraft not found with id " + id);
+        Aircraft aircraft = aircraftRepository.findById(id)
+                .orElseThrow(() -> new AircraftNotFoundException("Aircraft not found with id: " + id));
+
+        if (aircraft.getFlights() != null && !aircraft.getFlights().isEmpty()) {
+            throw new AircraftDeletionException("Cannot delete aircraft with associated flights");
         }
-        aircraftRepository.deleteById(id);
+
+        try {
+            aircraftRepository.delete(aircraft);
+        } catch (Exception e) {
+            throw new AircraftDeletionException("Error deleting aircraft with id: " + id, e);
+        }
     }
+
+
 }
