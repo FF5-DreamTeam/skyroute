@@ -15,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import org.springframework.test.context.ActiveProfiles;
+
 import java.io.IOException;
 import java.time.LocalDate;
 
@@ -23,6 +25,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles("test")
 class JwtAuthenticationFilterTest {
 
     @Mock

@@ -6,7 +6,6 @@ import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
-import com.skyroute.skyroute.flight.service.FlightService;
 import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
@@ -18,20 +17,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
 @Service
 public class BookingServiceImpl implements BookingService{
     private final BookingRepository bookingRepository;
-    private final FlightService flightService;
+    private final FlightPublicService flightPublicService;
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "bookingNumber", "bookingStatus", "createdAt", "flightNumber");
 
-    public BookingServiceImpl(BookingRepository bookingRepository, FlightService flightService, FlightRepository flightRepository, FlightService flightService1) {
+    public BookingServiceImpl(BookingRepository bookingRepository, FlightPublicService flightPublicService, FlightRepository flightRepository, FlightPublicService flightPublicService1) {
         this.bookingRepository = bookingRepository;
-        this.flightService = flightService;
+        this.flightPublicService = flightPublicService;
     }
 
     @Override
@@ -56,11 +54,11 @@ public class BookingServiceImpl implements BookingService{
     @Override
     @Transactional
     public BookingResponse createBooking(BookingRequest request, User user) {
-        Flight flight = flightService.findById(request.flightId());
-        validateFlightBookingEligibility(request.flightId(), request.seatsBooked());
-        Double totalPrice = calculateTotalPrice(flight, request.seatsBooked());
+        Flight flight = flightPublicService.findById(request.flightId());
+        validateFlightBookingEligibility(request.flightId(), request.bookedSeats());
+        Double totalPrice = calculateTotalPrice(flight, request.bookedSeats());
         Booking booking = BookingMapper.toEntity(request, user, flight, totalPrice);
-        flightService.bookSeats(request.flightId(), request.seatsBooked());
+        flightPublicService.bookSeats(request.flightId(), request.bookedSeats());
         Booking savedBooking = bookingRepository.save(booking);
 
         return BookingMapper.toDto(savedBooking);
@@ -96,21 +94,21 @@ public class BookingServiceImpl implements BookingService{
     }
 
     private void validateFlightBookingEligibility(Long flightId, int requestedSeats) {
-        if (!flightService.isFlightAvailable(flightId)) {
+        if (!flightPublicService.isFlightAvailable(flightId)) {
             throw new BusinessException("Flight not available for booking");
         }
 
-        if(!flightService.hasAvailableSeats(flightId, requestedSeats)) {
-            Flight flight = flightService.findById(flightId);
+        if(!flightPublicService.hasAvailableSeats(flightId, requestedSeats)) {
+            Flight flight = flightPublicService.findById(flightId);
             throw new BusinessException("Not enough seats available. Requested: " + requestedSeats + ". Available: " + flight.getAvailableSeats());
         }
     }
 
-    private Double calculateTotalPrice(Flight flight, int seatsBooked) {
-        if (seatsBooked <= 0) {
+    private Double calculateTotalPrice(Flight flight, int bookedSeats) {
+        if (bookedSeats <= 0) {
             throw  new IllegalArgumentException("Number of seats booked mut be positive");
         }
 
-        return flight.getPrice() * seatsBooked;
+        return flight.getPrice() * bookedSeats;
     }
 }

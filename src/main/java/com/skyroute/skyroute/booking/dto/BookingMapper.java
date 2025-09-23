@@ -15,7 +15,7 @@ public class BookingMapper {
    public static Booking toEntity(BookingRequest request, User user, Flight flight, Double totalPrice) {
         return Booking.builder()
                 .bookingNumber(generateBookingNumber())
-                .seatsBooked(request.seatsBooked())
+                .bookedSeats(request.bookedSeats())
                 .passengerNames(request.passengerNames())
                 .passengerBirthDates(request.passengerBirthDates())
                 .totalPrice(totalPrice)
@@ -43,7 +43,7 @@ public class BookingMapper {
                 booking.getFlight().getArrivalTime(),
                 booking.getPassengerNames(),
                 formatBirthDates,
-                booking.getSeatsBooked(),
+                booking.getBookedSeats(),
                 booking.getTotalPrice(),
                 booking.getCreatedAt(),
                 booking.getUpdatedAt()
