@@ -4,6 +4,8 @@ import com.skyroute.skyroute.auth.dto.LoginRequest;
 import com.skyroute.skyroute.auth.dto.LoginResponse;
 import com.skyroute.skyroute.auth.dto.RefreshTokenRequest;
 import com.skyroute.skyroute.auth.dto.RegisterResponse;
+import com.skyroute.skyroute.email.EmailService;
+import com.skyroute.skyroute.email.RegistrationEmailTemplates;
 import com.skyroute.skyroute.security.details.CustomUserDetails;
 import com.skyroute.skyroute.security.jwt.JwtUtil;
 import com.skyroute.skyroute.security.jwt.TokenBlacklistService;
@@ -33,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final TokenBlacklistService tokenBlacklistService;
+    private final EmailService emailService;
 
     @Override
     public RegisterResponse register(UserRequest request) {
@@ -52,13 +55,27 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
         log.info("Successfully registered user with ID: {} and email: {}", savedUser.getId(), savedUser.getEmail());
-        
+
+        try {
+            String htmlContent = RegistrationEmailTemplates.getHtml(savedUser.getFirstName(), savedUser.getLastName());
+            String textContent = RegistrationEmailTemplates.getPlainText(savedUser.getFirstName(),
+                    savedUser.getLastName());
+
+            emailService.sendRegistrationEmail(
+                    savedUser.getEmail(),
+                    RegistrationEmailTemplates.getSubject(),
+                    textContent,
+                    htmlContent);
+            log.info("Registration confirmation email sent to: {}", savedUser.getEmail());
+        } catch (Exception e) {
+            log.warn("Failed to send registration confirmation email to {}: {}", savedUser.getEmail(), e.getMessage());
+        }
+
         return new RegisterResponse(
                 userMapper.toResponse(savedUser),
                 accessToken,
                 refreshToken,
-                "Bearer"
-        );
+                "Bearer");
     }
 
     @Override
