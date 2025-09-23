@@ -83,6 +83,34 @@ public class FlightServiceImpl implements FlightService {
         return toResponse(flight);
     }
 
+    @Transactional
+    @Override
+    public FlightResponse updateFlight(Long id, FlightUpdate request) {
+        Flight flight = flightRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
+
+        if (request.flightNumber() != null) flight.setFlightNumber(request.flightNumber());
+        if (request.availableSeats() != null) flight.setAvailableSeats(request.availableSeats());
+        if (request.arrivalTime() != null) flight.setArrivalTime(request.arrivalTime());
+        if (request.price() != null) flight.setPrice(request.price());
+        if (request.available() != null) flight.setAvailable(request.available());
+
+        if (request.aircraftId() != null) {
+            Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
+                    .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + request.aircraftId()));
+            flight.setAircraft(aircraft);
+        }
+
+        if (request.routeId() != null) {
+            Route route = routeRepository.findById(request.routeId())
+                    .orElseThrow(() -> new EntityNotFoundException("Route not found with id: " + request.routeId()));
+            flight.setRoute(route);
+        }
+
+        flight = flightRepository.save(flight);
+        return toResponse(flight);
+    }
+
     @Override
     public FlightResponse getFlightById(Long id) {
         Flight flight = flightRepository.findById(id)

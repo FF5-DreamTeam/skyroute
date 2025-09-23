@@ -3,6 +3,7 @@ package com.skyroute.skyroute.flight.service.admin;
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -10,6 +11,9 @@ public interface FlightService {
     FlightResponse createFlight(FlightRequest request);
 
     FlightResponse updateFlight(Long id, FlightRequest request);
+
+    @Transactional
+    FlightResponse updateFlight(Long id, FlightRequest.FlightUpdate request);
 
     FlightResponse getFlightById(Long id);
 
