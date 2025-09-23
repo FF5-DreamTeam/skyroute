@@ -1,22 +1,20 @@
 spring:
   datasource:
-    url: ${DB_URL}
+    url: ${DB_URL:jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL}
     driver-class-name: org.h2.Driver
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: false
 
   sql:
     init:
-      mode: always
+      mode: never
       continue-on-error: true
-      schema-locations: classpath:db/migration/V1__Create_users_table.sql,classpath:db/migration/V2__Create_airports_table.sql,classpath:db/migration/V3__Create_aircrafts_table.sql,classpath:db/migration/V4__Create_routes_table.sql,classpath:db/migration/V5__Create_flights_table.sql,classpath:db/migration/V6__Create_booking_table.sql
-      data-locations: classpath:db/migration/V7__Insert_test_data.sql
 
   flyway:
     enabled: false
