@@ -55,10 +55,10 @@ public class BookingServiceImpl implements BookingService{
     @Override
     public BookingResponse createBooking(BookingRequest request, User user) {
         Flight flight = flightService.findById(request.flightId());
-        validateFlightBookingEligibility(request.flightId(), request.seatsBooked());
-        Double totalPrice = calculateTotalPrice(flight, request.seatsBooked());
+        validateFlightBookingEligibility(request.flightId(), request.bookedSeats());
+        Double totalPrice = calculateTotalPrice(flight, request.bookedSeats());
         Booking booking = BookingMapper.toEntity(request, user, flight, totalPrice);
-        flightService.bookSeats(request.flightId(), request.seatsBooked());
+        flightService.bookSeats(request.flightId(), request.bookedSeats());
         Booking savedBooking = bookingRepository.save(booking);
 
         return BookingMapper.toDto(savedBooking);
@@ -104,11 +104,11 @@ public class BookingServiceImpl implements BookingService{
         }
     }
 
-    private Double calculateTotalPrice(Flight flight, int seatsBooked) {
-        if (seatsBooked <= 0) {
+    private Double calculateTotalPrice(Flight flight, int bookedSeats) {
+        if (bookedSeats <= 0) {
             throw  new IllegalArgumentException("Number of seats booked mut be positive");
         }
 
-        return flight.getPrice() * seatsBooked;
+        return flight.getPrice() * bookedSeats;
     }
 }

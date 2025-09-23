@@ -1,7 +1,6 @@
 package com.skyroute.skyroute.flight.service.admin;
 
 import com.skyroute.skyroute.aircraft.dto.AircraftMapper;
-import com.skyroute.skyroute.aircraft.dto.AircraftResponse;
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
@@ -10,9 +9,9 @@ import com.skyroute.skyroute.flight.dto.admin.FlightRequest.FlightUpdate;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.route.dto.RouteMapper;
-import com.skyroute.skyroute.route.dto.RouteResponse;
 import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.route.repository.RouteRepository;
+import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.Builder;
@@ -151,6 +150,28 @@ public class FlightServiceImpl implements FlightService {
     public boolean hasAvailableSeats(Long flightId, int seatsRequested) {
         Flight flight = findEntityById(flightId);
         return flight.getAvailableSeats() >= seatsRequested;
+    }
+
+    @Override
+    public Flight findById(Long id) {
+        return flightRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Flight with id: " + id+ " not found"));
+    }
+
+    @Override
+    public void bookSeats(Long flightId, int bookedSeats) {
+        if (bookedSeats <= 0) {
+            throw new IllegalArgumentException("Seats booked must be greater than 0");
+        }
+
+        Flight flight = findById(flightId);
+        int availableSeats = flight.getAvailableSeats();
+
+        if (bookedSeats > availableSeats) {
+            throw new BusinessException("Not enought seats available. Requested: " + bookedSeats + ". Available: " + availableSeats);
+        }
+
+        flight.setAvailableSeats(availableSeats - bookedSeats);
+        flightRepository.save(flight);
     }
 
     private FlightResponse toResponse(Flight flight) {

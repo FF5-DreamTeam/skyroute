@@ -2,6 +2,7 @@ package com.skyroute.skyroute.flight.service;
 
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
+import com.skyroute.skyroute.flight.entity.Flight;
 
 import java.util.List;
 
