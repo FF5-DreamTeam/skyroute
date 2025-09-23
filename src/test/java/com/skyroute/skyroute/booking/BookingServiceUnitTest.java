@@ -6,7 +6,7 @@ import com.skyroute.skyroute.booking.dto.BookingRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
-import com.skyroute.skyroute.flight.service.FlightService;
+import com.skyroute.skyroute.flight.service.publicapi.FlightPublicService;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
@@ -42,7 +42,7 @@ public class BookingServiceUnitTest {
     private BookingRepository bookingRepository;
 
     @Mock
-    private FlightService flightService;
+    private FlightPublicService flightPublicService;
 
     @InjectMocks
     private BookingServiceImpl bookingServiceImpl;
@@ -126,89 +126,89 @@ public class BookingServiceUnitTest {
 
         @Test
         void createBooking_shouldCreateBooking_whenValidRequest() {
-            when(flightService.findById(1L)).thenReturn(testFlight);
-            when(flightService.isFlightAvailable(1L)).thenReturn(true);
-            when(flightService.hasAvailableSeats(1L, 2)).thenReturn(true);
+            when(flightPublicService.findById(1L)).thenReturn(testFlight);
+            when(flightPublicService.isFlightAvailable(1L)).thenReturn(true);
+            when(flightPublicService.hasAvailableSeats(1L, 2)).thenReturn(true);
             when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
-            doNothing().when(flightService).bookSeats(1L, 2);
+            doNothing().when(flightPublicService).bookSeats(1L, 2);
 
             BookingResponse result = bookingServiceImpl.createBooking(testRequest, testUser);
 
             assertNotNull(result);
             assertEquals(testBooking.getBookingNumber(), result.bookingNumber());
             assertEquals(testBooking.getTotalPrice(), result.totalPrice());
-            assertEquals(testBooking.getSeatsBooked(), result.seatsBooked());
+            assertEquals(testBooking.getBookedSeats(), result.bookedSeats());
 
-            verify(flightService).findById(1L);
-            verify(flightService).isFlightAvailable(1L);
-            verify(flightService).hasAvailableSeats(1L, 2);
-            verify(flightService).bookSeats(1L, 2);
+            verify(flightPublicService).findById(1L);
+            verify(flightPublicService).isFlightAvailable(1L);
+            verify(flightPublicService).hasAvailableSeats(1L, 2);
+            verify(flightPublicService).bookSeats(1L, 2);
             verify(bookingRepository).save(any(Booking.class));
         }
 
         @Test
         void createBooking_shouldThrowException_whenFlightNotFound() {
-            when(flightService.findById(1L)).thenThrow(new EntityNotFoundException("Flight with id: 1 not found"));
+            when(flightPublicService.findById(1L)).thenThrow(new EntityNotFoundException("Flight with id: 1 not found"));
 
             EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
 
             assertEquals("Flight with id: 1 not found", exception.getMessage());
 
-            verify(flightService).findById(1L);
+            verify(flightPublicService).findById(1L);
             verify(bookingRepository, never()).save(any());
-            verify(flightService, never()).bookSeats(anyLong(), anyInt());
+            verify(flightPublicService, never()).bookSeats(anyLong(), anyInt());
         }
 
         @Test
         void createBooking_shouldThrowException_whenFlightNotAvailable() {
-            when(flightService.findById(1L)).thenReturn(testFlight);
-            when(flightService.isFlightAvailable(1L)).thenReturn(false);
+            when(flightPublicService.findById(1L)).thenReturn(testFlight);
+            when(flightPublicService.isFlightAvailable(1L)).thenReturn(false);
 
             BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
 
             assertEquals("Flight not available for booking", exception.getMessage());
 
-            verify(flightService).findById(1L);
-            verify(flightService).isFlightAvailable(1L);
+            verify(flightPublicService).findById(1L);
+            verify(flightPublicService).isFlightAvailable(1L);
             verify(bookingRepository, never()).save(any());
-            verify(flightService, never()).bookSeats(anyLong(), anyInt());
+            verify(flightPublicService, never()).bookSeats(anyLong(), anyInt());
         }
 
         @Test
         void createBooking_shouldThrowException_whenInsufficientSeats() {
-            when(flightService.findById(1L)).thenReturn(testFlight);
-            when(flightService.isFlightAvailable(1L)).thenReturn(true);
-            when(flightService.hasAvailableSeats(1L, 2)).thenReturn(false);
+            when(flightPublicService.findById(1L)).thenReturn(testFlight);
+            when(flightPublicService.isFlightAvailable(1L)).thenReturn(true);
+            when(flightPublicService.hasAvailableSeats(1L, 2)).thenReturn(false);
 
             BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
 
             assertTrue(exception.getMessage().contains("Not enough seats available"));
 
-            verify(flightService, atLeastOnce()).findById(1L);
-            verify(flightService).isFlightAvailable(1L);
-            verify(flightService).hasAvailableSeats(1L, 2);
+            verify(flightPublicService, atLeastOnce()).findById(1L);
+            verify(flightPublicService).isFlightAvailable(1L);
+            verify(flightPublicService).hasAvailableSeats(1L, 2);
             verify(bookingRepository, never()).save(any());
-            verify(flightService, never()).bookSeats(anyLong(), anyInt());
+            verify(flightPublicService, never()).bookSeats(anyLong(), anyInt());
         }
 
         @Test
         void createBooking_shouldCalculateCorrectTotalPrice() {
             testFlight.setPrice(100.0);
 
-            when(flightService.findById(1L)).thenReturn(testFlight);
-            when(flightService.isFlightAvailable(1L)).thenReturn(true);
-            when(flightService.hasAvailableSeats(1L, 2)).thenReturn(true);
+            when(flightPublicService.findById(1L)).thenReturn(testFlight);
+            when(flightPublicService.isFlightAvailable(1L)).thenReturn(true);
+            when(flightPublicService.hasAvailableSeats(1L, 2)).thenReturn(true);
             when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> {
                         Booking booking = invocation.getArgument(0);
                         booking.setId(1L);
                         return booking;
             });
-            doNothing().when(flightService).bookSeats(1L, 2);
+            doNothing().when(flightPublicService).bookSeats(1L, 2);
             BookingResponse result = bookingServiceImpl.createBooking(testRequest, testUser);
 
             assertNotNull(result);
             assertEquals(200.0, result.totalPrice());
-            assertEquals(2, result.seatsBooked());
+            assertEquals(2, result.bookedSeats());
 
             verify(bookingRepository).save(argThat(booking ->
                     booking.getTotalPrice().equals(200.0)));
@@ -271,7 +271,7 @@ public class BookingServiceUnitTest {
 
     private Booking createTestBooking() {
         return Booking.builder()
-                .id(1L).bookingNumber("SR-ABC123").seatsBooked(2)
+                .id(1L).bookingNumber("SR-ABC123").bookedSeats(2)
                 .totalPrice(399.98).bookingStatus(BookingStatus.CREATED)
                 .passengerNames(List.of("pepe", "pepa"))
                 .passengerBirthDates(List.of(
