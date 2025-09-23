@@ -15,4 +15,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @EntityGraph(attributePaths = {"flight", "flight.route", "user"})
     Page<Booking> findAllByUser(Pageable pageable, User user);
+
+    @EntityGraph(attributePaths = {"flight", "flight.route", "user"})
+    Page<Booking> findAll(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"flight", "flight.route", "user"})
+    Optional<Booking> findById(Long id);
 }

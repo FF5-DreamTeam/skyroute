@@ -1,4 +1,4 @@
-package com.skyroute.skyroute.flight.service;
+package com.skyroute.skyroute.flight.service.admin;
 
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
@@ -23,8 +23,9 @@ public interface FlightService {
 
     Flight findById(Long id);
 
-    void bookSeats(Long flightId, int seatsBooked);
+    void bookSeats(Long flightId, int bookedSeats);
 
     Flight findEntityById(Long id);
 }
+
 
