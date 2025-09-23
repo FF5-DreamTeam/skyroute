@@ -28,12 +28,12 @@ public class AirportServiceImpl implements AirportService {
 
     @Override
     @Transactional
-    public AirportResponse createAirport(AirportCreateRequest request, MultipartFile image) {
+    public AirportResponse createAirport(AirportCreateRequest request) {
         if (airportRepository.findByCode(request.code()).isPresent()){
             throw new EntityAlreadyExistsException("Airport code already exist: " + request.code());
         }
 
-        String imageUrl = uploadImage(image);
+        String imageUrl = uploadImage(request.image());
 
         Airport airport = AirportMapper.toEntityFromCreate(request, imageUrl);
 

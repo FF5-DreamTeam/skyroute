@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface AirportService {
-    AirportResponse createAirport(AirportCreateRequest request, MultipartFile image);
+    AirportResponse createAirport(AirportCreateRequest request);
     List<AirportResponse> getAllAirports();
     AirportResponse getAirportById(Long id);
     AirportResponse updateAirport(Long id, AirportUpdateRequest request, MultipartFile image);
