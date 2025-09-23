@@ -4,7 +4,6 @@ import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
 import com.skyroute.skyroute.airport.entity.Airport;
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
-import com.skyroute.skyroute.flight.dto.admin.FlightRequest.FlightUpdate;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
@@ -95,13 +94,6 @@ public class FlightServiceImplTest {
         when(routeRepository.findById(routeId)).thenReturn(Optional.of(route));
     }
 
-    private FlightUpdate buildFlightUpdate(String flightNumber, int seats,
-                                           LocalDateTime departureTime, LocalDateTime arrivalTime,
-                                           double price, boolean available, Long aircraftId, Long routeId) {
-        return new FlightUpdate(flightNumber, seats, departureTime, arrivalTime, price, available, aircraftId, routeId);
-    }
-
-
     @Test
     void testCreateFlight_Success() {
         when(aircraftRepository.findById(1L)).thenReturn(Optional.of(aircraft));
@@ -134,7 +126,7 @@ public class FlightServiceImplTest {
     }
 
     @Test
-    void testUpdateFlightWithFlightRequest() {
+    void testUpdateFlight_Success() {
         FlightRequest updateRequest = new FlightRequest(
                 "CD456",
                 120,
@@ -158,22 +150,26 @@ public class FlightServiceImplTest {
     }
 
     @Test
-    void testUpdateFlightWithFlightUpdate_Success() {
-        FlightUpdate update = buildFlightUpdate(
-                "XY789",
-                80,
-                LocalDateTime.now().plusDays(3),
-                LocalDateTime.now().plusDays(3).plusHours(1),
-                180.0,
-                true,
-                1L,
-                1L
+    void testUpdateFlight_PartialUpdate() {
+        FlightRequest partialUpdateRequest = new FlightRequest(
+                "XY789", // New flight number
+                80,      // New available seats
+                null,    // Keep existing departure time
+                null,    // Keep existing arrival time
+                180.0,   // New price
+                1L,      // Keep existing aircraft ID
+                1L,      // Keep existing route ID
+                true     // New availability
         );
+
+        // Mock the dependencies
         mockDependencies(1L, 1L);
         when(flightRepository.save(any(Flight.class))).thenReturn(flight);
 
-        FlightResponse response = flightService.updateFlight(1L, update);
+        // Act
+        FlightResponse response = flightService.updateFlight(1L, partialUpdateRequest);
 
+        // Assert
         assertNotNull(response);
         assertEquals("XY789", response.flightNumber());
         assertEquals(80, response.availableSeats());
@@ -184,40 +180,40 @@ public class FlightServiceImplTest {
     }
 
     @Test
-    void testUpdateFlightWithFlightUpdate_AircraftNotFound() {
-        FlightUpdate update = buildFlightUpdate(
+    void testUpdateFlight_AircraftNotFound() {
+        FlightRequest updateRequest = new FlightRequest(
                 "XY789",
                 80,
                 LocalDateTime.now().plusDays(3),
                 LocalDateTime.now().plusDays(3).plusHours(1),
                 180.0,
-                true,
                 2L,
-                1L
+                1L,
+                true
         );
         when(flightRepository.findById(1L)).thenReturn(Optional.of(flight));
         when(aircraftRepository.findById(2L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> flightService.updateFlight(1L, update));
+        assertThrows(EntityNotFoundException.class, () -> flightService.updateFlight(1L, updateRequest));
     }
 
     @Test
-    void testUpdateFlightWithFlightUpdate_RouteNotFound() {
-        FlightUpdate update = buildFlightUpdate(
+    void testUpdateFlight_RouteNotFound() {
+        FlightRequest updateRequest = new FlightRequest(
                 "XY789",
                 80,
                 LocalDateTime.now().plusDays(3),
                 LocalDateTime.now().plusDays(3).plusHours(1),
                 180.0,
-                true,
                 1L,
-                2L
+                2L,
+                true
         );
         when(flightRepository.findById(1L)).thenReturn(Optional.of(flight));
         when(aircraftRepository.findById(1L)).thenReturn(Optional.of(aircraft));
         when(routeRepository.findById(2L)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> flightService.updateFlight(1L, update));
+        assertThrows(EntityNotFoundException.class, () -> flightService.updateFlight(1L, updateRequest));
     }
 
     @Test
