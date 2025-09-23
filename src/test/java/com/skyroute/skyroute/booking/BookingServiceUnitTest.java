@@ -2,9 +2,12 @@ package com.skyroute.skyroute.booking;
 
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.airport.entity.Airport;
+import com.skyroute.skyroute.booking.dto.BookingRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
+import com.skyroute.skyroute.flight.service.FlightService;
+import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
 import com.skyroute.skyroute.booking.service.BookingServiceImpl;
@@ -26,8 +29,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -37,17 +39,27 @@ public class BookingServiceUnitTest {
     @Mock
     private BookingRepository bookingRepository;
 
+    @Mock
+    private FlightService flightService;
+
     @InjectMocks
     private BookingServiceImpl bookingServiceImpl;
 
     private User testUser;
+    private User testAdmin;
     private Booking testBooking;
+    private Flight testFlight;
+    private BookingRequest testRequest;
     private static final String ENCODED_PASSWORD = "encodedPassword";
 
     @BeforeEach
     void setUp() {
-        testUser = createTestUser();
+        testUser = createTestUser(1L, Role.USER);
+        testUser = createTestUser(2L, Role.ADMIN);
         testBooking= createTestBooking();
+        testFlight = createTestFlight();
+        testBooking =createTestBooking();
+        testRequest = createTestRequest();
     }
 
     @Nested
@@ -107,16 +119,110 @@ public class BookingServiceUnitTest {
         }
     }
 
-    private  User createTestUser() {
+    @Nested
+    class CreateBookingsTests {
+
+        @Test
+        void createBooking_shouldCreateBooking_whenValidRequest() {
+            when(flightService.findById(1L)).thenReturn(testFlight);
+            when(flightService.isFlightAvailable(1L)).thenReturn(true);
+            when(flightService.hasAvailableSeats(1L, 2)).thenReturn(true);
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+            doNothing().when(flightService).bookSeats(1L, 2);
+
+            BookingResponse result = bookingServiceImpl.createBooking(testRequest, testUser);
+
+            assertNotNull(result);
+            assertEquals(testBooking.getBookingNumber(), result.bookingNumber());
+            assertEquals(testBooking.getTotalPrice(), result.totalPrice());
+            assertEquals(testBooking.getSeatsBooked(), result.seatsBooked());
+
+            verify(flightService).findById(1L);
+            verify(flightService).isFlightAvailable(1L);
+            verify(flightService).hasAvailableSeats(1L, 2);
+            verify(flightService).bookSeats(1L, 2);
+            verify(bookingRepository).save(any(Booking.class));
+        }
+
+        @Test
+        void createBooking_shouldThrowException_whenFlightNotFound() {
+            when(flightService.findById(1L)).thenThrow(new EntityNotFoundException("Flight with id: 1 not found"));
+
+            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
+
+            assertEquals("Flight with id: 1 not found", exception.getMessage());
+
+            verify(flightService).findById(1L);
+            verify(bookingRepository, never()).save(any());
+            verify(flightService, never()).bookSeats(anyLong(), anyInt());
+        }
+
+        @Test
+        void createBooking_shouldThrowException_whenFlightNotAvailable() {
+            when(flightService.findById(1L)).thenReturn(testFlight);
+            when(flightService.isFlightAvailable(1L)).thenReturn(false);
+
+            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
+
+            assertEquals("Flight not available for booking", exception.getMessage());
+
+            verify(flightService).findById(1L);
+            verify(flightService).isFlightAvailable(1L);
+            verify(bookingRepository, never()).save(any());
+            verify(flightService, never()).bookSeats(anyLong(), anyInt());
+        }
+
+        @Test
+        void createBooking_shouldThrowException_whenInsufficientSeats() {
+            when(flightService.findById(1L)).thenReturn(testFlight);
+            when(flightService.isFlightAvailable(1L)).thenReturn(true);
+            when(flightService.hasAvailableSeats(1L, 2)).thenReturn(false);
+
+            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
+
+            assertTrue(exception.getMessage().contains("Not enough seats available"));
+
+            verify(flightService, atLeastOnce()).findById(1L);
+            verify(flightService).isFlightAvailable(1L);
+            verify(flightService).hasAvailableSeats(1L, 2);
+            verify(bookingRepository, never()).save(any());
+            verify(flightService, never()).bookSeats(anyLong(), anyInt());
+        }
+
+        @Test
+        void createBooking_shouldCalculateCorrectTotalPrice() {
+            testFlight.setPrice(100.0);
+
+            when(flightService.findById(1L)).thenReturn(testFlight);
+            when(flightService.isFlightAvailable(1L)).thenReturn(true);
+            when(flightService.hasAvailableSeats(1L, 2)).thenReturn(true);
+            when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> {
+                        Booking booking = invocation.getArgument(0);
+                        booking.setId(1L);
+                        return booking;
+            });
+            doNothing().when(flightService).bookSeats(1L, 2);
+            BookingResponse result = bookingServiceImpl.createBooking(testRequest, testUser);
+
+            assertNotNull(result);
+            assertEquals(200.0, result.totalPrice());
+            assertEquals(2, result.seatsBooked());
+
+            verify(bookingRepository).save(argThat(booking ->
+                    booking.getTotalPrice().equals(200.0)));
+        }
+    }
+
+    private  User createTestUser(Long id, Role role) {
         return User.builder()
-                .id(1L)
+                .id(id)
                 .firstName("Test")
-                .lastName("User")
-                .email("test@email.com")
+                .lastName("User" + id)
+                .email("test" + id + "@email.com")
                 .password(ENCODED_PASSWORD)
                 .phoneNumber("+123456789")
                 .birthDate(LocalDate.of(1990,1,1))
-                .role(Role.USER)
+                .role(role)
                 .build();
     }
 
@@ -174,4 +280,12 @@ public class BookingServiceUnitTest {
                 .build();
     }
 
+    private BookingRequest createTestRequest() {
+        return new BookingRequest(
+                1L,
+                2,
+                List.of("Pepito", "Maria"),
+                List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1991, 1, 1))
+        );
+    }
 }

@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
@@ -53,6 +54,7 @@ public class BookingServiceImpl implements BookingService{
     }
 
     @Override
+    @Transactional
     public BookingResponse createBooking(BookingRequest request, User user) {
         Flight flight = flightService.findById(request.flightId());
         validateFlightBookingEligibility(request.flightId(), request.seatsBooked());
