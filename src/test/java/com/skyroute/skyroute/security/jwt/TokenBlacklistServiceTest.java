@@ -4,10 +4,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Execution(ExecutionMode.CONCURRENT)
+@ActiveProfiles("test")
 class TokenBlacklistServiceTest {
 
     private TokenBlacklistService tokenBlacklistService;

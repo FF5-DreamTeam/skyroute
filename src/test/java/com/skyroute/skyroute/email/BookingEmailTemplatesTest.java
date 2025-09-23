@@ -1,9 +1,11 @@
 package com.skyroute.skyroute.email;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
 class BookingEmailTemplatesTest {
 
     @Test
