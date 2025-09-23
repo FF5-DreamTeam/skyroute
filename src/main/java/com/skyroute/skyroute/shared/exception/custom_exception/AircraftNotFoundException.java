@@ -1,0 +1,7 @@
+package com.skyroute.skyroute.shared.exception.custom_exception;
+
+public class AircraftNotFoundException extends RuntimeException{
+    public AircraftNotFoundException(String message) {
+        super(message);
+    }
+}
