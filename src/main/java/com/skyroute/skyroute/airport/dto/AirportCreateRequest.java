@@ -1,8 +1,10 @@
 package com.skyroute.skyroute.airport.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.springframework.web.multipart.MultipartFile;
 
 public record AirportCreateRequest(
         @NotBlank(message = "Airport code cannot be blank")
@@ -12,5 +14,8 @@ public record AirportCreateRequest(
 
         @NotBlank(message = "City cannot be blank")
         @Size(min = 2, max = 100, message = "City name must be between 2 and 100 characters")
-        String city
+        String city,
+
+        @NotNull(message = "Image cannot be null")
+        MultipartFile image
 ) {}

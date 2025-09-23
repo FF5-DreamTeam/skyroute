@@ -6,6 +6,7 @@ import com.skyroute.skyroute.airport.dto.AirportUpdateRequest;
 import com.skyroute.skyroute.airport.service.AirportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +29,9 @@ public class AirportController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create Airport", description = "Create airport, all fields and image required")
     public ResponseEntity<AirportResponse> createAirport(
-            @RequestParam("code") @Size(min = 3, max = 3) @Pattern(regexp = "[A-Z]{3}") String code,
-            @RequestParam("city") @Size(min = 2, max = 100) String city,
-            @RequestParam("image") MultipartFile image) {
-
-        AirportCreateRequest request = new AirportCreateRequest(code, city);
-        AirportResponse response = airportService.createAirport(request, image);
+            @ModelAttribute @Valid AirportCreateRequest request
+    ) {
+        AirportResponse response = airportService.createAirport(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
