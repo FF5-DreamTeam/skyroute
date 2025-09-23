@@ -47,6 +47,9 @@ public class SecurityConfig {
                                                                 "/api/airports",
                                                                 "/api/routes", "/api/flights")
                                                 .hasRole("ADMIN")
+
+                                                .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
+
                                                 .requestMatchers(HttpMethod.PUT, "/api/users/**", "/api/aircrafts/**",
                                                                 "/api/airports/**",
                                                                 "/api/routes/**", "/api/flights/**")
@@ -55,12 +58,11 @@ public class SecurityConfig {
                                                                 "/api/aircrafts/**", "/api/airports/**",
                                                                 "/api/routes/**", "/api/flights/**")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/bookings", "/api/aircrafts" )
+                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/bookings",
+                                                                "/api/aircrafts")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/bookings/flight/**")
                                                 .hasRole("ADMIN")
-
-                                                .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
                                                 .requestMatchers(HttpMethod.GET, "/api/bookings/user/*").authenticated()
                                                 .requestMatchers(HttpMethod.POST, "/api/bookings").authenticated()
 
