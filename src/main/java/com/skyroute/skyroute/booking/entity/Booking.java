@@ -29,7 +29,7 @@ public class Booking extends BaseEntity {
     private String bookingNumber;
 
     @Column(name= "seats_booked")
-    private int seatsBooked;
+    private int bookedSeats;
 
     @ElementCollection
     @CollectionTable(name = "booking_passenger_names", joinColumns = @JoinColumn(name = "booking_id"))

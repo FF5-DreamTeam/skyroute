@@ -12,7 +12,7 @@ public record BookingRequest(
 
     @Positive(message = "Seats booked must be positive")
     @Max(value = 10, message = "Maximum 10 seats per booking")
-    int seatsBooked,
+    int bookedSeats,
 
     @NotEmpty(message = "At least one passenger name is required")
     @Size(min = 1, max = 10, message = "Between 1 and 10 passenger allowed")
@@ -27,7 +27,7 @@ public record BookingRequest(
             if (passengerNames.size() != passengerBirthDates.size()) {
                 throw  new IllegalArgumentException("Number of passenger names must match number of passenger birth dates");
             }
-            if (seatsBooked != passengerNames.size()) {
+            if (bookedSeats != passengerNames.size()) {
                 throw new IllegalArgumentException("Number of seats must match number of passengers");
             }
         }

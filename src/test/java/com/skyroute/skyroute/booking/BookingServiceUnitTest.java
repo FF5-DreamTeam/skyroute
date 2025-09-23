@@ -165,7 +165,7 @@ public class BookingServiceUnitTest {
 
     private Booking createTestBooking() {
         return Booking.builder()
-                .id(1L).bookingNumber("SR-ABC123").seatsBooked(2)
+                .id(1L).bookingNumber("SR-ABC123").bookedSeats(2)
                 .totalPrice(399.98).bookingStatus(BookingStatus.CREATED)
                 .passengerNames(List.of("pepe", "pepa"))
                 .passengerBirthDates(List.of(
