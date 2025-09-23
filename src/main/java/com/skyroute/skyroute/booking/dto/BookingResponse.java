@@ -17,7 +17,7 @@ public record BookingResponse(
         LocalDateTime arrivalTime,
         List<String> passengerNames,
         List<String> passengerBirthDates,
-        int seatsBooked,
+        int bookedSeats,
         Double totalPrice,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
