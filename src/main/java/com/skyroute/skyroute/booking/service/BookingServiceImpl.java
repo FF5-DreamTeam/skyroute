@@ -91,6 +91,12 @@ public class BookingServiceImpl implements BookingService{
         updateBookingStatus(id, BookingStatus.CANCELLED, user);
     }
 
+    @Override
+    @Transactional
+    public BookingResponse confirmBooking(Long id, User user) {
+        return updateBookingStatus(id, BookingStatus.CONFIRMED, user);
+    }
+
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
         if (page < 0) throw new IllegalArgumentException("Page index must be 0 or greater");
         if (size <= 0) throw new IllegalArgumentException("Page size must be greater than 0");
