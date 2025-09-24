@@ -7,6 +7,7 @@ import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.flight.service.admin.FlightService;
+import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
@@ -49,6 +50,7 @@ public class BookingServiceUnitTest {
 
     private User testUser;
     private User testAdmin;
+    private User anotherUser;
     private Booking testBooking;
     private Flight testFlight;
     private BookingRequest testRequest;
@@ -57,7 +59,8 @@ public class BookingServiceUnitTest {
     @BeforeEach
     void setUp() {
         testUser = createTestUser(1L, Role.USER);
-        testUser = createTestUser(2L, Role.ADMIN);
+        testAdmin = createTestUser(2L, Role.ADMIN);
+        anotherUser =createTestUser(3L, Role.USER);
         testBooking= createTestBooking();
         testFlight = createTestFlight();
         testBooking =createTestBooking();
@@ -254,7 +257,50 @@ public class BookingServiceUnitTest {
 
             BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser));
 
+            assertEquals("Booking is already in CANCELLED status", exception.getMessage());
             verify(flightService, never()).releaseSeats(anyLong(), anyInt());
+        }
+
+        @Test
+        void updateBookingStatus_ShouldThrowException_WhenInvalidTransition() {
+            testBooking.setBookingStatus(BookingStatus.CANCELLED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
+
+            assertEquals("Cannot change status of a CANCELLED booking", exception.getMessage());
+        }
+
+        @Test
+        void updateBookingStatus_ShouldThrowException_WhenSameStatus() {
+            testBooking.setBookingStatus(BookingStatus.CONFIRMED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, testUser));
+
+            assertEquals("Booking is already in CONFIRMED status", exception.getMessage());
+        }
+
+        @Test
+        void updateBookingStatus_ShouldThrowException_WhenUserAccessDenied() {
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, anotherUser));
+
+            assertEquals("User cannot access this booking", exception.getMessage());
+        }
+
+        @Test
+        void updateBookingStatus_ShouldAllowAdmin_ToUpdateAnyBooking() {
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+
+            BookingResponse result = bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, testAdmin);
+
+            assertNotNull(result);
+            assertEquals(BookingStatus.CONFIRMED, testBooking.getBookingStatus());
+
+            verify(bookingRepository).save(testBooking);
         }
     }
 
