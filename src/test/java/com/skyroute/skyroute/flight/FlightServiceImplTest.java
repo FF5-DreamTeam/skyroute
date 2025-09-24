@@ -262,7 +262,7 @@ public class FlightServiceImplTest {
     @Test
     void testFindEntityById_Success() {
         when(flightRepository.findById(1L)).thenReturn(Optional.of(flight));
-        Flight found = flightService.findEntityById(1L);
+        Flight found = flightService.findById(1L);
         assertNotNull(found);
         assertEquals(flight.getId(), found.getId());
     }
@@ -270,7 +270,7 @@ public class FlightServiceImplTest {
     @Test
     void testFindEntityById_NotFound() {
         when(flightRepository.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> flightService.findEntityById(1L));
+        assertThrows(EntityNotFoundException.class, () -> flightService.findById(1L));
     }
 }
 

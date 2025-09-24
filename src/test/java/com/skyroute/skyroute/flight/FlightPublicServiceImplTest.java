@@ -74,7 +74,6 @@ public class FlightPublicServiceImplTest {
 
     @Test
     void testReserveFirstAlternative_within2HoursDifference() {
-        // Original flight
         Flight original = new Flight();
         original.setId(1L);
         original.setFlightNumber("SR100");
@@ -82,7 +81,6 @@ public class FlightPublicServiceImplTest {
         original.setDepartureTime(LocalDateTime.now().plusHours(1));
         original.setRoute(flight.getRoute());
 
-        // Alternative flight
         Flight alternative = new Flight();
         alternative.setId(2L);
         alternative.setFlightNumber("SR200");
@@ -92,23 +90,18 @@ public class FlightPublicServiceImplTest {
         alternative.setArrivalTime(LocalDateTime.now().plusHours(4));
         alternative.setRoute(flight.getRoute());
 
-        // Mocks
         when(flightRepository.findById(1L)).thenReturn(Optional.of(original));
         when(flightRepository.findSimilarFlights(anyLong(), any(), any(), eq(1L)))
                 .thenReturn(List.of(alternative));
-        when(flightService.findEntityById(2L)).thenReturn(alternative);
+        when(flightService.findById(2L)).thenReturn(alternative);
 
-        // Act
         FlightSimpleResponse response = service.reserveFirstAlternative(1L, 2);
-
-        // Assert
         assertNotNull(response);
         assertEquals(2L, response.id());
         assertEquals("SR200", response.flightNumber());
         // Price should be difference (150 - 100 = 50)
         assertEquals(50.0, response.price());
 
-        // Verify seats updated
         ArgumentCaptor<FlightRequest> captor = ArgumentCaptor.forClass(FlightRequest.class);
         verify(flightService).updateFlight(eq(2L), captor.capture());
         assertEquals(18, captor.getValue().availableSeats());
@@ -116,7 +109,7 @@ public class FlightPublicServiceImplTest {
 
     @Test
     void testReserveFirstAlternative_after2HoursDifference() {
-        // Arrange
+
         Route route = new Route();
         route.setId(1L);
 
@@ -128,20 +121,17 @@ public class FlightPublicServiceImplTest {
 
         Flight alternative = new Flight();
         alternative.setId(2L);
-        alternative.setFlightNumber("SR200"); // <-- faltaba el número de vuelo
+        alternative.setFlightNumber("SR200");
         alternative.setPrice(200.0);
         alternative.setAvailableSeats(5);
         alternative.setDepartureTime(LocalDateTime.now().minusHours(1));
         alternative.setArrivalTime(LocalDateTime.now().plusHours(1));
         alternative.setRoute(route);
 
-        // Mocks
         when(flightRepository.findById(original.getId())).thenReturn(Optional.of(original));
         when(flightRepository.findSimilarFlights(eq(route.getId()), any(), any(), eq(original.getId())))
                 .thenReturn(List.of(alternative));
-        when(flightService.findEntityById(alternative.getId())).thenReturn(alternative);
-
-        // 👉 aquí devolvemos un FlightResponse en lugar de un Flight
+        when(flightService.findById(alternative.getId())).thenReturn(alternative);
         when(flightService.updateFlight(eq(alternative.getId()), any()))
                 .thenReturn(new FlightResponse(
                         alternative.getId(),
@@ -157,10 +147,8 @@ public class FlightPublicServiceImplTest {
                         LocalDateTime.now()
                 ));
 
-        // Act
         FlightSimpleResponse response = service.reserveFirstAlternative(original.getId(), 1);
 
-        // Assert
         assertNotNull(response, "Response should not be null");
         assertEquals(2L, response.id());
         assertEquals("SR200", response.flightNumber());

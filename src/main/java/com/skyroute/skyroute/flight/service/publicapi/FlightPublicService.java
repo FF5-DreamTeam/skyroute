@@ -12,6 +12,6 @@ public interface FlightPublicService {
 
     FlightSimpleResponse getFlightById(Long id);
 
-    Flight findEntityById(Long id);
+    Flight findById(Long id);
 }
 

@@ -11,9 +11,7 @@ public interface FlightService {
     FlightResponse createFlight(FlightRequest request);
 
     FlightResponse updateFlight(Long id, FlightRequest request);
-
-    FlightResponse updateFlight(Long id, FlightRequest.FlightUpdate request);
-
+    
     FlightResponse getFlightById(Long id);
 
     List<FlightResponse> getAllFlights();

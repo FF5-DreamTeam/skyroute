@@ -44,8 +44,7 @@ public class FlightPublicServiceImpl implements FlightPublicService {
         return toSimpleResponse(flight);
     }
 
-    @Override
-    public Flight findEntityById(Long id) {
+    public Flight findById(Long id) {
         return flightRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Flight with id:  not found" + id));
     }
@@ -67,3 +66,6 @@ public class FlightPublicServiceImpl implements FlightPublicService {
         );
     }
 }
+//
+/// /    public FlightSimpleResponse reserveFirstAlternative(long l, int i) {
+/// /    }
