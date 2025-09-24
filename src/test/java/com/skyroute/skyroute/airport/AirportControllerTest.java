@@ -3,6 +3,7 @@ package com.skyroute.skyroute.airport;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityAlreadyExistsException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import com.skyroute.skyroute.shared.exception.custom_exception.ImageUploadException;
+import com.skyroute.skyroute.shared.exception.custom_exception.InvalidUpdateRequestException;
 import org.springframework.test.context.ActiveProfiles;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skyroute.skyroute.airport.dto.AirportResponse;
@@ -269,6 +270,139 @@ public class AirportControllerTest {
                     .andExpect(status().isOk());
 
             verify(airportService).getAirportById(1L);
+        }
+    }
+
+    @Nested
+    class UpdateAirportTests {
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateAirport_shouldReturnUpdatedAirport_whenValidRequest() throws Exception{
+            MockMultipartFile image = new MockMultipartFile(
+                    "image",
+                    "updated.jpg",
+                    MediaType.IMAGE_JPEG_VALUE,
+                    "updated image".getBytes()
+            );
+
+            AirportResponse response = new AirportResponse(
+                    1L,
+                    "MAD",
+                    "Madrid Updated",
+                    "http://example/updated.jpg"
+            );
+            when(airportService.updateAirport(eq(1L), any())).thenReturn(response);
+
+            mockMvc.perform(multipart("/api/airports/1")
+                    .file(image)
+                    .param("code", "MAD")
+                    .param("city", "Madrid Updated")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .with(request -> {
+                        request.setMethod("PUT");
+                        return request;
+                    }))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.city").value("Madrid Updated"));
+
+            verify(airportService).updateAirport(eq(1L), any());
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateAirport_shouldReturnUpdatedAirport_whenPartialUpdate() throws Exception{
+            AirportResponse response = new AirportResponse(
+                    1L,
+                    "MAD",
+                    "Madrid Updated",
+                    "http://example/old.jpg"
+            );
+            when(airportService.updateAirport(eq(1L), any())).thenReturn(response);
+
+            mockMvc.perform(multipart("/api/airports/1")
+                    .param("city", "Madrid Updated")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .with(request -> {
+                        request.setMethod("PUT");
+                        return request;
+                    }))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.city").value("Madrid Updated"));
+
+            verify(airportService).updateAirport(eq(1L), any());
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateAirport_shouldReturnNotFound_whenAirportDoesNotExist() throws Exception{
+            when(airportService.updateAirport(eq(99L), any()))
+                    .thenThrow(new EntityNotFoundException("Airport not found with ID: 99"));
+
+            mockMvc.perform(multipart("/api/airports/99")
+                    .param("city", "Updated City")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .with(request -> {
+                        request.setMethod("PUT");
+                        return request;
+                    }))
+                    .andExpect(status().isNotFound());
+
+            verify(airportService).updateAirport(eq(99L), any());
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateAirport_shouldReturnBadRequest_whenInvalidUpdateRequest() throws  Exception{
+            when(airportService.updateAirport(eq(1L), any()))
+                    .thenThrow(new InvalidUpdateRequestException("At least one field must be provided for update"));
+
+            mockMvc.perform(multipart("/api/airports/1")
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .with(request -> {
+                                request.setMethod("PUT");
+                                return request;
+                            }))
+                    .andExpect(status().isBadRequest());
+            verify(airportService).updateAirport(eq(1L), any());
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateAirport_shouldReturnBadRequest_whenInvalidCodeValidation() throws  Exception{
+            MockMultipartFile emptyImage = new MockMultipartFile(
+                    "image",
+                    "empty.jpg",
+                    "image/jpeg",
+                    new byte[0]
+            );
+
+            mockMvc.perform(multipart("/api/airports/1")
+                            .file(emptyImage)
+                            .param("code", "ma")
+                            .param("city", "Madrid")
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .with(request -> {
+                                request.setMethod("PUT");
+                                return request;
+                            }))
+                    .andExpect(status().isBadRequest());
+            verify(airportService, never()).updateAirport(anyLong(), any());
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void updateAirport_shouldReturnForbidden_whenNotAdmin() throws  Exception{
+
+            mockMvc.perform(multipart("/api/airports/1")
+                            .param("city", "Updated City")
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .with(request -> {
+                                request.setMethod("PUT");
+                                return request;
+                            }))
+                    .andExpect(status().isForbidden());
+            verify(airportService, never()).updateAirport(anyLong(), any());
         }
     }
 

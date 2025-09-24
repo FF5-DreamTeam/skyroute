@@ -2,6 +2,7 @@ package com.skyroute.skyroute.airport;
 
 import com.skyroute.skyroute.airport.dto.AirportCreateRequest;
 import com.skyroute.skyroute.airport.dto.AirportResponse;
+import com.skyroute.skyroute.airport.dto.AirportUpdateRequest;
 import com.skyroute.skyroute.airport.entity.Airport;
 import com.skyroute.skyroute.airport.repository.AirportRepository;
 import com.skyroute.skyroute.airport.service.AirportServiceImpl;
@@ -9,6 +10,7 @@ import com.skyroute.skyroute.cloudinary.CloudinaryService;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityAlreadyExistsException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import com.skyroute.skyroute.shared.exception.custom_exception.ImageUploadException;
+import com.skyroute.skyroute.shared.exception.custom_exception.InvalidUpdateRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,6 +47,7 @@ public class AirportServiceTest {
     private AirportCreateRequest testCreateRequest;
     private MultipartFile testImage;
     private Map<String, Object> testCloudinaryResult;
+    private AirportUpdateRequest testUpdateRequest;
 
     @BeforeEach
     void setUp(){
@@ -52,6 +55,7 @@ public class AirportServiceTest {
         testImage = createTestImage();
         testCreateRequest = new AirportCreateRequest("MAD", "Madrid", testImage);
         testCloudinaryResult = Map.of("secure_curl", "http://example.com/image.jpg");
+        testUpdateRequest = createTestUpdateRequest();
     }
 
     @Nested
@@ -212,6 +216,174 @@ public class AirportServiceTest {
         }
     }
 
+    @Nested
+    class UpdateAirportTests {
+        @Test
+        void updateAirports_shouldReturnUpdatesAirport_whenValidRequestWithImage() throws IOException {
+            when(airportRepository.findById(1L)).thenReturn(Optional.of(testAirport));
+            when(cloudinaryService.uploadFile(testUpdateRequest.image())).thenReturn(testCloudinaryResult);
+            when(airportRepository.save(testAirport)).thenReturn(testAirport);
+
+            AirportResponse result = airportService.updateAirport(1L, testUpdateRequest);
+
+            assertNotNull(result);
+            assertEquals(testAirport.getId(), result.id());
+            assertEquals("MAD", result.code());
+            assertEquals("Madrid Updated", result.city());
+
+            verify(airportRepository).findById(1L);
+            verify(cloudinaryService).uploadFile(testUpdateRequest.image());
+            verify(cloudinaryService).deleteFile(anyString());
+            verify(airportRepository).save(testAirport);
+        }
+
+        @Test
+        void updateAirports_shouldReturnUpdatesAirport_whenValidRequestWithoutImage() throws IOException {
+            AirportUpdateRequest testUpdateRequest = new AirportUpdateRequest(
+                    "MAD",
+                    "Madrid Updated",
+                    null
+            );
+            when(airportRepository.findById(1L)).thenReturn(Optional.of(testAirport));
+            when(airportRepository.save(testAirport)).thenReturn(testAirport);
+
+            AirportResponse result = airportService.updateAirport(1L, testUpdateRequest);
+
+            assertNotNull(result);
+            assertEquals(testAirport.getId(), result.id());
+            assertEquals("MAD", result.code());
+            assertEquals("Madrid Updated", result.city());
+
+            verify(airportRepository).findById(1L);
+            verify(cloudinaryService, never()).uploadFile(any());
+            verify(airportRepository).save(testAirport);
+        }
+
+        @Test
+        void updateAirport_shouldReturnUpdatedAirport_whenPartialUpdate() {
+            AirportUpdateRequest partialRequest = new AirportUpdateRequest(
+                    null,
+                    "Madrid Partial",
+                    null
+            );
+            when(airportRepository.findById(1L)).thenReturn(Optional.of(testAirport));
+            when(airportRepository.save(testAirport)).thenReturn(testAirport);
+
+            AirportResponse result = airportService.updateAirport(1L, partialRequest);
+
+            assertNotNull(result);
+            assertEquals(testAirport.getCode(), result.code());
+            assertEquals("Madrid Partial", testAirport.getCity());
+            verify(airportRepository).findById(1L);
+            verify(airportRepository).save(testAirport);
+        }
+
+        @Test
+        void updateAirport_shouldThrowEntityNotFoundException_whenAirportDoesNotExist() throws IOException {
+            AirportUpdateRequest testUpdateRequest = new AirportUpdateRequest(
+                    "MAD",
+                    "Madrid Updated",
+                    createTestImage()
+            );
+            when(airportRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> airportService.updateAirport(99L, testUpdateRequest)
+            );
+
+            assertEquals("Airport not found with ID: 99", exception.getMessage());
+            verify(airportRepository).findById(99L);
+            verify(cloudinaryService, never()).uploadFile(any());
+            verify(airportRepository, never()).save(any());
+        }
+
+        @Test
+        void updateAirport_shouldThrowInvalidUpdateRequestException_whenNoFieldsProvided() throws IOException {
+            AirportUpdateRequest emptyRequest = new AirportUpdateRequest(
+                    null,
+                    null,
+                    null
+            );
+            when(airportRepository.findById(1L)).thenReturn(Optional.of(testAirport));
+
+            InvalidUpdateRequestException exception = assertThrows(
+                    InvalidUpdateRequestException.class,
+                    () -> airportService.updateAirport(1L, emptyRequest)
+            );
+
+            assertEquals("At least one field must be provided for update", exception.getMessage());
+            verify(airportRepository).findById(1L);
+            verify(cloudinaryService, never()).uploadFile(any());
+            verify(airportRepository, never()).save(any());
+        }
+
+        @Test
+        void updateAirport_shouldAllowImageOnlyUpdate() throws IOException {
+            MultipartFile testImage = createTestImage();
+            AirportUpdateRequest emptyFieldsRequest = new AirportUpdateRequest(
+                    null,
+                    null,
+                    testImage
+            );
+
+            when(airportRepository.findById(1L)).thenReturn(Optional.of(testAirport));
+            when(cloudinaryService.uploadFile(any(MultipartFile.class))).thenReturn(testCloudinaryResult);
+            when(airportRepository.save(testAirport)).thenReturn(testAirport);
+
+            AirportResponse result = airportService.updateAirport(1L, emptyFieldsRequest);
+
+            assertNotNull(result);
+            verify(airportRepository).findById(1L);
+            verify(cloudinaryService).uploadFile(testImage);
+            verify(airportRepository).save(testAirport);
+        }
+
+        @Test
+        void updateAirport_shouldThrowRuntimeException_whenImageUploadFailsOnUpdate() throws IOException {
+            MultipartFile testImage = createTestImage();
+            AirportUpdateRequest testUpdateRequest = new AirportUpdateRequest(
+                    "MAD",
+                    "Madrid Updated",
+                    testImage
+            );
+
+            when(airportRepository.findById(1L)).thenReturn(Optional.of(testAirport));
+            when(cloudinaryService.uploadFile(any(MultipartFile.class))).thenThrow(new IOException("Upload failed"));
+
+            ImageUploadException exception = assertThrows(
+                    ImageUploadException.class,
+                    () -> airportService.updateAirport(1L, testUpdateRequest)
+            );
+
+            assertEquals("Error uploading image: Upload failed", exception.getMessage());
+            verify(airportRepository).findById(1L);
+            verify(cloudinaryService).uploadFile(testImage);
+            verify(airportRepository, never()).save(any());
+        }
+
+        @Test
+        void updateAirport_shouldHandleEmptyImage() throws IOException {
+            MultipartFile emptyImage = mock(MultipartFile.class);
+            when(emptyImage.isEmpty()).thenReturn(true);
+            AirportUpdateRequest testUpdateRequest = new AirportUpdateRequest(
+                    "MAD",
+                    "Madrid Updated",
+                    emptyImage
+            );
+
+            when(airportRepository.findById(1L)).thenReturn(Optional.of(testAirport));
+            when(airportRepository.save(testAirport)).thenReturn(testAirport);
+
+            AirportResponse result = airportService.updateAirport(1L, testUpdateRequest);
+
+            assertNotNull(result);
+            verify(airportRepository).findById(1L);
+            verify(cloudinaryService, never()).uploadFile(any());
+            verify(airportRepository).save(testAirport);
+        }
+    }
+
     private Airport createAirportWithData(Long id, String code, String city, String imageUrl){
         return Airport.builder()
                 .id(id)
@@ -237,5 +409,15 @@ public class AirportServiceTest {
                 "image/jpeg",
                 "test image content".getBytes()
         );
+    }
+
+    private AirportUpdateRequest createTestUpdateRequest(){
+        MultipartFile imageForUpdate = new MockMultipartFile(
+                "image",
+                "test-update.jpg",
+                "image/jpeg",
+                "updated image content".getBytes()
+        );
+        return new AirportUpdateRequest("MAD", "Madrid Updated", imageForUpdate);
     }
 }
