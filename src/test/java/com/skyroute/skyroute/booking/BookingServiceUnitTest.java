@@ -339,7 +339,45 @@ public class BookingServiceUnitTest {
         }
     }
 
-    private  User createTestUser(Long id, Role role) {
+    @Nested
+    class DeleteBookingTests {
+
+        @Test
+        void deleteBooking_ShouldDeleteBooking_WhenUserOwnsItAndStatusIsCreated() {
+            testBooking.setBookingStatus(BookingStatus.CREATED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+            doNothing().when(bookingRepository).delete(testBooking);
+
+            bookingServiceImpl.deleteBooking(1L, testUser);
+
+            verify(bookingRepository).delete(testBooking);
+        }
+
+        @Test
+        void deleteBooking_ShouldThrowAccessDenied_WhenUserTriesToDeleteConfirmedBooking() {
+            testBooking.setBookingStatus(BookingStatus.CONFIRMED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.deleteBooking(1L, testUser));
+
+            assertEquals("Users can only delete bookings in CREATED status", exception.getMessage());
+            verify(bookingRepository, never()).delete(any());
+        }
+
+        @Test
+        void deleteBooking_ShouldAllowAdmin_ToDeleteAnyBooking() {
+            testBooking.setBookingStatus(BookingStatus.CONFIRMED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+            doNothing().when(bookingRepository).delete(testBooking);
+
+            bookingServiceImpl.deleteBooking(1L, testAdmin);
+
+            verify(bookingRepository).delete(testBooking);
+        }
+    }
+
+
+        private  User createTestUser(Long id, Role role) {
         return User.builder()
                 .id(id)
                 .firstName("Test")

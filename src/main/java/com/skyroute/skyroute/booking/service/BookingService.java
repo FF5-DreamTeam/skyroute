@@ -14,4 +14,5 @@ public interface BookingService {
     BookingResponse updateBookingStatus(Long id, BookingStatus status, User user);
     void cancelBooking(Long id, User user);
     BookingResponse confirmBooking(Long id, User user);
+    void deleteBooking(Long id, User user);
 }

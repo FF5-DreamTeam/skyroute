@@ -97,6 +97,23 @@ public class BookingServiceImpl implements BookingService{
         return updateBookingStatus(id, BookingStatus.CONFIRMED, user);
     }
 
+    @Override
+    @Transactional
+    public void deleteBooking(Long id, User user) {
+        Booking booking = findBookingById(id);
+        validateUserAccess(booking, user);
+
+        if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
+            throw new AccessDeniedException("Users can only delete bookings in CREATED status");
+        }
+
+        if (booking.getBookingStatus() != BookingStatus.CANCELLED) {
+            flightService.releaseSeats(booking.getFlight().getId(), booking.getBookedSeats());
+        }
+
+        bookingRepository.delete(booking);
+    }
+
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
         if (page < 0) throw new IllegalArgumentException("Page index must be 0 or greater");
         if (size <= 0) throw new IllegalArgumentException("Page size must be greater than 0");
