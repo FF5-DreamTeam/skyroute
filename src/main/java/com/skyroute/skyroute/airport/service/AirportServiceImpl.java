@@ -58,16 +58,16 @@ public class AirportServiceImpl implements AirportService {
 
     @Override
     @Transactional
-    public AirportResponse updateAirport(Long id, AirportUpdateRequest request, MultipartFile image) {
+    public AirportResponse updateAirport(Long id, AirportUpdateRequest request) {
         Airport airport = airportRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Airport not found with ID: " + id));
 
-        if (!request.hasAnyField() && (image == null || image.isEmpty())){
+        if (!request.hasAnyField() && (request.image() == null || request.image().isEmpty())){
             throw new InvalidUpdateRequestException("At least one field must be provided for update");
         }
 
-        if (image != null && !image.isEmpty()){
-            updateAirportImage(airport, image);
+        if (request.image() != null && !request.image().isEmpty()){
+            updateAirportImage(airport, request.image());
         }
 
         AirportMapper.toEntityFromUpdate(airport, request);
