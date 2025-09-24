@@ -305,7 +305,7 @@ public class BookingServiceUnitTest {
     }
 
     @Nested
-    class CancelBookTests {
+    class CancelBookingTests {
 
         @Test
         void cancelBooking_ShouldUpdateStatusToCancelled() {
@@ -318,6 +318,23 @@ public class BookingServiceUnitTest {
             assertEquals(BookingStatus.CANCELLED, testBooking.getBookingStatus());
 
             verify(flightService).releaseSeats(1L, 2);
+            verify(bookingRepository).save(testBooking);
+        }
+    }
+
+    @Nested
+    class ConfirmBookingTests {
+
+        @Test
+        void confirmBooking_ShouldUpdateStatusToConfirmed() {
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+
+            BookingResponse result = bookingServiceImpl.confirmBooking(1L, testUser);
+
+            assertNotNull(result);
+            assertEquals(BookingStatus.CONFIRMED, testBooking.getBookingStatus());
+
             verify(bookingRepository).save(testBooking);
         }
     }
