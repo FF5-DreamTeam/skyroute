@@ -351,6 +351,7 @@ public class BookingServiceUnitTest {
 
             BookingResponse result = bookingServiceImpl.updatePassengerNames(1L, newNames, testUser);
 
+            assertNotNull(result);
             assertEquals(newNames, testBooking.getPassengerNames());
             verify(bookingRepository).save(testBooking);
         }
@@ -386,7 +387,61 @@ public class BookingServiceUnitTest {
 
             BookingResponse result = bookingServiceImpl.updatePassengerNames(1L, newNames, testAdmin);
 
+            assertNotNull(result);
             assertEquals(newNames, testBooking.getPassengerNames());
+
+            verify(bookingRepository).save(testBooking);
+        }
+
+        @Test
+        void updatePassengerBirthDates_shouldUpdate_whenUserAndBookingCreated() {
+            testBooking.setBookingStatus(BookingStatus.CREATED);
+            List<LocalDate> newBirthDates = List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2));
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+
+            BookingResponse result = bookingServiceImpl.updatePassengerBirthDates(1L, newBirthDates, testUser);
+
+            assertNotNull(result);
+            assertEquals(newBirthDates, testBooking.getPassengerBirthDates());
+            verify(bookingRepository).save(testBooking);
+        }
+
+        @Test
+        void updatePassengerBirthDates_shouldThrowException_whenUserAndBookingConfirmed() {
+            testBooking.setBookingStatus(BookingStatus.CONFIRMED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.updatePassengerBirthDates(1L, List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
+
+            assertEquals("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED", exception.getMessage());
+
+            verify(bookingRepository, never()).save(any());
+        }
+
+        @Test
+        void updatePassengerBirthDates_shouldThrowException_shenUserAndBookingCancelled() {
+            testBooking.setBookingStatus(BookingStatus.CANCELLED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.updatePassengerBirthDates(1L, List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
+
+            assertEquals("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED", exception.getMessage());
+
+            verify(bookingRepository, never()).save(any());
+        }
+
+        @Test
+        void updatePassengerBirthDates_shouldAllowAdminUpdate_regardlessOfStatus() {
+            testBooking.setBookingStatus(BookingStatus.CONFIRMED);
+            List<LocalDate> newBirthDates = List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2));
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+
+            BookingResponse result = bookingServiceImpl.updatePassengerBirthDates(1L, newBirthDates, testAdmin);
+
+            assertNotNull(result);
+            assertEquals(newBirthDates, testBooking.getPassengerBirthDates());
 
             verify(bookingRepository).save(testBooking);
         }

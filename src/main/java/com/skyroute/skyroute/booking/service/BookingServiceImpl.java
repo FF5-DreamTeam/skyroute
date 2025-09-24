@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -107,6 +108,18 @@ public class BookingServiceImpl implements BookingService{
         }
 
         booking.setPassengerNames(names);
+        return BookingMapper.toDto(bookingRepository.save(booking));
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user) {
+        Booking booking = findBookingById(id);
+        if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
+            throw new AccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
+        }
+
+        booking.setPassengerBirthDates(birthDates);
         return BookingMapper.toDto(bookingRepository.save(booking));
     }
 
