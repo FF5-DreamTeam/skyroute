@@ -6,6 +6,8 @@ import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.user.entity.User;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 public interface BookingService {
     Page<BookingResponse> getAllBookingsAdmin(int page, int size, String sortBy, String sortDirection);
     Page<BookingResponse> getAllBookingsUser(User user, int page, int size, String sortBy, String sortDirection);
@@ -14,5 +16,6 @@ public interface BookingService {
     BookingResponse updateBookingStatus(Long id, BookingStatus status, User user);
     void cancelBooking(Long id, User user);
     BookingResponse confirmBooking(Long id, User user);
+    BookingResponse updatePassengerNames(Long id, List<String> names, User user);
     void deleteBooking(Long id, User user);
 }
