@@ -69,7 +69,7 @@ public class BookingServiceImpl implements BookingService{
 
     @Override
     @Transactional
-    public BookingResponse updateBookingStatus(Long id, BookingStatus newStatus, User user){
+    public BookingResponse updateBookingStatus(Long id, BookingStatus newStatus, User user) {
         Booking booking  = findBookingById(id);
         validateUserAccess(booking, user);
         validateStatusTransition(booking.getBookingStatus(), newStatus);
@@ -83,6 +83,12 @@ public class BookingServiceImpl implements BookingService{
 
         Booking updatedBooking = bookingRepository.save(booking);
         return BookingMapper.toDto(updatedBooking);
+    }
+
+    @Override
+    @Transactional
+    public void cancelBooking(Long id, User user) {
+        updateBookingStatus(id, BookingStatus.CANCELLED, user);
     }
 
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
