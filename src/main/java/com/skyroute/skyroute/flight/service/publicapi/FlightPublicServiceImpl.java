@@ -4,7 +4,6 @@ import com.skyroute.skyroute.flight.dto.publicapi.FlightSearchRequest;
 import com.skyroute.skyroute.flight.dto.publicapi.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
-import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -49,40 +48,6 @@ public class FlightPublicServiceImpl implements FlightPublicService {
     public Flight findEntityById(Long id) {
         return flightRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Flight with id:  not found" + id));
-    }
-
-    @Override
-    public boolean isFlightAvailable(Long flightId) {
-        Flight flight = findEntityById(flightId);
-        return flight.isAvailable();
-    }
-
-    @Override
-    public boolean hasAvailableSeats(Long flightId, int seatsRequested) {
-        Flight flight = findEntityById(flightId);
-        return flight.getAvailableSeats() >= seatsRequested;
-    }
-
-    @Override
-    public Flight findById(Long id) {
-        return flightRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Flight with id: " + id+ " not found"));
-    }
-
-    @Override
-    public void bookSeats(Long flightId, int bookedSeats) {
-        if (bookedSeats <= 0) {
-            throw new IllegalArgumentException("Seats booked must be greater than 0");
-        }
-
-        Flight flight = findById(flightId);
-        int availableSeats = flight.getAvailableSeats();
-
-        if (bookedSeats > availableSeats) {
-            throw new BusinessException("Not enought seats available. Requested: " + bookedSeats + ". Available: " + availableSeats);
-        }
-
-        flight.setAvailableSeats(availableSeats - bookedSeats);
-        flightRepository.save(flight);
     }
 
     private FlightSimpleResponse toSimpleResponse(Flight flight) {

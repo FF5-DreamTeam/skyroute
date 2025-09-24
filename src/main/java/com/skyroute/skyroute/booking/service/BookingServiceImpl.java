@@ -4,6 +4,7 @@ import com.skyroute.skyroute.booking.dto.BookingMapper;
 import com.skyroute.skyroute.booking.dto.BookingRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
+import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.flight.service.admin.FlightService;
@@ -66,6 +67,24 @@ public class BookingServiceImpl implements BookingService{
         return BookingMapper.toDto(savedBooking);
     }
 
+    @Override
+    @Transactional
+    public BookingResponse updateBookingStatus(Long id, BookingStatus newStatus, User user){
+        Booking booking  = findBookingById(id);
+        validateUserAccess(booking, user);
+        validateStatusTransition(booking.getBookingStatus(), newStatus);
+
+        BookingStatus previousStatus = booking.getBookingStatus();
+        booking.setBookingStatus(newStatus);
+
+        if (newStatus == BookingStatus.CANCELLED && previousStatus != BookingStatus.CANCELLED) {
+            flightService.releaseSeats(booking.getFlight().getId(), booking.getBookedSeats());
+        }
+
+        Booking updatedBooking = bookingRepository.save(booking);
+        return BookingMapper.toDto(updatedBooking);
+    }
+
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
         if (page < 0) throw new IllegalArgumentException("Page index must be 0 or greater");
         if (size <= 0) throw new IllegalArgumentException("Page size must be greater than 0");
@@ -112,5 +131,26 @@ public class BookingServiceImpl implements BookingService{
         }
 
         return flight.getPrice() * bookedSeats;
+    }
+
+    private void validateStatusTransition(BookingStatus current, BookingStatus target) {
+        if (current == target) {
+            throw new BusinessException("Booking is already in " + target + " status");
+        }
+
+        switch (current) {
+            case CREATED:
+                if (target != BookingStatus.CONFIRMED && target != BookingStatus.CANCELLED) {
+                    throw new BusinessException("A CREATED booking can only be CONFIRMED or CANCELLED");
+                }
+                break;
+            case CONFIRMED:
+                if (target != BookingStatus.CANCELLED) {
+                    throw new BusinessException("A CONFIRMED booking can only be CANCELLED");
+                }
+                break;
+            case CANCELLED:
+                throw new BusinessException("Cannot change status of a CANCELLED booking");
+        }
     }
 }

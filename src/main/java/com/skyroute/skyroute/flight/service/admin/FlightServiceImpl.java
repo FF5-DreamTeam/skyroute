@@ -135,20 +135,14 @@ public class FlightServiceImpl implements FlightService {
     }
 
     @Override
-    public Flight findEntityById(Long id) {
-        return flightRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
-    }
-
-    @Override
     public boolean isFlightAvailable(Long flightId) {
-        Flight flight = findEntityById(flightId);
+        Flight flight = findById(flightId);
         return flight.isAvailable();
     }
 
     @Override
     public boolean hasAvailableSeats(Long flightId, int seatsRequested) {
-        Flight flight = findEntityById(flightId);
+        Flight flight = findById(flightId);
         return flight.getAvailableSeats() >= seatsRequested;
     }
 
@@ -173,6 +167,19 @@ public class FlightServiceImpl implements FlightService {
         flight.setAvailableSeats(availableSeats - bookedSeats);
         flightRepository.save(flight);
     }
+
+    @Override
+    public void releaseSeats(Long flightId, int seatsToRelease) {
+        if (seatsToRelease <= 0) {
+            throw new IllegalArgumentException("Seats to release must be positive");
+        }
+
+        Flight flight = findById(flightId);
+        int updatedSeats = flight.getAvailableSeats() + seatsToRelease;
+        flight.setAvailableSeats(updatedSeats);
+        flightRepository.save(flight);
+    }
+
 
     private FlightResponse toResponse(Flight flight) {
         return new FlightResponse(
