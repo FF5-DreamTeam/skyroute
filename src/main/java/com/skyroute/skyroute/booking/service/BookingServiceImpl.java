@@ -104,7 +104,7 @@ public class BookingServiceImpl implements BookingService{
         validateUserAccess(booking, user);
 
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new AccessDeniedException("Users can only delete bookings in CREATED status")
+            throw new AccessDeniedException("Users can only delete bookings in CREATED status");
         }
 
         if (booking.getBookingStatus() != BookingStatus.CANCELLED) {
