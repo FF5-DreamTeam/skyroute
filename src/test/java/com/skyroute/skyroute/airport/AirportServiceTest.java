@@ -7,6 +7,7 @@ import com.skyroute.skyroute.airport.repository.AirportRepository;
 import com.skyroute.skyroute.airport.service.AirportServiceImpl;
 import com.skyroute.skyroute.cloudinary.CloudinaryService;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityAlreadyExistsException;
+import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import com.skyroute.skyroute.shared.exception.custom_exception.ImageUploadException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -20,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -147,6 +149,76 @@ public class AirportServiceTest {
             verify(cloudinaryService).uploadFile(testImage);
             verify(airportRepository, never()).save(any());
         }
+    }
+
+    @Nested
+    class  GetAllAirportsTests{
+        @Test
+        void getAllAirports_shouldReturnListOfAirports_whenAirportsExist(){
+            List<Airport> airports = List.of(
+                    testAirport,
+                    createAirportWithData(2L, "BCN", "Barcelona", "http://example.com/bcn.jpg")
+            );
+            when(airportRepository.findAll()).thenReturn(airports);
+
+            List<AirportResponse> result = airportService.getAllAirports();
+
+            assertNotNull(result);
+            assertEquals(2, result.size());
+            assertEquals("MAD", result.get(0).code());
+            assertEquals("BCN", result.get(1).code());
+            verify(airportRepository).findAll();
+        }
+
+        @Test
+        void getAllAirports_shouldReturnEmptyList_whenNoAirportsExist(){
+            when(airportRepository.findAll()).thenReturn(List.of());
+
+            List<AirportResponse> result = airportService.getAllAirports();
+
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+            verify(airportRepository).findAll();
+        }
+    }
+
+    @Nested
+    class GetAirportsByIdTests{
+        @Test
+        void getAirportsById_shouldReturnAirportsResponse_whenAirportExists(){
+            when(airportRepository.findById(1L)).thenReturn(Optional.of(testAirport));
+
+            AirportResponse result = airportService.getAirportById(1L);
+
+            assertNotNull(result);
+            assertEquals(testAirport.getId(), result.id());
+            assertEquals(testAirport.getCode(), result.code());
+            assertEquals(testAirport.getCity(), result.city());
+            assertEquals(testAirport.getImageUrl(), result.imageUrl());
+            verify(airportRepository).findById(1L);
+        }
+
+        @Test
+        void getAirportsById_shouldThrowEntityNotFoundException_whenAirportsDoesNotExist(){
+            when(airportRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () ->airportService.getAirportById(99L)
+            );
+
+            assertEquals("Airport not found with ID: 99", exception.getMessage());
+            verify(airportRepository).findById(99L);
+        }
+    }
+
+    private Airport createAirportWithData(Long id, String code, String city, String imageUrl){
+        return Airport.builder()
+                .id(id)
+                .code(code)
+                .city(city)
+                .imageUrl(imageUrl)
+                .build();
     }
 
     private Airport createTestAirport(){
