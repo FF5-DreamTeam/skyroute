@@ -29,7 +29,7 @@ public interface FlightService {
 
     void bookSeats(Long flightId, int bookedSeats);
 
-    Flight findEntityById(Long id);
+    void releaseSeats(Long flightId, int seatsToRelease);
 }
 
 
