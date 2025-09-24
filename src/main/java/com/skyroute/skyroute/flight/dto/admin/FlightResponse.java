@@ -20,5 +20,4 @@ public record FlightResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-
 }

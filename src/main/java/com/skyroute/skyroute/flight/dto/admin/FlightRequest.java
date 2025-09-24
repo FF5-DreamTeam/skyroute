@@ -24,7 +24,7 @@ public record FlightRequest(
         LocalDateTime arrivalTime,
 
         @NotNull(message = "Price is required")
-        @DecimalMin(value = "0.0", message = "Price cannot be negative")
+        @DecimalMin(value = "0.0", inclusive = true, message = "Price cannot be negative")
         Double price,
 
         @NotNull(message = "Aircraft ID is required")
@@ -35,28 +35,4 @@ public record FlightRequest(
 
         Boolean available
 ) {
-    public static record FlightUpdate(
-            @Size(min = 3, max = 10, message = "Flight number must be between 2 and 19 characters")
-            String flightNumber,
-
-            @Min(value = 0, message = "Available seats cannot be negative")
-            Integer availableSeats,
-
-            @Future(message = "Departure time must be in the future")
-            LocalDateTime departureTime,
-
-            @Future(message = "Arrival time must be in the future")
-            LocalDateTime arrivalTime,
-
-            @DecimalMin(value = " 0.0", message = "Price cannot be negative")
-            Double price,
-
-            Boolean available,
-
-            Long aircraftId,
-
-            Long routeId
-
-    ) {
-    }
 }

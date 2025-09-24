@@ -2,7 +2,6 @@ package com.skyroute.skyroute.flight.service.admin;
 
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
-import com.skyroute.skyroute.flight.dto.admin.FlightRequest.FlightUpdate;
 import com.skyroute.skyroute.flight.entity.Flight;
 
 import java.util.List;
