@@ -5,11 +5,13 @@ import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
+import com.skyroute.skyroute.flight.dto.admin.FlightRequest.FlightUpdate;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.route.dto.RouteMapper;
 import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.route.repository.RouteRepository;
+import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.Builder;
@@ -81,6 +83,34 @@ public class FlightServiceImpl implements FlightService {
         return toResponse(flight);
     }
 
+    @Transactional
+    @Override
+    public FlightResponse updateFlight(Long id, FlightUpdate request) {
+        Flight flight = flightRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
+
+        if (request.flightNumber() != null) flight.setFlightNumber(request.flightNumber());
+        if (request.availableSeats() != null) flight.setAvailableSeats(request.availableSeats());
+        if (request.arrivalTime() != null) flight.setArrivalTime(request.arrivalTime());
+        if (request.price() != null) flight.setPrice(request.price());
+        if (request.available() != null) flight.setAvailable(request.available());
+
+        if (request.aircraftId() != null) {
+            Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
+                    .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + request.aircraftId()));
+            flight.setAircraft(aircraft);
+        }
+
+        if (request.routeId() != null) {
+            Route route = routeRepository.findById(request.routeId())
+                    .orElseThrow(() -> new EntityNotFoundException("Route not found with id: " + request.routeId()));
+            flight.setRoute(route);
+        }
+
+        flight = flightRepository.save(flight);
+        return toResponse(flight);
+    }
+
     @Override
     public FlightResponse getFlightById(Long id) {
         Flight flight = flightRepository.findById(id)
@@ -105,22 +135,51 @@ public class FlightServiceImpl implements FlightService {
     }
 
     @Override
-    public Flight findEntityById(Long id) {
-        return flightRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
-    }
-
-    @Override
     public boolean isFlightAvailable(Long flightId) {
-        Flight flight = findEntityById(flightId);
+        Flight flight = findById(flightId);
         return flight.isAvailable();
     }
 
     @Override
     public boolean hasAvailableSeats(Long flightId, int seatsRequested) {
-        Flight flight = findEntityById(flightId);
+        Flight flight = findById(flightId);
         return flight.getAvailableSeats() >= seatsRequested;
     }
+
+    @Override
+    public Flight findById(Long id) {
+        return flightRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Flight with id: " + id+ " not found"));
+    }
+
+    @Override
+    public void bookSeats(Long flightId, int bookedSeats) {
+        if (bookedSeats <= 0) {
+            throw new IllegalArgumentException("Seats booked must be greater than 0");
+        }
+
+        Flight flight = findById(flightId);
+        int availableSeats = flight.getAvailableSeats();
+
+        if (bookedSeats > availableSeats) {
+            throw new BusinessException("Not enought seats available. Requested: " + bookedSeats + ". Available: " + availableSeats);
+        }
+
+        flight.setAvailableSeats(availableSeats - bookedSeats);
+        flightRepository.save(flight);
+    }
+
+    @Override
+    public void releaseSeats(Long flightId, int seatsToRelease) {
+        if (seatsToRelease <= 0) {
+            throw new IllegalArgumentException("Seats to release must be positive");
+        }
+
+        Flight flight = findById(flightId);
+        int updatedSeats = flight.getAvailableSeats() + seatsToRelease;
+        flight.setAvailableSeats(updatedSeats);
+        flightRepository.save(flight);
+    }
+
 
     private FlightResponse toResponse(Flight flight) {
         return new FlightResponse(

@@ -28,7 +28,7 @@ public class Booking extends BaseEntity {
     @Column(name= "booking_number", nullable = false, unique = true, length = 50)
     private String bookingNumber;
 
-    @Column(name= "seats_booked")
+    @Column(name= "booked_seats")
     private int bookedSeats;
 
     @ElementCollection

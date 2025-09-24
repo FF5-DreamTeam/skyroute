@@ -13,7 +13,5 @@ public interface FlightPublicService {
     FlightSimpleResponse getFlightById(Long id);
 
     Flight findEntityById(Long id);
-
-    FlightSimpleResponse reserveFirstAlternative(Long originalFlightId, int passengers);
 }
 
