@@ -215,6 +215,49 @@ public class BookingServiceUnitTest {
         }
     }
 
+    @Nested
+    class UpdateBookingTest {
+
+        @Test
+        void updateBookingStatus_shouldUpdateStatus_whenValidTransition() {
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+
+            BookingResponse result = bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, testUser);
+
+            assertNotNull(result);
+            assertEquals(BookingStatus.CONFIRMED, testBooking.getBookingStatus());
+
+            verify(bookingRepository).findById(1L);
+            verify(bookingRepository).save(testBooking);
+        }
+
+        @Test
+        void updateBookingStatus_shouldReleaseSeats_whenCancellingConfirmedBooking() {
+            testBooking.setBookingStatus(BookingStatus.CONFIRMED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+            doNothing().when(flightService).releaseSeats(1L, 2);
+
+            bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser);
+
+            assertEquals(BookingStatus.CANCELLED, testBooking.getBookingStatus());
+
+            verify(flightService).releaseSeats(1L, 2);
+            verify(bookingRepository).save(testBooking);
+        }
+
+        @Test
+        void updateBookingStatus_ShouldNotReleaseSeats_WhenAlreadyCancelled() {
+            testBooking.setBookingStatus(BookingStatus.CANCELLED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser));
+
+            verify(flightService, never()).releaseSeats(anyLong(), anyInt());
+        }
+    }
+
     private  User createTestUser(Long id, Role role) {
         return User.builder()
                 .id(id)
