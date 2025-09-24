@@ -152,24 +152,21 @@ public class FlightServiceImplTest {
     @Test
     void testUpdateFlight_PartialUpdate() {
         FlightRequest partialUpdateRequest = new FlightRequest(
-                "XY789", // New flight number
-                80,      // New available seats
-                null,    // Keep existing departure time
-                null,    // Keep existing arrival time
-                180.0,   // New price
-                1L,      // Keep existing aircraft ID
-                1L,      // Keep existing route ID
-                true     // New availability
+                "XY789",
+                80,
+                null,
+                null,
+                180.0,
+                1L,
+                1L,
+                true
         );
 
-        // Mock the dependencies
         mockDependencies(1L, 1L);
         when(flightRepository.save(any(Flight.class))).thenReturn(flight);
 
-        // Act
         FlightResponse response = flightService.updateFlight(1L, partialUpdateRequest);
 
-        // Assert
         assertNotNull(response);
         assertEquals("XY789", response.flightNumber());
         assertEquals(80, response.availableSeats());

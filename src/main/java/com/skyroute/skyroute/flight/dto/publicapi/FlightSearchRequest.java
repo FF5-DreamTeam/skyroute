@@ -4,7 +4,6 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-@Builder
 public record FlightSearchRequest(
         String origin,
         String destination,

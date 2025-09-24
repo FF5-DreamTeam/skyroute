@@ -4,7 +4,6 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-@Builder
 public record FlightSimpleResponse(
         Long id,
         String flightNumber,

@@ -8,7 +8,6 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-@Builder
 public record FlightUpdate(
         @Size(min = 3, max = 10, message = "Flight number must be between 3 and 10 characters")
         String flightNumber,

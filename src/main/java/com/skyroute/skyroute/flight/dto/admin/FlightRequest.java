@@ -5,7 +5,6 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-@Builder
 public record FlightRequest(
         @NotBlank(message = "Flight number is required")
         @Size(min = 3, max = 10, message = "Flight number must be between 3 and 10 characters")
