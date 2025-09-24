@@ -6,6 +6,7 @@ import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.user.entity.User;
 import org.springframework.data.domain.Page;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface BookingService {
@@ -17,5 +18,6 @@ public interface BookingService {
     void cancelBooking(Long id, User user);
     BookingResponse confirmBooking(Long id, User user);
     BookingResponse updatePassengerNames(Long id, List<String> names, User user);
+    BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user);
     void deleteBooking(Long id, User user);
 }
