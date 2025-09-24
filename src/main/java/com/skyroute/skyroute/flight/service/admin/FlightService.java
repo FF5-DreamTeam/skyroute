@@ -12,7 +12,6 @@ public interface FlightService {
 
     FlightResponse updateFlight(Long id, FlightRequest request);
 
-    @Transactional
     FlightResponse updateFlight(Long id, FlightRequest.FlightUpdate request);
 
     FlightResponse getFlightById(Long id);
