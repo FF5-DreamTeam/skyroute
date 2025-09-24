@@ -406,6 +406,49 @@ public class AirportControllerTest {
         }
     }
 
+    @Nested
+    class DeleteAirportTests {
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void deleteAirport_shouldReturnNoContent_whenAirportExists() throws Exception {
+            doNothing().when(airportService).deleteAirport(1L);
+
+            mockMvc.perform(delete("/api/airports/1"))
+                    .andExpect(status().isNoContent());
+
+            verify(airportService).deleteAirport(1L);
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void deleteAirport_shouldReturnNotFound_whenAirportDoesNotExist() throws Exception {
+            doThrow(new EntityNotFoundException("Airport not found with ID: 99"))
+                    .when(airportService).deleteAirport(99L);
+
+            mockMvc.perform(delete("/api/airports/99"))
+                    .andExpect(status().isNotFound());
+
+            verify(airportService).deleteAirport(99L);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void deleteAirport_shouldReturnForbidden_whenNotAdmin() throws Exception {
+            mockMvc.perform(delete("/api/airports/1"))
+                    .andExpect(status().isForbidden());
+
+            verify(airportService, never()).deleteAirport(anyLong());
+        }
+
+        @Test
+        void deleteAirport_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
+            mockMvc.perform(delete("/api/airports/1"))
+                    .andExpect(status().isForbidden());
+
+            verify(airportService, never()).deleteAirport(anyLong());
+        }
+    }
+
     private AirportResponse createAirportResponse(){
         return new AirportResponse(
                 1L,

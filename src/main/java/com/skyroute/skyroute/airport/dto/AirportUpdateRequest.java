@@ -15,6 +15,6 @@ public record AirportUpdateRequest(
         MultipartFile image
 ) {
     public boolean hasAnyField(){
-        return code != null || city != null;
+        return code != null || city != null || (image != null && !image().isEmpty());
     }
 }
