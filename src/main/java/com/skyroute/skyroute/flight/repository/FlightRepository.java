@@ -1,6 +1,9 @@
 package com.skyroute.skyroute.flight.repository;
 
 import com.skyroute.skyroute.flight.entity.Flight;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -155,4 +158,13 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
             "AND f.availableSeats > 0 AND f.available = true AND f.departureTime > :now")
     List<Flight> findFlightsWithLowAvailability(@Param("threshold") Integer threshold,
                                                 @Param("now") LocalDateTime now);
+
+    @EntityGraph(attributePaths = {"aircraft", "route", "route.origin", "route.destination"})
+    Page<Flight> findAll(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"aircraft", "route", "route.origin", "route.destination"})
+    Page<Flight> findByAvailableTrue(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"aircraft", "route", "route.origin", "route.destination"})
+    Optional<Flight> findById(Long id);
 }
