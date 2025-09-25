@@ -290,6 +290,49 @@ public class RouteControllerTest {
         }
     }
 
+    @Nested
+    class DeleteRouteTests {
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void deleteRoute_shouldReturnNoContent_whenRouteExists() throws Exception{
+            doNothing().when(routeService).deleteRoute(10L);
+
+            mockMvc.perform(delete("/api/routes/{id}", 10L))
+                    .andExpect(status().isNoContent());
+
+            verify(routeService).deleteRoute(10L);
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void deleteRoute_shouldReturnNotFound_whenRouteDoesNotExist() throws Exception {
+            doThrow(new EntityNotFoundException("Route not found with ID: 99"))
+                    .when(routeService).deleteRoute(99L);
+
+            mockMvc.perform(delete("/api/routes/{id}", 99L))
+                    .andExpect(status().isNotFound());
+
+            verify(routeService).deleteRoute(99L);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void deleteRoute_shouldReturnForbidden_whenUserIsNotAdmin() throws Exception {
+            mockMvc.perform(delete("/api/routes/{id}", 10L))
+                    .andExpect(status().isForbidden());
+
+            verify(routeService, never()).deleteRoute(anyLong());
+        }
+
+        @Test
+        void deleteRoute_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
+            mockMvc.perform(delete("/api/routes/{id}", 10L))
+                    .andExpect(status().isForbidden());
+
+            verify(routeService, never()).deleteRoute(anyLong());
+        }
+    }
+
     private RouteResponse createRouteResponse(){
         return new RouteResponse(
                 10L,
