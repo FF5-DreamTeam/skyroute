@@ -59,13 +59,12 @@ public class SecurityConfig {
                                                                 "/api/routes/**", "/api/flights/**")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/bookings",
-                                                                "/api/aircrafts")
+                                                                "/api/aircrafts", "/api/bookings/flight/**")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/api/bookings/flight/**")
-                                                .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/api/bookings/user/*").authenticated()
-                                                .requestMatchers(HttpMethod.POST, "/api/bookings").authenticated()
-
+                                                .requestMatchers(HttpMethod.GET, "/api/bookings/user/*", "api/bookings/{id}").authenticated()
+                                                .requestMatchers(HttpMethod.POST, "/api/bookings", "api/bookings/{id}/confirm", "api/bookings/{id}/cancel").authenticated()
+                                                .requestMatchers(HttpMethod.PUT, "/api/bookings/{id}/passenger-names", "/api/bookings/{id}/passenger-birth-dates", "/api/bookings/{id}/status").authenticated()
+                                                .requestMatchers(HttpMethod.DELETE, "/api/bookings/{id}").authenticated()
                                                 .anyRequest().authenticated())
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
