@@ -32,4 +32,6 @@ public interface UserService {
     boolean existsByEmail(String email);
 
     UserResponse updateUserRole(Long id, RoleUpdateRequest roleRequest);
+
+    User getCurrentUser();
 }

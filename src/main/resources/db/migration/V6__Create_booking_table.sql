@@ -2,7 +2,7 @@
 CREATE TABLE booking (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     booking_number VARCHAR(50) UNIQUE NOT NULL,
-    seats_booked INT NOT NULL DEFAULT 1,
+    booked_seats INT NOT NULL DEFAULT 1,
     total_price DOUBLE NOT NULL,
     booking_status VARCHAR(20) NOT NULL,
     user_id BIGINT NOT NULL,

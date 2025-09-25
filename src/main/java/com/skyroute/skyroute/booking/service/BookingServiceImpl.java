@@ -59,14 +59,14 @@ public class BookingServiceImpl implements BookingService{
     @Override
     @Transactional
     public BookingResponse createBooking(BookingRequest request, User user) {
-        Flight flight = flightService.findById(request.flightId());
-        validateFlightBookingEligibility(request.flightId(), request.bookedSeats());
-        Double totalPrice = calculateTotalPrice(flight, request.bookedSeats());
-        Booking booking = BookingMapper.toEntity(request, user, flight, totalPrice);
-        flightService.bookSeats(request.flightId(), request.bookedSeats());
-        Booking savedBooking = bookingRepository.save(booking);
+            Flight flight = flightService.findById(request.flightId());
+            validateFlightBookingEligibility(request.flightId(), request.bookedSeats());
+            Double totalPrice = calculateTotalPrice(flight, request.bookedSeats());
+            Booking booking = BookingMapper.toEntity(request, user, flight, totalPrice);
+            flightService.bookSeats(request.flightId(), request.bookedSeats());
+            Booking savedBooking = bookingRepository.save(booking);
 
-        return BookingMapper.toDto(savedBooking);
+            return BookingMapper.toDto(savedBooking);
     }
 
     @Override
@@ -78,6 +78,12 @@ public class BookingServiceImpl implements BookingService{
 
         BookingStatus previousStatus = booking.getBookingStatus();
         booking.setBookingStatus(newStatus);
+
+        if (user.getRole() == Role.USER) {
+            if (newStatus == BookingStatus.CONFIRMED) {
+                throw new AccessDeniedException("Users cannot confirm booking");
+            }
+        }
 
         if (newStatus == BookingStatus.CANCELLED && previousStatus != BookingStatus.CANCELLED) {
             flightService.releaseSeats(booking.getFlight().getId(), booking.getBookedSeats());

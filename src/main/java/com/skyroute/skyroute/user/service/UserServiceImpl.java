@@ -214,7 +214,8 @@ public class UserServiceImpl implements UserService {
         return userMapper.toResponse(savedUser);
     }
 
-    private User getCurrentUser() {
+    @Override
+    public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails(User user)) {
             return user;

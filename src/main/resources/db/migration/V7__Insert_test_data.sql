@@ -67,7 +67,7 @@ INSERT INTO flights (flight_number, available_seats, departure_time, arrival_tim
 ('SR010', 280, '2026-01-20 07:00:00', '2026-01-20 11:30:00', 999.99, TRUE, 10, 10, '2025-09-01 18:30:00', '2025-09-01 18:30:00');
 
 -- Insert bookings (mostly future flights, few past for history)
-INSERT INTO booking (booking_number, seats_booked, total_price, booking_status, user_id, flight_id, created_at, updated_at) VALUES
+INSERT INTO booking (booking_number, booked_seats, total_price, booking_status, user_id, flight_id, created_at, updated_at) VALUES
 ('BK001', 2, 599.98, 'CONFIRMED', 2, 1, '2025-01-10 15:30:00', '2025-01-10 15:30:00'), -- Alice books 2 seats for past flight SR001
 ('BK002', 1, 899.99, 'CONFIRMED', 2, 2, '2025-02-15 09:15:00', '2025-02-15 09:15:00'), -- Alice books 1 seat for past flight SR002
 ('BK003', 3, 599.97, 'CONFIRMED', 3, 3, '2025-09-15 11:45:00', '2025-09-15 11:45:00'), -- Bob books 3 seats for future flight SR003
