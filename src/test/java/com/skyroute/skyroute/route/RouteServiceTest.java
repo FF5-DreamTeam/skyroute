@@ -19,6 +19,9 @@ import com.skyroute.skyroute.shared.exception.custom_exception.InvalidRouteExcep
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -142,6 +145,63 @@ public class RouteServiceTest {
             verify(airportService).findAirportById(2L);
             verify(routeRepository).existsByOriginIdAndDestinationId(1L, 2L);
             verify(routeRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    class GetAllRoutesTests {
+        @Test
+        void getAllRoutes_shouldReturnList_whenRoutesExist(){
+            when(routeRepository.findAll()).thenReturn(List.of(testRoute));
+
+            List<RouteResponse> result = routeService.getAllRoutes();
+
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            assertEquals(testRoute.getId(), result.getFirst().id());
+            assertEquals(originAirport.getCode(), result.getFirst().origin().code());
+            assertEquals(destinationAirport.getCode(), result.getFirst().destination().code());
+            verify(routeRepository).findAll();
+        }
+
+        @Test
+        void getAllRoutes_shouldReturnEmptyList_whenNoRoutesExist(){
+            when(routeRepository.findAll()).thenReturn(List.of());
+
+            List<RouteResponse> result = routeService.getAllRoutes();
+
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+            verify(routeRepository).findAll();
+        }
+    }
+
+    @Nested
+    class GetRouteByIdTests{
+        @Test
+        void getRouteById_shouldReturnRouteResponse_whenRouteExists(){
+            when(routeRepository.findById(1L)).thenReturn(Optional.of(testRoute));
+
+            RouteResponse result = routeService.getRouteById(1L);
+
+            assertNotNull(result);
+            assertEquals(testRoute.getId(), result.id());
+            assertEquals(originAirport.getCode(), result.origin().code());
+            assertEquals(destinationAirport.getCode(), result.destination().code());
+            verify(routeRepository).findById(1L);
+        }
+
+        @Test
+        void getRouteById_shouldThrowEntityNotFoundException_whenRouteDoesNotExist(){
+            when(routeRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> routeService.getRouteById(99L)
+            );
+
+            assertEquals("Airport not found with ID: 99", exception.getMessage());
+            verify(routeRepository).findById(99L);
         }
     }
 

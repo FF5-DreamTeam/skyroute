@@ -5,6 +5,7 @@ import com.skyroute.skyroute.airport.dto.AirportResponse;
 import com.skyroute.skyroute.route.dto.RouteRequest;
 import com.skyroute.skyroute.route.dto.RouteResponse;
 import com.skyroute.skyroute.route.service.RouteService;
+import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -161,6 +164,67 @@ public class RouteControllerTest {
                     .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isForbidden());
             verify(routeService, never()).createRoute(any());
+        }
+    }
+
+    @Nested
+    class GetAllRoutesTests {
+        @Test
+        @WithMockUser
+        void getAllRoutes_shouldReturnOk_whenRoutesExist() throws Exception {
+            RouteResponse response = createRouteResponse();
+            when(routeService.getAllRoutes()).thenReturn(List.of(response));
+
+            mockMvc.perform(get("/api/routes"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.[0].id").value(10L))
+                    .andExpect(jsonPath("$.[0].origin.code").value("MAD"))
+                    .andExpect(jsonPath("$.[0].destination.code").value("BCN"));
+
+            verify(routeService).getAllRoutes();
+        }
+
+        @Test
+        void getAllRoutes_shouldReturnEmptyList_whenNoRoutesExist() throws Exception {
+            when(routeService.getAllRoutes()).thenReturn(List.of());
+
+            mockMvc.perform(get("/api/routes"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$").isEmpty());
+
+            verify(routeService).getAllRoutes();
+        }
+    }
+
+    @Nested
+    class GetRouteByIdTests {
+        @Test
+        @WithMockUser
+        void getRouteById_shouldReturnOk_whenRouteExist() throws Exception {
+            RouteResponse response = createRouteResponse();
+            when(routeService.getRouteById(10L)).thenReturn(response);
+
+            mockMvc.perform(get("/api/routes/{id}", 10L))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.id").value(10L))
+                    .andExpect(jsonPath("$.origin.code").value("MAD"))
+                    .andExpect(jsonPath("$.destination.code").value("BCN"));
+
+            verify(routeService).getRouteById(10L);
+        }
+
+        @Test
+        void getRouteById_shouldReturnNotFound_whenRouteDoesNotExist() throws Exception {
+            when(routeService.getRouteById(99L))
+                    .thenThrow(new EntityNotFoundException("Airport not found with ID: 99"));
+
+            mockMvc.perform(get("/api/routes/{id}", 99L))
+                    .andExpect(status().isNotFound());
+
+            verify(routeService).getRouteById(99L);
         }
     }
 
