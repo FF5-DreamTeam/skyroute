@@ -13,7 +13,6 @@ import com.skyroute.skyroute.shared.exception.custom_exception.InvalidRouteExcep
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 @Service
@@ -50,6 +49,32 @@ public class RouteServiceImpl implements RouteService {
     public RouteResponse getRouteById(Long id) {
         Route route = findRouteById(id);
         return RouteMapper.toDto(route);
+    }
+
+    @Override
+    @Transactional
+    public RouteResponse updateRoute(Long id, RouteRequest request) {
+        validateRouteRequest(request);
+
+        Route existingRoute = findRouteById(id);
+        Airport origin = airportService.findAirportById(request.originId());
+        Airport destination = airportService.findAirportById(request.destinationId());
+
+        validateUniqueRouteFromUpdate(id, origin.getId(), destination.getId());
+
+        existingRoute.setOrigin(origin);
+        existingRoute.setDestination(destination);
+
+        Route updatedRoute = routeRepository.save(existingRoute);
+        return RouteMapper.toDto(updatedRoute);
+    }
+
+    private void validateUniqueRouteFromUpdate(Long routeId, Long originId, Long destinationId){
+        if (routeRepository.existsByOriginIdAndDestinationIdAndIdNot(routeId, originId, destinationId)){
+            throw new EntityAlreadyExistsException(
+                    "Route already exists between these airports: " + originId + " -> " + destinationId
+            );
+        }
     }
 
     private Route findRouteById(Long id){
