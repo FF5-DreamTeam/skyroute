@@ -290,6 +290,34 @@ public class RouteServiceTest {
         }
     }
 
+    @Nested
+    class DeleteRouteTests {
+        @Test
+        void deleteRoute_shouldDeleteSuccessfully_whenRouteExists() {
+            when(routeRepository.findById(1L)).thenReturn(Optional.of(testRoute));
+
+            routeService.deleteRoute(1L);
+
+            verify(routeRepository).findById(1L);
+            verify(routeRepository).delete(testRoute);
+        }
+
+        @Test
+        void deleteRoute_shouldThrowEntityNotFoundException_whenRouteDoesNotExist() {
+            when(routeRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> routeService.deleteRoute(99L)
+            );
+
+            assertEquals("Route not found with ID: 99", exception.getMessage());
+
+            verify(routeRepository).findById(99L);
+            verify(routeRepository, never()).delete(any());
+        }
+    }
+
     private Airport createTestAirport(Long id, String code, String city){
         return Airport.builder()
                 .id(id)
