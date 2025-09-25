@@ -69,6 +69,12 @@ public class RouteServiceImpl implements RouteService {
         return RouteMapper.toDto(updatedRoute);
     }
 
+    @Override
+    public void deleteRoute(Long id) {
+        Route route = findRouteById(id);
+        routeRepository.delete(route);
+    }
+
     private void validateUniqueRouteFromUpdate(Long routeId, Long originId, Long destinationId){
         if (routeRepository.existsByOriginIdAndDestinationIdAndIdNot(originId, destinationId, routeId)){
             throw new EntityAlreadyExistsException(
@@ -79,7 +85,7 @@ public class RouteServiceImpl implements RouteService {
 
     private Route findRouteById(Long id){
         return routeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Airport not found with ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Route not found with ID: " + id));
     }
 
     private void validateRouteRequest(RouteRequest request){
