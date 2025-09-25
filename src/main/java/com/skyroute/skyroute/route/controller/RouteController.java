@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -39,5 +38,16 @@ public class RouteController {
     @Operation(summary = "Get Route by ID", description = "Retrieve a single route by its ID")
     public ResponseEntity<RouteResponse> getRouteById(@PathVariable Long id){
         return ResponseEntity.ok(routeService.getRouteById(id));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update Route", description = "Update an existing route")
+    public ResponseEntity<RouteResponse> updateRoute(
+            @PathVariable Long id,
+            @RequestBody @Valid RouteRequest request
+    ){
+        RouteResponse response = routeService.updateRoute(id, request);
+        return ResponseEntity.ok(response);
     }
 }
