@@ -222,14 +222,14 @@ public class BookingServiceUnitTest {
     class UpdateBookingStatusTests {
 
         @Test
-        void updateBookingStatus_shouldUpdateStatus_whenValidTransition() {
+        void updateBookingStatus_shouldUpdateStatusToCancel_whenUserValidTransition() {
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
             when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
 
-            BookingResponse result = bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, testUser);
+            BookingResponse result = bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser);
 
             assertNotNull(result);
-            assertEquals(BookingStatus.CONFIRMED, testBooking.getBookingStatus());
+            assertEquals(BookingStatus.CANCELLED, testBooking.getBookingStatus());
 
             verify(bookingRepository).findById(1L);
             verify(bookingRepository).save(testBooking);
@@ -269,6 +269,15 @@ public class BookingServiceUnitTest {
             BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
 
             assertEquals("Cannot change status of a CANCELLED booking", exception.getMessage());
+        }
+
+        @Test
+        void updateBookingStatus_shouldThrowException_whenUserInvalidTransition() {
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
+
+            assertEquals("Users cannot confirm booking", exception.getMessage());
         }
 
         @Test
