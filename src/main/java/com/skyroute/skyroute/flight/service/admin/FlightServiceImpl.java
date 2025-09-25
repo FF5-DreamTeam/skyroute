@@ -1,14 +1,13 @@
 package com.skyroute.skyroute.flight.service.admin;
 
 import com.skyroute.skyroute.aircraft.dto.AircraftMapper;
-import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
+import com.skyroute.skyroute.flight.validation.FlightValidator;
 import com.skyroute.skyroute.route.dto.RouteMapper;
-import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.route.repository.RouteRepository;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
@@ -30,17 +29,22 @@ public class FlightServiceImpl implements FlightService {
     private final FlightRepository flightRepository;
     private final AircraftRepository aircraftRepository;
     private final RouteRepository routeRepository;
+    private final FlightValidator flightValidator;
 
     @Override
     @Transactional
     public FlightResponse createFlight(FlightRequest request) {
-        Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
-                .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + request.aircraftId()));
+        flightValidator.validateFlight(
+                request.aircraftId(),
+                request.availableSeats(),
+                request.departureTime(),
+                request.arrivalTime()
+        );
 
-        Route route = routeRepository.findById(request.routeId())
-                .orElseThrow(() -> new EntityNotFoundException("Route not found with id: " + request.routeId()));
+        var aircraft = aircraftRepository.findById(request.aircraftId()).get();
+        var route = routeRepository.findById(request.routeId()).get();
 
-        Flight flight = Flight.builder()
+        var flight = Flight.builder()
                 .flightNumber(request.flightNumber())
                 .availableSeats(request.availableSeats())
                 .departureTime(request.departureTime())
@@ -51,14 +55,20 @@ public class FlightServiceImpl implements FlightService {
                 .route(route)
                 .build();
 
-        flight = flightRepository.save(flight);
-        return toResponse(flight);
+        return toResponse(flightRepository.save(flight));
     }
 
     @Override
     @Transactional
     public FlightResponse updateFlight(Long id, FlightRequest request) {
-        Flight flight = flightRepository.findById(id)
+        flightValidator.validateFlight(
+                request.aircraftId(),
+                request.availableSeats(),
+                request.departureTime(),
+                request.arrivalTime()
+        );
+
+        var flight = flightRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
 
         if (request.flightNumber() != null) flight.setFlightNumber(request.flightNumber());
@@ -69,19 +79,14 @@ public class FlightServiceImpl implements FlightService {
         if (request.available() != null) flight.setAvailable(request.available());
 
         if (request.aircraftId() != null) {
-            Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
-                    .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + request.aircraftId()));
-            flight.setAircraft(aircraft);
+            flight.setAircraft(aircraftRepository.findById(request.aircraftId()).get());
         }
 
         if (request.routeId() != null) {
-            Route route = routeRepository.findById(request.routeId())
-                    .orElseThrow(() -> new EntityNotFoundException("Route not found with id: " + request.routeId()));
-            flight.setRoute(route);
+            flight.setRoute(routeRepository.findById(request.routeId()).get());
         }
 
-        flight = flightRepository.save(flight);
-        return toResponse(flight);
+        return toResponse(flightRepository.save(flight));
     }
 
     @Override
@@ -158,7 +163,6 @@ public class FlightServiceImpl implements FlightService {
         flight.setAvailableSeats(updatedSeats);
         flightRepository.save(flight);
     }
-
 
     private FlightResponse toResponse(Flight flight) {
         return new FlightResponse(
