@@ -15,6 +15,8 @@ import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundExc
 import jakarta.transaction.Transactional;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -95,6 +97,12 @@ public class FlightServiceImpl implements FlightService {
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<FlightResponse> getFlightsPage(Pageable pageable) {
+        return flightRepository.findAll(pageable)
+                .map(this::toResponse);
     }
 
     @Override
