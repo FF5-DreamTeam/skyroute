@@ -18,27 +18,16 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityAlreadyExistsException;
 import com.skyroute.skyroute.shared.exception.custom_exception.InvalidRouteException;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-
 import java.util.List;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-
-
 
 @SpringBootTest
 @AutoConfigureWebMvc
@@ -225,6 +214,79 @@ public class RouteControllerTest {
                     .andExpect(status().isNotFound());
 
             verify(routeService).getRouteById(99L);
+        }
+    }
+
+    @Nested
+    class UpdateRouteTests {
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateRoute_shouldReturnOk_whenValidRequest() throws Exception {
+            RouteResponse response = createRouteResponse();
+            when(routeService.updateRoute(eq(10L), any(RouteRequest.class))).thenReturn(response);
+
+            RouteRequest request = new RouteRequest(1L, 2L);
+
+            mockMvc.perform(put("/api/routes/{id}", 10L)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.id").value(10L))
+                    .andExpect(jsonPath("$.origin.code").value("MAD"))
+                    .andExpect(jsonPath("$.destination.code").value("BCN"));
+            verify(routeService).updateRoute(eq(10L), any(RouteRequest.class));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateRoute_shouldReturnBadRequest_whenOriginAndDestinationAreSame() throws Exception {
+            RouteRequest request = new RouteRequest(1L, 1L);
+            when(routeService.updateRoute(eq(10L), any(RouteRequest.class)))
+                    .thenThrow(new InvalidRouteException("Origin and destination airports cannot be the same"));
+
+            mockMvc.perform(put("/api/routes/{id}", 10L)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest());
+            verify(routeService).updateRoute(eq(10L), any(RouteRequest.class));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateRoute_shouldReturnNotFound_whenRouteDoesNotExist() throws Exception{
+            RouteRequest request = new RouteRequest(1L, 2L);
+            when(routeService.updateRoute(eq(99L), any(RouteRequest.class)))
+                    .thenThrow(new EntityNotFoundException("Route not found with ID: 99"));
+
+            mockMvc.perform(put("/api/routes/{id}", 99L)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound());
+            verify(routeService).updateRoute(eq(99L), any(RouteRequest.class));
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void updateRoute_shouldReturnForbidden_whenNotAdmin() throws Exception {
+            RouteRequest request = new RouteRequest(1L, 2L);
+
+            mockMvc.perform(put("/api/routes/{id}", 10L)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden());
+            verify(routeService, never()).updateRoute(anyLong(), any(RouteRequest.class));
+        }
+
+        @Test
+        void updateRoute_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
+            RouteRequest request = new RouteRequest(1L, 2L);
+
+            mockMvc.perform(put("/api/routes/{id}", 10L)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden());
+            verify(routeService, never()).updateRoute(anyLong(), any(RouteRequest.class));
         }
     }
 
