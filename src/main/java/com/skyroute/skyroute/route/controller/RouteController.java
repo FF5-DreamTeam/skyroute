@@ -50,4 +50,12 @@ public class RouteController {
         RouteResponse response = routeService.updateRoute(id, request);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete Route")
+    private ResponseEntity<Void> deleteRoute(@PathVariable Long id){
+        routeService.deleteRoute(id);
+        return ResponseEntity.noContent().build();
+    }
 }

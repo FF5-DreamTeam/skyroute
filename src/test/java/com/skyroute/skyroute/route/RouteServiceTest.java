@@ -197,7 +197,7 @@ public class RouteServiceTest {
                     () -> routeService.getRouteById(99L)
             );
 
-            assertEquals("Airport not found with ID: 99", exception.getMessage());
+            assertEquals("Route not found with ID: 99", exception.getMessage());
             verify(routeRepository).findById(99L);
         }
     }
