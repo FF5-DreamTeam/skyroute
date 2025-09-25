@@ -84,6 +84,12 @@ public class AirportServiceImpl implements AirportService {
         airportRepository.delete(airport);
     }
 
+    @Override
+    public Airport findAirportById(Long id) {
+        return airportRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Airport not found with ID: " + id));
+    }
+
     private String uploadImage(MultipartFile image){
         if (image == null || image.isEmpty()){
             throw new ImageUploadException("Image file is required");
