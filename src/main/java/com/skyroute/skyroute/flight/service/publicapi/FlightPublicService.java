@@ -12,14 +12,6 @@ public interface FlightPublicService {
 
     FlightSimpleResponse getFlightById(Long id);
 
-    Flight findEntityById(Long id);
-
-    boolean isFlightAvailable(Long flightId);
-
-    boolean hasAvailableSeats(Long flightId, int requiredSeats);
-
     Flight findById(Long id);
-
-    void bookSeats(Long flightId, int bookedSeats);
 }
 

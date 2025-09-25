@@ -11,10 +11,7 @@ public interface FlightService {
     FlightResponse createFlight(FlightRequest request);
 
     FlightResponse updateFlight(Long id, FlightRequest request);
-
-    @Transactional
-    FlightResponse updateFlight(Long id, FlightRequest.FlightUpdate request);
-
+    
     FlightResponse getFlightById(Long id);
 
     List<FlightResponse> getAllFlights();
@@ -29,7 +26,7 @@ public interface FlightService {
 
     void bookSeats(Long flightId, int bookedSeats);
 
-    Flight findEntityById(Long id);
+    void releaseSeats(Long flightId, int seatsToRelease);
 }
 
 

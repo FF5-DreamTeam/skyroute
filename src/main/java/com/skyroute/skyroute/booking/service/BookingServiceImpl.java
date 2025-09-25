@@ -4,9 +4,10 @@ import com.skyroute.skyroute.booking.dto.BookingMapper;
 import com.skyroute.skyroute.booking.dto.BookingRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
+import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
-import com.skyroute.skyroute.flight.service.publicapi.FlightPublicService;
+import com.skyroute.skyroute.flight.service.admin.FlightService;
 import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
@@ -20,18 +21,20 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Service
 public class BookingServiceImpl implements BookingService{
     private final BookingRepository bookingRepository;
-    private final FlightPublicService flightPublicService;
+    private final FlightService flightService;
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "bookingNumber", "bookingStatus", "createdAt", "flightNumber");
 
-    public BookingServiceImpl(BookingRepository bookingRepository, FlightPublicService flightPublicService, FlightRepository flightRepository, FlightPublicService flightPublicService1) {
+    public BookingServiceImpl(BookingRepository bookingRepository, FlightService flightService, FlightRepository flightRepository, FlightService FlightService1) {
         this.bookingRepository = bookingRepository;
-        this.flightPublicService = flightPublicService;
+        this.flightService = flightService;
     }
 
     @Override
@@ -56,14 +59,85 @@ public class BookingServiceImpl implements BookingService{
     @Override
     @Transactional
     public BookingResponse createBooking(BookingRequest request, User user) {
-        Flight flight = flightPublicService.findById(request.flightId());
+        Flight flight = flightService.findById(request.flightId());
         validateFlightBookingEligibility(request.flightId(), request.bookedSeats());
         Double totalPrice = calculateTotalPrice(flight, request.bookedSeats());
         Booking booking = BookingMapper.toEntity(request, user, flight, totalPrice);
-        flightPublicService.bookSeats(request.flightId(), request.bookedSeats());
+        flightService.bookSeats(request.flightId(), request.bookedSeats());
         Booking savedBooking = bookingRepository.save(booking);
 
         return BookingMapper.toDto(savedBooking);
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse updateBookingStatus(Long id, BookingStatus newStatus, User user) {
+        Booking booking  = findBookingById(id);
+        validateUserAccess(booking, user);
+        validateStatusTransition(booking.getBookingStatus(), newStatus);
+
+        BookingStatus previousStatus = booking.getBookingStatus();
+        booking.setBookingStatus(newStatus);
+
+        if (newStatus == BookingStatus.CANCELLED && previousStatus != BookingStatus.CANCELLED) {
+            flightService.releaseSeats(booking.getFlight().getId(), booking.getBookedSeats());
+        }
+
+        Booking updatedBooking = bookingRepository.save(booking);
+        return BookingMapper.toDto(updatedBooking);
+    }
+
+    @Override
+    @Transactional
+    public void cancelBooking(Long id, User user) {
+        updateBookingStatus(id, BookingStatus.CANCELLED, user);
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse confirmBooking(Long id, User user) {
+        return updateBookingStatus(id, BookingStatus.CONFIRMED, user);
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse updatePassengerNames(Long id, List<String> names, User user) {
+        Booking booking = findBookingById(id);
+        if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
+            throw new AccessDeniedException("Cannot modify passenger names after booking is CONFORMED or CANCELLED");
+        }
+
+        booking.setPassengerNames(names);
+        return BookingMapper.toDto(bookingRepository.save(booking));
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user) {
+        Booking booking = findBookingById(id);
+        if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
+            throw new AccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
+        }
+
+        booking.setPassengerBirthDates(birthDates);
+        return BookingMapper.toDto(bookingRepository.save(booking));
+    }
+
+    @Override
+    @Transactional
+    public void deleteBooking(Long id, User user) {
+        Booking booking = findBookingById(id);
+        validateUserAccess(booking, user);
+
+        if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
+            throw new AccessDeniedException("Users can only delete bookings in CREATED status");
+        }
+
+        if (booking.getBookingStatus() != BookingStatus.CANCELLED) {
+            flightService.releaseSeats(booking.getFlight().getId(), booking.getBookedSeats());
+        }
+
+        bookingRepository.delete(booking);
     }
 
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
@@ -96,12 +170,12 @@ public class BookingServiceImpl implements BookingService{
     }
 
     private void validateFlightBookingEligibility(Long flightId, int requestedSeats) {
-        if (!flightPublicService.isFlightAvailable(flightId)) {
+        if (!flightService.isFlightAvailable(flightId)) {
             throw new BusinessException("Flight not available for booking");
         }
 
-        if(!flightPublicService.hasAvailableSeats(flightId, requestedSeats)) {
-            Flight flight = flightPublicService.findById(flightId);
+        if(!flightService.hasAvailableSeats(flightId, requestedSeats)) {
+            Flight flight = flightService.findById(flightId);
             throw new BusinessException("Not enough seats available. Requested: " + requestedSeats + ". Available: " + flight.getAvailableSeats());
         }
     }
@@ -112,5 +186,26 @@ public class BookingServiceImpl implements BookingService{
         }
 
         return flight.getPrice() * bookedSeats;
+    }
+
+    private void validateStatusTransition(BookingStatus current, BookingStatus target) {
+        if (current == target) {
+            throw new BusinessException("Booking is already in " + target + " status");
+        }
+
+        switch (current) {
+            case CREATED:
+                if (target != BookingStatus.CONFIRMED && target != BookingStatus.CANCELLED) {
+                    throw new BusinessException("A CREATED booking can only be CONFIRMED or CANCELLED");
+                }
+                break;
+            case CONFIRMED:
+                if (target != BookingStatus.CANCELLED) {
+                    throw new BusinessException("A CONFIRMED booking can only be CANCELLED");
+                }
+                break;
+            case CANCELLED:
+                throw new BusinessException("Cannot change status of a CANCELLED booking");
+        }
     }
 }

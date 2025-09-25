@@ -2,6 +2,7 @@ package com.skyroute.skyroute.flight.dto.admin;
 
 import com.skyroute.skyroute.aircraft.dto.AircraftResponse;
 import com.skyroute.skyroute.route.dto.RouteResponse;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
@@ -18,5 +19,4 @@ public record FlightResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-
 }
