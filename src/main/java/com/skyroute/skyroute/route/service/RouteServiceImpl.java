@@ -70,7 +70,7 @@ public class RouteServiceImpl implements RouteService {
     }
 
     private void validateUniqueRouteFromUpdate(Long routeId, Long originId, Long destinationId){
-        if (routeRepository.existsByOriginIdAndDestinationIdAndIdNot(routeId, originId, destinationId)){
+        if (routeRepository.existsByOriginIdAndDestinationIdAndIdNot(originId, destinationId, routeId)){
             throw new EntityAlreadyExistsException(
                     "Route already exists between these airports: " + originId + " -> " + destinationId
             );
