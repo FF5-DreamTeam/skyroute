@@ -1,5 +1,6 @@
 package com.skyroute.skyroute.flight.validation;
 
+import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
@@ -40,7 +41,7 @@ public class FlightValidator {
     }
 
     private void validateAircraftCapacity(Long aircraftId, Integer availableSeats) {
-        var aircraft = aircraftRepository.findById(aircraftId)
+        Aircraft aircraft = aircraftRepository.findById(aircraftId)
                 .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + aircraftId));
 
         if (availableSeats == null || availableSeats < 0) {

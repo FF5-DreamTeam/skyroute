@@ -1,6 +1,7 @@
 package com.skyroute.skyroute.flight.service.admin;
 
 import com.skyroute.skyroute.aircraft.dto.AircraftMapper;
+import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
@@ -8,6 +9,7 @@ import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.flight.validation.FlightValidator;
 import com.skyroute.skyroute.route.dto.RouteMapper;
+import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.route.repository.RouteRepository;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
@@ -41,10 +43,17 @@ public class FlightServiceImpl implements FlightService {
                 request.arrivalTime()
         );
 
-        var aircraft = aircraftRepository.findById(request.aircraftId()).get();
-        var route = routeRepository.findById(request.routeId()).get();
+        Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Aircraft not found with id: " + request.aircraftId()
+                ));
 
-        var flight = Flight.builder()
+        Route route = routeRepository.findById(request.routeId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Route not found with id: " + request.routeId()
+                ));
+
+        Flight flight = Flight.builder()
                 .flightNumber(request.flightNumber())
                 .availableSeats(request.availableSeats())
                 .departureTime(request.departureTime())
@@ -59,7 +68,6 @@ public class FlightServiceImpl implements FlightService {
     }
 
     @Override
-    @Transactional
     public FlightResponse updateFlight(Long id, FlightRequest request) {
         flightValidator.validateFlight(
                 request.aircraftId(),
@@ -68,23 +76,29 @@ public class FlightServiceImpl implements FlightService {
                 request.arrivalTime()
         );
 
-        var flight = flightRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
+        Flight flight = flightRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Flight not found with id: " + id
+                ));
 
-        if (request.flightNumber() != null) flight.setFlightNumber(request.flightNumber());
-        if (request.availableSeats() != null) flight.setAvailableSeats(request.availableSeats());
-        if (request.departureTime() != null) flight.setDepartureTime(request.departureTime());
-        if (request.arrivalTime() != null) flight.setArrivalTime(request.arrivalTime());
-        if (request.price() != null) flight.setPrice(request.price());
-        if (request.available() != null) flight.setAvailable(request.available());
+        Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Aircraft not found with id: " + request.aircraftId()
+                ));
 
-        if (request.aircraftId() != null) {
-            flight.setAircraft(aircraftRepository.findById(request.aircraftId()).get());
-        }
+        Route route = routeRepository.findById(request.routeId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Route not found with id: " + request.routeId()
+                ));
 
-        if (request.routeId() != null) {
-            flight.setRoute(routeRepository.findById(request.routeId()).get());
-        }
+        flight.setFlightNumber(request.flightNumber());
+        flight.setAvailableSeats(request.availableSeats());
+        flight.setDepartureTime(request.departureTime());
+        flight.setArrivalTime(request.arrivalTime());
+        flight.setPrice(request.price());
+        flight.setAvailable(request.available() != null ? request.available() : true);
+        flight.setAircraft(aircraft);
+        flight.setRoute(route);
 
         return toResponse(flightRepository.save(flight));
     }
