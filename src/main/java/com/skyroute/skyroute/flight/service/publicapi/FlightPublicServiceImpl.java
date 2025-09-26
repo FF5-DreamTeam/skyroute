@@ -1,12 +1,15 @@
 package com.skyroute.skyroute.flight.service.publicapi;
 
+import com.skyroute.skyroute.flight.dto.publicapi.FlightMapper;
 import com.skyroute.skyroute.flight.dto.publicapi.FlightSearchRequest;
 import com.skyroute.skyroute.flight.dto.publicapi.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
-import com.skyroute.skyroute.flight.service.admin.FlightService;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,10 +21,11 @@ import java.util.stream.Collectors;
 public class FlightPublicServiceImpl implements FlightPublicService {
 
     private final FlightRepository flightRepository;
-    private final FlightService flightService;
+    private final FlightMapper flightMapper;
+
 
     @Override
-    public List<FlightSimpleResponse> searchFlights(FlightSearchRequest request) {
+    public Page<FlightSimpleResponse> searchFlights(FlightSearchRequest request, Pageable pageable) {
         LocalDateTime now = LocalDateTime.now();
 
         List<Flight> flights = flightRepository.searchFlightsWithFilters(
@@ -34,10 +38,21 @@ public class FlightPublicServiceImpl implements FlightPublicService {
                 now
         );
 
-        return flights.stream()
-                .map(this::toSimpleResponse)
+        flights.forEach(flight -> {
+            if (flight.getAvailableSeats() <= 0) {
+                flight.setAvailable(false);
+            }
+        });
+
+        List<FlightSimpleResponse> results = flights.stream()
+                .map(flightMapper::toSimpleResponse)
                 .collect(Collectors.toList());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), results.size());
+        return new PageImpl<>(results.subList(start, end), pageable, results.size());
     }
+
 
     @Override
     public FlightSimpleResponse getFlightById(Long id) {
