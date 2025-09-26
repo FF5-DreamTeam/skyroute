@@ -1,5 +1,6 @@
-package com.skyroute.skyroute.flight.controller;
+package com.skyroute.skyroute.flight;
 
+import com.skyroute.skyroute.flight.controller.FlightAdminController;
 import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
 import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
 import com.skyroute.skyroute.flight.service.admin.FlightService;
