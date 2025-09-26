@@ -14,12 +14,9 @@ import com.skyroute.skyroute.route.repository.RouteRepository;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -39,6 +36,7 @@ public class FlightServiceImplTest {
     private RouteRepository routeRepository;
     @Mock
     private FlightValidator flightValidator;
+
     @InjectMocks
     private FlightServiceImpl flightService;
     private Aircraft aircraft;
@@ -85,6 +83,8 @@ public class FlightServiceImplTest {
     void testCreateFlight_AircraftNotFound() {
         when(aircraftRepository.findById(1L)).thenReturn(Optional.empty());
         when(routeRepository.findById(1L)).thenReturn(Optional.of(route));
+        doNothing().when(flightValidator)
+                .validateFlight(anyLong(), anyInt(), any(), any());
         EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class, () -> flightService.createFlight(createRequest));
         assertEquals("Aircraft not found with id: 1", thrown.getMessage());
     }
@@ -93,6 +93,8 @@ public class FlightServiceImplTest {
     void testCreateFlight_RouteNotFound() {
         when(aircraftRepository.findById(1L)).thenReturn(Optional.of(aircraft));
         when(routeRepository.findById(1L)).thenReturn(Optional.empty());
+        doNothing().when(flightValidator)
+                .validateFlight(anyLong(), anyInt(), any(), any());
         assertThrows(EntityNotFoundException.class, () -> flightService.createFlight(createRequest));
     }
 
