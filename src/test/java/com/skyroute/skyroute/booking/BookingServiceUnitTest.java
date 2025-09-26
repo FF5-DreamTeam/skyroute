@@ -493,8 +493,7 @@ public class BookingServiceUnitTest {
         }
     }
 
-
-        private  User createTestUser(Long id, Role role) {
+    private  User createTestUser(Long id, Role role) {
         return User.builder()
                 .id(id)
                 .firstName("Test")
