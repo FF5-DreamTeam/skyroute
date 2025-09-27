@@ -12,7 +12,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,61 +25,88 @@ public class FlightPublicServiceImpl implements FlightPublicService {
     private final FlightRepository flightRepository;
     private final FlightMapper flightMapper;
 
+    @Override
+    public Page<FlightSimpleResponse> getFlightsPage(
+            Pageable pageable,
+            String origin,
+            String destination,
+            LocalDate departureDate,
+            Double minPrice,
+            Double maxPrice,
+            Integer passengers
+    ) {
+        List<Flight> flights = searchFlightsByCriteria(
+                origin, destination, departureDate, minPrice, maxPrice, passengers
+        );
+
+        return paginateFlights(flights, pageable);
+    }
 
     @Override
     public Page<FlightSimpleResponse> searchFlights(FlightSearchRequest request, Pageable pageable) {
-        LocalDateTime now = LocalDateTime.now();
-
-        List<Flight> flights = flightRepository.searchFlightsWithFilters(
+        List<Flight> flights = searchFlightsByCriteria(
                 request.origin(),
                 request.destination(),
                 request.departureDate(),
                 request.minPrice(),
                 request.maxPrice(),
-                request.passengers(),
-                now
+                request.passengers()
         );
 
+        return paginateFlights(flights, pageable);
+    }
+
+    private List<Flight> searchFlightsByCriteria(
+            String origin,
+            String destination,
+            LocalDate departureDate,
+            Double minPrice,
+            Double maxPrice,
+            Integer passengers
+    ) {
+        LocalDateTime departureDateStart = null;
+        LocalDateTime departureDateEnd = null;
+
+        if (departureDate != null) {
+            departureDateStart = departureDate.atStartOfDay();
+            departureDateEnd = departureDate.atTime(LocalTime.MAX);
+        }
+
+        return flightRepository.searchFlightsWithFilters(
+                origin,
+                destination,
+                departureDateStart,
+                departureDateEnd,
+                minPrice,
+                maxPrice,
+                passengers,
+                LocalDateTime.now()
+        );
+    }
+
+    private Page<FlightSimpleResponse> paginateFlights(List<Flight> flights, Pageable pageable) {
         flights.forEach(flight -> {
             if (flight.getAvailableSeats() <= 0) {
                 flight.setAvailable(false);
             }
         });
 
-        List<FlightSimpleResponse> results = flights.stream()
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), flights.size());
+
+        List<FlightSimpleResponse> results = flights.subList(start, end)
+                .stream()
                 .map(flightMapper::toSimpleResponse)
                 .collect(Collectors.toList());
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), results.size());
-        return new PageImpl<>(results.subList(start, end), pageable, results.size());
+        return new PageImpl<>(results, pageable, flights.size());
     }
-
 
     @Override
     public FlightSimpleResponse getFlightById(Long id) {
         Flight flight = flightRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Flight with id: not found " + id));
-        return toSimpleResponse(flight);
-    }
-
-    public Flight findById(Long id) {
-        return flightRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Flight with id: not found " + id));
-    }
-
-    private FlightSimpleResponse toSimpleResponse(Flight flight) {
-        return new FlightSimpleResponse(
-                flight.getId(),
-                flight.getFlightNumber(),
-                flight.getAvailableSeats(),
-                flight.getDepartureTime(),
-                flight.getArrivalTime(),
-                flight.getPrice(),
-                flight.isAvailable(),
-                null,
-                null,
-                null
-        );
+                .orElseThrow(() -> new EntityNotFoundException("Flight with id not found: " + id));
+        return flightMapper.toSimpleResponse(flight);
     }
 }
+
