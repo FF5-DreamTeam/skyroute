@@ -41,4 +41,18 @@ public class EmailService {
 
                 mailSender.send(message);
         }
+
+        public void sendPasswordResetEmail(String to, String subject, String plainText, String htmlContent)
+                        throws MessagingException {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setTo(to);
+                helper.setSubject(subject);
+                helper.setText(plainText, htmlContent);
+
+                ClassPathResource logoResource = new ClassPathResource("static/images/logo.png");
+                helper.addInline("logo", logoResource);
+
+                mailSender.send(message);
+        }
 }

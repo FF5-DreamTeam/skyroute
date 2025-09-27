@@ -61,10 +61,18 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/bookings",
                                                                 "/api/aircrafts", "/api/bookings/flight/**")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/api/bookings/user/*", "api/bookings/{id}").authenticated()
-                                                .requestMatchers(HttpMethod.POST, "/api/bookings", "api/bookings/{id}/confirm", "api/bookings/{id}/cancel").authenticated()
-                                                .requestMatchers(HttpMethod.PUT, "/api/bookings/{id}/passenger-names", "/api/bookings/{id}/passenger-birth-dates", "/api/bookings/{id}/status").authenticated()
-                                                .requestMatchers(HttpMethod.DELETE, "/api/bookings/{id}").authenticated()
+                                                .requestMatchers(HttpMethod.GET, "/api/bookings/user/*",
+                                                                "api/bookings/{id}")
+                                                .authenticated()
+                                                .requestMatchers(HttpMethod.POST, "/api/bookings",
+                                                                "api/bookings/{id}/confirm", "api/bookings/{id}/cancel")
+                                                .authenticated()
+                                                .requestMatchers(HttpMethod.PUT, "/api/bookings/{id}/passenger-names",
+                                                                "/api/bookings/{id}/passenger-birth-dates",
+                                                                "/api/bookings/{id}/status")
+                                                .authenticated()
+                                                .requestMatchers(HttpMethod.DELETE, "/api/bookings/{id}")
+                                                .authenticated()
                                                 .anyRequest().authenticated())
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
