@@ -63,22 +63,9 @@ public class FlightMapper {
     }
 
     public FlightSimpleResponse toSimpleResponse(Flight flight) {
-        if (flight == null) {
-            return null;
-        }
+        return flight == null ? null : new FlightSimpleResponse(flight);
 
-        return new FlightSimpleResponse(
-                flight.getId(),
-                flight.getFlightNumber(),
-                flight.getAvailableSeats(),
-                flight.getDepartureTime(),
-                flight.getArrivalTime(),
-                flight.getPrice(),
-                flight.isAvailable(),
-                flight.getAircraft() != null ? flight.getAircraft().getModel() : null,
-                flight.getRoute() != null ? flight.getRoute().getOrigin().getCity() : null,
-                flight.getRoute() != null ? flight.getRoute().getDestination().getCity() : null
-        );
     }
 }
+
 

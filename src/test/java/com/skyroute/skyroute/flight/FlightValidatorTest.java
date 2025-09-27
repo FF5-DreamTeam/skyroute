@@ -4,7 +4,7 @@ import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
-import com.skyroute.skyroute.flight.validation.FlightValidator;
+import com.skyroute.skyroute.flight.validation.FlightAdminValidator;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ class FlightValidatorTest {
     private FlightRepository flightRepository;
 
     @InjectMocks
-    private FlightValidator flightValidator;
+    private FlightAdminValidator flightAdminValidator;
 
     private Aircraft aircraft;
 
@@ -51,7 +51,7 @@ class FlightValidatorTest {
         when(flightRepository.findAll(Pageable.unpaged()))
                 .thenReturn(new PageImpl<>(List.of()));
 
-        assertDoesNotThrow(() -> flightValidator.validateFlight(
+        assertDoesNotThrow(() -> flightAdminValidator.validateFlight(
                 1L,
                 150,
                 LocalDateTime.now().plusDays(1),
@@ -64,7 +64,7 @@ class FlightValidatorTest {
         when(aircraftRepository.existsById(99L)).thenReturn(false);
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> flightValidator.validateFlight(
+                () -> flightAdminValidator.validateFlight(
                         99L,
                         100,
                         LocalDateTime.now().plusDays(1),
@@ -82,7 +82,7 @@ class FlightValidatorTest {
                 .thenReturn(new PageImpl<>(List.of()));
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> flightValidator.validateFlight(
+                () -> flightAdminValidator.validateFlight(
                         1L,
                         300,
                         LocalDateTime.now().plusDays(1),
@@ -100,7 +100,7 @@ class FlightValidatorTest {
                 .thenReturn(new PageImpl<>(List.of()));
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> flightValidator.validateFlight(
+                () -> flightAdminValidator.validateFlight(
                         1L,
                         150,
                         LocalDateTime.now().plusDays(2),
@@ -118,7 +118,7 @@ class FlightValidatorTest {
                 .thenReturn(new PageImpl<>(List.of()));
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> flightValidator.validateFlight(
+                () -> flightAdminValidator.validateFlight(
                         1L,
                         150,
                         LocalDateTime.now().minusDays(1),
@@ -142,7 +142,7 @@ class FlightValidatorTest {
                 .thenReturn(new PageImpl<>(List.of(existingFlight)));
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> flightValidator.validateFlight(
+                () -> flightAdminValidator.validateFlight(
                         1L,
                         150,
                         LocalDateTime.now().plusDays(1).plusMinutes(30),

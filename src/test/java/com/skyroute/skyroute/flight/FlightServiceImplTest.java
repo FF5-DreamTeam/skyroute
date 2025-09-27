@@ -8,7 +8,7 @@ import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.flight.service.admin.FlightServiceImpl;
-import com.skyroute.skyroute.flight.validation.FlightValidator;
+import com.skyroute.skyroute.flight.validation.FlightAdminValidator;
 import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.route.repository.RouteRepository;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
@@ -35,7 +35,7 @@ public class FlightServiceImplTest {
     @Mock
     private RouteRepository routeRepository;
     @Mock
-    private FlightValidator flightValidator;
+    private FlightAdminValidator flightAdminValidator;
 
     @InjectMocks
     private FlightServiceImpl flightService;
@@ -83,7 +83,7 @@ public class FlightServiceImplTest {
     void testCreateFlight_AircraftNotFound() {
         when(aircraftRepository.findById(1L)).thenReturn(Optional.empty());
         when(routeRepository.findById(1L)).thenReturn(Optional.of(route));
-        doNothing().when(flightValidator)
+        doNothing().when(flightAdminValidator)
                 .validateFlight(anyLong(), anyInt(), any(), any());
         EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class, () -> flightService.createFlight(createRequest));
         assertEquals("Aircraft not found with id: 1", thrown.getMessage());
@@ -93,7 +93,7 @@ public class FlightServiceImplTest {
     void testCreateFlight_RouteNotFound() {
         when(aircraftRepository.findById(1L)).thenReturn(Optional.of(aircraft));
         when(routeRepository.findById(1L)).thenReturn(Optional.empty());
-        doNothing().when(flightValidator)
+        doNothing().when(flightAdminValidator)
                 .validateFlight(anyLong(), anyInt(), any(), any());
         assertThrows(EntityNotFoundException.class, () -> flightService.createFlight(createRequest));
     }
@@ -199,6 +199,3 @@ public class FlightServiceImplTest {
         assertThrows(EntityNotFoundException.class, () -> flightService.findById(1L));
     }
 }
-
-
-
