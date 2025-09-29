@@ -6,7 +6,7 @@ INSERT INTO users (first_name, last_name, birth_date, email, password, role, cre
 
 -- Insert airports
 INSERT INTO airports (code, city, image_url) VALUES
-('JFK', 'New York', 'https://res.cloudinary.com/skyroute/image/upload/v1758527324/photo-1485871981521-5b1fd3805eee_yml4v5.jpg'),
+('JFK', 'New York', 'https://res.cloudinary.com/skyroute/image/upload/v1759015110/photo-1485871981521-5b1fd3805eee_etlxk4.jpg'),
 ('LAX', 'Los Angeles', 'https://res.cloudinary.com/skyroute/image/upload/v1758527421/Getty_515070156_EDITORIALONLY_LosAngeles_HollywoodBlvd_Web72DPI_0_xogwu6.jpg'),
 ('LHR', 'London', 'https://res.cloudinary.com/skyroute/image/upload/v1758529627/big-ben-westminster-bridge-sunset-london-uk_s6rdrj.jpg'),
 ('CDG', 'Paris', 'https://res.cloudinary.com/skyroute/image/upload/v1758529860/98.jpg_sj0koc.webp'),
