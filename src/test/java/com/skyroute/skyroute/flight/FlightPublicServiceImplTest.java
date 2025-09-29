@@ -1,11 +1,11 @@
 package com.skyroute.skyroute.flight;
 
+import com.skyroute.skyroute.flight.dto.publicapi.FlightMapper;
 import com.skyroute.skyroute.flight.dto.publicapi.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.service.publicapi.FlightPublicServiceImpl;
 import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
-import com.skyroute.skyroute.flight.service.admin.FlightService;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
-
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,7 +25,7 @@ public class FlightPublicServiceImplTest {
     private FlightRepository flightRepository;
 
     @Mock
-    private FlightService flightService;
+    private FlightMapper flightMapper;
 
     @InjectMocks
     private FlightPublicServiceImpl service;
@@ -49,6 +48,8 @@ public class FlightPublicServiceImplTest {
         flight.setPrice(200.0);
         flight.setAvailable(true);
         flight.setRoute(route);
+
+        when(flightMapper.toSimpleResponse(flight)).thenReturn(new FlightSimpleResponse(flight));
     }
 
     @Test
@@ -68,6 +69,7 @@ public class FlightPublicServiceImplTest {
         assertThrows(EntityNotFoundException.class, () -> service.getFlightById(1L));
     }
 }
+
 
 
 
