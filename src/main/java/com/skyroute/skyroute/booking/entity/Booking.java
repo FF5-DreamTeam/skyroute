@@ -5,14 +5,12 @@ import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.shared.BaseEntity;
 import com.skyroute.skyroute.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "booking")
 @Data

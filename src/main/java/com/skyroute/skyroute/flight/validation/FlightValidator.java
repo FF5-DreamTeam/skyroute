@@ -31,7 +31,7 @@ public class FlightValidator {
             throw new BusinessException("Departure and arrival times must be provided");
         }
 
-        if (departureTime.isBefore(arrivalTime)) {
+        if (departureTime.isEqual(arrivalTime) || departureTime.isAfter(arrivalTime)) {
             throw new BusinessException("Departure time must be before arrival time");
         }
 
