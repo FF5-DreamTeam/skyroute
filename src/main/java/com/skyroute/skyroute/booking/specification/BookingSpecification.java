@@ -287,14 +287,14 @@ public class BookingSpecification {
         };
     }
 
-    public static Specification<Booking> hasFutureFlightId() {
+    public static Specification<Booking> hasFutureFlights() {
         return (root, query, criteriaBuilder) -> {
             Join<Object, Object> flight = root.join("flight", JoinType.INNER);
             return criteriaBuilder.greaterThan(flight.get("departureTime"), LocalDateTime.now());
         };
     }
 
-    public static Specification<Booking> hasPastFlightId() {
+    public static Specification<Booking> hasPastFlights() {
         return (root, query, criteriaBuilder) -> {
             Join<Object, Object> flight = root.join("flight", JoinType.INNER);
             return criteriaBuilder.lessThanOrEqualTo(flight.get("departureTime"), LocalDateTime.now());

@@ -3,6 +3,7 @@ package com.skyroute.skyroute.booking.dto;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record BookingFilterRequest(
@@ -15,8 +16,8 @@ public record BookingFilterRequest(
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         LocalDateTime createdTo,
 
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-        LocalDateTime flightDepartureDate,
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate flightDepartureDate,
 
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         LocalDateTime flightDepartureFrom,
