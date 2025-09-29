@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -50,6 +51,7 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
             @Param("maxPrice") Double maxPrice,
             @Param("minSeats") Integer minSeats,
             @Param("now") LocalDateTime now
+
     );
 
     @Query("SELECT f FROM Flight f WHERE f.route.id = :routeId " +
@@ -93,4 +95,31 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
 
     @EntityGraph(attributePaths = {"aircraft", "route", "route.origin", "route.destination"})
     Optional<Flight> findById(Long id);
+
+    // Custom search query to filter flights by origin, destination, date and budget
+    @Query("""
+                SELECT f FROM Flight f
+                WHERE f.available = true
+                  AND (:origin IS NULL OR f.route.origin.city = :origin OR f.route.origin.code = :origin)
+                  AND (:destination IS NULL OR f.route.destination.city = :destination OR f.route.destination.code = :destination)
+                  AND (:date IS NULL OR DATE(f.departureTime) = :date)
+                  AND (:budget IS NULL OR f.price <= :budget)
+                ORDER BY f.price ASC
+            """)
+    List<Flight> searchFlights(
+            @Param("origin") String origin,
+            @Param("destination") String destination,
+            @Param("date") LocalDate date,
+            @Param("budget") Double budget
+    );
+
+    @Query("""
+                SELECT f FROM Flight f
+                WHERE (f.route.origin.city = :city OR f.route.destination.city = :city)
+                  AND f.available = true
+                  AND f.departureTime > :now
+                ORDER BY f.departureTime ASC
+            """)
+    List<Flight> findAvailableFlightsByCity(@Param("city") String city, @Param("now") LocalDateTime now);
 }
+

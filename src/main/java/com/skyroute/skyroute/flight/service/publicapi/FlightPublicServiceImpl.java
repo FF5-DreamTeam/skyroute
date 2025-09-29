@@ -1,7 +1,6 @@
 package com.skyroute.skyroute.flight.service.publicapi;
 
 import com.skyroute.skyroute.flight.dto.publicapi.FlightMapper;
-import com.skyroute.skyroute.flight.dto.publicapi.FlightSearchRequest;
 import com.skyroute.skyroute.flight.dto.publicapi.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,62 +26,54 @@ public class FlightPublicServiceImpl implements FlightPublicService {
     private final FlightMapper flightMapper;
 
     @Override
-    public Page<FlightSimpleResponse> getFlightsPage(
-            Pageable pageable,
+    public Page<FlightSimpleResponse> searchFlightsByParams(
             String origin,
             String destination,
-            LocalDate departureDate,
-            Double minPrice,
-            Double maxPrice,
-            Integer passengers
+            String departureDate,
+            String returnDate,
+            Integer passengers,
+            Pageable pageable
     ) {
-        List<Flight> flights = searchFlightsByCriteria(
-                origin, destination, departureDate, minPrice, maxPrice, passengers
+        LocalDateTime departureDateStart = null;
+        LocalDateTime departureDateEnd = null;
+
+        if (departureDate != null && !departureDate.isBlank()) {
+            departureDateStart = LocalDate.parse(departureDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")).atStartOfDay();
+            departureDateEnd = LocalDate.parse(departureDate, DateTimeFormatter.ofPattern("dd/MM/yyyy")).atTime(LocalTime.MAX);
+        }
+
+        List<Flight> flights = flightRepository.searchFlightsWithFilters(
+                origin,
+                destination,
+                departureDateStart,
+                departureDateEnd,
+                null,   // minPrice
+                null,   // maxPrice
+                passengers,
+                LocalDateTime.now()
         );
 
         return paginateFlights(flights, pageable);
     }
 
     @Override
-    public Page<FlightSimpleResponse> searchFlights(FlightSearchRequest request, Pageable pageable) {
-        List<Flight> flights = searchFlightsByCriteria(
-                request.origin(),
-                request.destination(),
-                request.departureDate(),
-                request.minPrice(),
-                request.maxPrice(),
-                request.passengers()
-        );
-
-        return paginateFlights(flights, pageable);
-    }
-
-    private List<Flight> searchFlightsByCriteria(
-            String origin,
-            String destination,
-            LocalDate departureDate,
-            Double minPrice,
-            Double maxPrice,
-            Integer passengers
-    ) {
-        LocalDateTime departureDateStart = null;
-        LocalDateTime departureDateEnd = null;
-
-        if (departureDate != null) {
-            departureDateStart = departureDate.atStartOfDay();
-            departureDateEnd = departureDate.atTime(LocalTime.MAX);
-        }
-
-        return flightRepository.searchFlightsWithFilters(
-                origin,
-                destination,
-                departureDateStart,
-                departureDateEnd,
-                minPrice,
-                maxPrice,
-                passengers,
+    public Page<FlightSimpleResponse> searchFlightsByBudget(Double budget, Pageable pageable) {
+        List<Flight> flights = flightRepository.searchFlightsWithFilters(
+                null,       // origin
+                null,       // destination
+                null,       // departureDateStart
+                null,       // departureDateEnd
+                null,       // minPrice
+                budget,     // maxPrice
+                null,       // passengers
                 LocalDateTime.now()
         );
+
+        if (flights.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        return paginateFlights(flights, pageable);
     }
 
     private Page<FlightSimpleResponse> paginateFlights(List<Flight> flights, Pageable pageable) {
@@ -93,6 +85,10 @@ public class FlightPublicServiceImpl implements FlightPublicService {
 
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), flights.size());
+
+        if (start > end) {
+            return Page.empty(pageable);
+        }
 
         List<FlightSimpleResponse> results = flights.subList(start, end)
                 .stream()
@@ -107,6 +103,14 @@ public class FlightPublicServiceImpl implements FlightPublicService {
         Flight flight = flightRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Flight with id not found: " + id));
         return flightMapper.toSimpleResponse(flight);
+    }
+
+    @Override
+    public List<FlightSimpleResponse> getAvailableFlightsByCity(String city) {
+        List<Flight> flights = flightRepository.findAvailableFlightsByCity(city, LocalDateTime.now());
+        return flights.stream()
+                .map(flightMapper::toSimpleResponse)
+                .toList();
     }
 }
 
