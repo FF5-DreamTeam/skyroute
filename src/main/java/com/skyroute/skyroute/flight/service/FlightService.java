@@ -3,6 +3,7 @@ package com.skyroute.skyroute.flight.service;
 import com.skyroute.skyroute.flight.dto.FlightRequest;
 import com.skyroute.skyroute.flight.dto.FlightResponse;
 import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
+import com.skyroute.skyroute.flight.dto.FlightUpdate;
 import com.skyroute.skyroute.flight.entity.Flight;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +31,7 @@ public interface FlightService {
 
     FlightResponse createFlight(FlightRequest request);
 
-    FlightResponse updateFlight(Long id, FlightRequest request);
+    FlightResponse updateFlight(Long id, FlightUpdate request);
 
     FlightResponse getFlightById(Long id);
 

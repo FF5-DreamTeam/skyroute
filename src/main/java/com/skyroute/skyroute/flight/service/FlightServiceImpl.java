@@ -3,10 +3,7 @@ package com.skyroute.skyroute.flight.service;
 import com.skyroute.skyroute.aircraft.dto.AircraftMapper;
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
-import com.skyroute.skyroute.flight.dto.FlightMapper;
-import com.skyroute.skyroute.flight.dto.FlightRequest;
-import com.skyroute.skyroute.flight.dto.FlightResponse;
-import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
+import com.skyroute.skyroute.flight.dto.*;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.flight.validation.FlightAdminValidator;
@@ -18,9 +15,7 @@ import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundExc
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,8 +115,7 @@ public class FlightServiceImpl implements FlightService {
     @Override
     @Transactional(readOnly = true)
     public FlightSimpleResponse getFlightSimpleById(Long id) {
-        Flight flight = findById(id);
-        return flightMapper.toSimpleResponse(flight);
+        return flightMapper.toSimpleResponse(findById(id));
     }
 
     @Override
@@ -175,30 +169,27 @@ public class FlightServiceImpl implements FlightService {
 
     @Override
     @Transactional
-    public FlightResponse updateFlight(Long id, FlightRequest request) {
-        flightAdminValidator.validateFlight(
-                request.aircraftId(),
-                request.availableSeats(),
-                request.departureTime(),
-                request.arrivalTime()
-        );
-
+    public FlightResponse updateFlight(Long id, FlightUpdate request) {
         Flight flight = findById(id);
 
-        Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
-                .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + request.aircraftId()));
+        if (request.flightNumber() != null) flight.setFlightNumber(request.flightNumber());
+        if (request.availableSeats() != null) flight.setAvailableSeats(request.availableSeats());
+        if (request.departureTime() != null) flight.setDepartureTime(request.departureTime());
+        if (request.arrivalTime() != null) flight.setArrivalTime(request.arrivalTime());
+        if (request.price() != null) flight.setPrice(request.price());
+        if (request.available() != null) flight.setAvailable(request.available());
 
-        Route route = routeRepository.findById(request.routeId())
-                .orElseThrow(() -> new EntityNotFoundException("Route not found with id: " + request.routeId()));
+        if (request.aircraftId() != null) {
+            Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
+                    .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + request.aircraftId()));
+            flight.setAircraft(aircraft);
+        }
 
-        flight.setFlightNumber(request.flightNumber());
-        flight.setAvailableSeats(request.availableSeats());
-        flight.setDepartureTime(request.departureTime());
-        flight.setArrivalTime(request.arrivalTime());
-        flight.setPrice(request.price());
-        flight.setAvailable(request.available() != null ? request.available() : true);
-        flight.setAircraft(aircraft);
-        flight.setRoute(route);
+        if (request.routeId() != null) {
+            Route route = routeRepository.findById(request.routeId())
+                    .orElseThrow(() -> new EntityNotFoundException("Route not found with id: " + request.routeId()));
+            flight.setRoute(route);
+        }
 
         return toResponse(flightRepository.save(flight));
     }
@@ -220,8 +211,7 @@ public class FlightServiceImpl implements FlightService {
     @Override
     @Transactional
     public void deleteFlight(Long id) {
-        Flight flight = findById(id);
-        flightRepository.delete(flight);
+        flightRepository.delete(findById(id));
     }
 
     @Override
@@ -288,6 +278,7 @@ public class FlightServiceImpl implements FlightService {
         );
     }
 }
+
 
 
 

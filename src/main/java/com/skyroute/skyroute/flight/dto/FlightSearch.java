@@ -1,6 +1,4 @@
-package com.skyroute.skyroute.flight.dto.publicapi;
-
-import lombok.Builder;
+package com.skyroute.skyroute.flight.dto;
 
 import java.time.LocalDateTime;
 

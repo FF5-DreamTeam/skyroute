@@ -3,10 +3,10 @@ package com.skyroute.skyroute.flight.dto;
 import com.skyroute.skyroute.aircraft.dto.AircraftMapper;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.route.dto.RouteMapper;
-import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
-import com.skyroute.skyroute.flight.dto.admin.FlightUpdate;
-import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
-import com.skyroute.skyroute.flight.dto.publicapi.FlightSimpleResponse;
+import com.skyroute.skyroute.flight.dto.FlightRequest;
+import com.skyroute.skyroute.flight.dto.FlightUpdate;
+import com.skyroute.skyroute.flight.dto.FlightResponse;
+import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
 import org.springframework.stereotype.Component;
 
 @Component
