@@ -1,10 +1,6 @@
-package com.skyroute.skyroute.flight.dto.publicapi;
+package com.skyroute.skyroute.flight.dto;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Size;
-import lombok.Builder;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 
@@ -15,10 +11,13 @@ public record FlightUpdate(
         @Min(value = 0, message = "Available seats cannot be negative")
         Integer availableSeats,
 
+        @Future(message = "Departure time must be in the future")
+        LocalDateTime departureTime,
+
         @Future(message = "Arrival time must be in the future")
         LocalDateTime arrivalTime,
 
-        @DecimalMin(value = "0.0", message = "price cannot be negative")
+        @DecimalMin(value = "0.0", message = "Price cannot be negative")
         Double price,
 
         Boolean available,
@@ -26,8 +25,4 @@ public record FlightUpdate(
         Long aircraftId,
 
         Long routeId
-
-) {
-}
-
-
+) {}

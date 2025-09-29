@@ -83,7 +83,8 @@ public class RouteServiceImpl implements RouteService {
         }
     }
 
-    private Route findRouteById(Long id){
+    @Override
+    public Route findRouteById(Long id){
         return routeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Route not found with ID: " + id));
     }

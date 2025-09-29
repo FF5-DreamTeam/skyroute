@@ -1,0 +1,200 @@
+package com.skyroute.skyroute.flight.service;
+
+import com.skyroute.skyroute.aircraft.entity.Aircraft;
+import com.skyroute.skyroute.aircraft.service.AircraftService;
+import com.skyroute.skyroute.flight.dto.*;
+import com.skyroute.skyroute.flight.entity.Flight;
+import com.skyroute.skyroute.flight.repository.FlightRepository;
+import com.skyroute.skyroute.flight.specification.FlightSpecificationBuilder;
+import com.skyroute.skyroute.flight.validation.FlightValidator;
+import com.skyroute.skyroute.route.entity.Route;
+import com.skyroute.skyroute.route.service.RouteService;
+import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class FlightServiceImpl implements FlightService {
+
+    private final FlightRepository flightRepository;
+    private final AircraftService aircraftService;
+    private final RouteService routeService;
+    private final FlightValidator flightValidator;
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FlightSimpleResponse> searchFlights(
+            Optional<String> origin,
+            Optional<String> destination,
+            Optional<String> departureDate,
+            Optional<Integer> passengers,
+            Pageable pageable
+    ) {
+        Specification<Flight> specification = FlightSpecificationBuilder.builder()
+                .originEquals(origin)
+                .destinationEquals(destination)
+                .departureDateEquals(departureDate)
+                .passengersAvailable(passengers)
+                .build();
+
+        return flightRepository.findAll(specification, pageable)
+                .map(FlightMapper::toSimpleResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FlightSimpleResponse> searchFlightsByBudget(Double budget, Pageable pageable) {
+        LocalDateTime now = LocalDateTime.now();
+
+        Specification<Flight> specification = FlightSpecificationBuilder.builder()
+                .pricelessThanOrEqual(Optional.ofNullable(budget))
+                .onlyAvailable(Optional.of(now))
+                .build();
+
+        return flightRepository.findAll(specification, pageable)
+                .map(FlightMapper::toSimpleResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FlightSimpleResponse getFlightSimpleById(Long id) {
+        return FlightMapper.toSimpleResponse(findById(id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<FlightSimpleResponse> getAvailableFlightsByCity(String city) {
+        List<Flight> flights = flightRepository.findAvailableFlightsByCity(city, LocalDateTime.now());
+        return flights.stream()
+                .map(FlightMapper::toSimpleResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FlightResponse> getFlightsPage(Pageable pageable) {
+        return flightRepository.findAll(pageable)
+                .map(FlightMapper::toResponse);
+    }
+
+    @Override
+    @Transactional
+    public FlightResponse createFlight(FlightRequest request) {
+        Aircraft aircraft = aircraftService.findById(request.aircraftId());
+        Route route = routeService.findRouteById(request.routeId());
+
+        flightValidator.validateFlightCreation(
+                aircraft,
+                request.availableSeats(),
+                request.departureTime(),
+                request.arrivalTime()
+        );
+
+        Flight flight = Flight.builder()
+                .flightNumber(request.flightNumber())
+                .availableSeats(request.availableSeats())
+                .departureTime(request.departureTime())
+                .arrivalTime(request.arrivalTime())
+                .price(request.price())
+                .available(request.available() != null ? request.available() : true)
+                .aircraft(aircraft)
+                .route(route)
+                .build();
+
+        return FlightMapper.toResponse(flightRepository.save(flight));
+    }
+
+    @Override
+    @Transactional
+    public FlightResponse updateFlight(Long id, FlightUpdate request) {
+        Flight flight = findById(id);
+
+        Aircraft aircraft = null;
+        if (request.aircraftId() != null){
+            aircraft = aircraftService.findById(request.aircraftId());
+        }
+
+        flightValidator.validateFlightUpdate(
+                flight,
+                aircraft,
+                request.availableSeats(),
+                request.departureTime(),
+                request.arrivalTime()
+        );
+
+        if (request.flightNumber() != null) flight.setFlightNumber(request.flightNumber());
+        if (request.availableSeats() != null) flight.setAvailableSeats(request.availableSeats());
+        if (request.departureTime() != null) flight.setDepartureTime(request.departureTime());
+        if (request.arrivalTime() != null) flight.setArrivalTime(request.arrivalTime());
+        if (request.price() != null) flight.setPrice(request.price());
+        if (request.available() != null) flight.setAvailable(request.available());
+        if (aircraft != null) flight.setAircraft(aircraft);
+
+        if (request.routeId() != null) {
+            Route route = routeService.findRouteById(request.routeId());
+            flight.setRoute(route);
+        }
+
+        return FlightMapper.toResponse(flightRepository.save(flight));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FlightResponse getFlightById(Long id) {
+        return FlightMapper.toResponse(findById(id));
+    }
+
+    @Override
+    @Transactional
+    public void deleteFlight(Long id) {
+        flightRepository.delete(findById(id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isFlightAvailable(Long flightId) {
+        return findById(flightId).isAvailable();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasAvailableSeats(Long flightId, int seatsRequested) {
+        return findById(flightId).getAvailableSeats() >= seatsRequested;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Flight findById(Long id) {
+        return flightRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Flight with id: " + id + " not found"));
+    }
+
+    @Override
+    @Transactional
+    public void bookSeats(Long flightId, int bookedSeats) {
+        Flight flight = findById(flightId);
+
+        flightValidator.validateSeatsToBook(flight, bookedSeats);
+
+        flight.setAvailableSeats(flight.getAvailableSeats() - bookedSeats);
+        flightRepository.save(flight);
+    }
+
+    @Override
+    @Transactional
+    public void releaseSeats(Long flightId, int seatsToRelease) {
+        flightValidator.validateSeatsToRelease(seatsToRelease);
+
+        Flight flight = findById(flightId);
+        flight.setAvailableSeats(flight.getAvailableSeats() + seatsToRelease);
+        flightRepository.save(flight);
+    }
+}

@@ -6,7 +6,7 @@ import com.skyroute.skyroute.booking.dto.BookingRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
-import com.skyroute.skyroute.flight.service.admin.FlightService;
+import com.skyroute.skyroute.flight.service.FlightService;
 import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
