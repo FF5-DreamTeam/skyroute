@@ -6,7 +6,6 @@ import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.flight.entity.Flight;
-import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.flight.service.admin.FlightService;
 import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
@@ -32,7 +31,7 @@ public class BookingServiceImpl implements BookingService{
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "bookingNumber", "bookingStatus", "createdAt", "flightNumber");
 
-    public BookingServiceImpl(BookingRepository bookingRepository, FlightService flightService, FlightRepository flightRepository, FlightService FlightService1) {
+    public BookingServiceImpl(BookingRepository bookingRepository, FlightService flightService) {
         this.bookingRepository = bookingRepository;
         this.flightService = flightService;
     }

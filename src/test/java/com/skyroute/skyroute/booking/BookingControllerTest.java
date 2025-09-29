@@ -1,7 +1,9 @@
 package com.skyroute.skyroute.booking;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.skyroute.skyroute.booking.dto.BookingRequest;
+import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.service.BookingService;
 import com.skyroute.skyroute.user.entity.User;
 import com.skyroute.skyroute.user.service.UserService;
@@ -42,20 +44,14 @@ public class BookingControllerTest {
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
-    private User testUser;
-
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
-
-        testUser = new User();
-        testUser.setId(1L);
-        testUser.setLastName("user1");
-
-        when(userService.getCurrentUser()).thenReturn(testUser);
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Nested
@@ -67,14 +63,13 @@ public class BookingControllerTest {
             BookingRequest request = new BookingRequest(1L, 2, List.of("pepa"), List.of(LocalDate.of(2020, 1, 1)));
 
         }
-
-        private BookingRequest createBookingRequest() {
-            return BookingRequest.builder()
-                    .flightId(1L)
-                    .bookedSeats(1)
-                    .passengerNames(List.of("Pepa"))
-                    .passengerBirthDates(List.of(LocalDate.of(2000, 1, 1)))
-                    .build();
-        }
     }
+//    private BookingRequest createBookingRequest() {
+//        return new BookingRequest()
+//
+//    }
+//
+//    private BookingResponse createBookingResponse() {
+//        return new BookingResponse()
+//    }
 }

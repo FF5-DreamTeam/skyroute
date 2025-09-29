@@ -1,12 +1,10 @@
 package com.skyroute.skyroute.booking.dto;
 
 import jakarta.validation.constraints.*;
-import lombok.Builder;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Builder
 public record BookingRequest(
     @NotNull(message = "Flight ID is required")
     @Positive(message = "Flight ID must be positive")
