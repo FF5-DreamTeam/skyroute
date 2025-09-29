@@ -13,7 +13,6 @@ import com.skyroute.skyroute.shared.exception.custom_exception.InvalidRouteExcep
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 @Service
@@ -52,9 +51,41 @@ public class RouteServiceImpl implements RouteService {
         return RouteMapper.toDto(route);
     }
 
+    @Override
+    @Transactional
+    public RouteResponse updateRoute(Long id, RouteRequest request) {
+        validateRouteRequest(request);
+
+        Route existingRoute = findRouteById(id);
+        Airport origin = airportService.findAirportById(request.originId());
+        Airport destination = airportService.findAirportById(request.destinationId());
+
+        validateUniqueRouteFromUpdate(id, origin.getId(), destination.getId());
+
+        existingRoute.setOrigin(origin);
+        existingRoute.setDestination(destination);
+
+        Route updatedRoute = routeRepository.save(existingRoute);
+        return RouteMapper.toDto(updatedRoute);
+    }
+
+    @Override
+    public void deleteRoute(Long id) {
+        Route route = findRouteById(id);
+        routeRepository.delete(route);
+    }
+
+    private void validateUniqueRouteFromUpdate(Long routeId, Long originId, Long destinationId){
+        if (routeRepository.existsByOriginIdAndDestinationIdAndIdNot(originId, destinationId, routeId)){
+            throw new EntityAlreadyExistsException(
+                    "Route already exists between these airports: " + originId + " -> " + destinationId
+            );
+        }
+    }
+
     private Route findRouteById(Long id){
         return routeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Airport not found with ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Route not found with ID: " + id));
     }
 
     private void validateRouteRequest(RouteRequest request){

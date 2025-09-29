@@ -9,4 +9,6 @@ public interface RouteService {
     RouteResponse createRoute(RouteRequest request);
     List<RouteResponse> getAllRoutes();
     RouteResponse getRouteById(Long id);
+    RouteResponse updateRoute(Long id, RouteRequest request);
+    void deleteRoute(Long id);
 }

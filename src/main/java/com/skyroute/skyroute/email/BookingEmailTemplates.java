@@ -1,5 +1,7 @@
 package com.skyroute.skyroute.email;
 
+import java.util.Locale;
+
 public class BookingEmailTemplates {
 
     public static String getSubject() {
@@ -8,7 +10,7 @@ public class BookingEmailTemplates {
 
     public static String getPlainText(String firstName, String lastName, String bookingNumber,
             String flightNumber, String departureTime, String arrivalTime, Double totalPrice) {
-        return String.format("Dear %s %s,\n\n" +
+        return String.format(Locale.US,  "Dear %s %s,\n\n" +
                 "Your flight booking has been confirmed!\n\n" +
                 "Booking Details:\n" +
                 "Booking Number: %s\n" +
@@ -26,7 +28,7 @@ public class BookingEmailTemplates {
 
     public static String getHtml(String firstName, String lastName, String bookingNumber,
             String flightNumber, String departureTime, String arrivalTime, Double totalPrice) {
-        return String.format(
+        return String.format(Locale.US,
                 """
                         <!DOCTYPE html>
                         <html>

@@ -1,10 +1,14 @@
 package com.skyroute.skyroute.auth.service;
 
+import com.skyroute.skyroute.auth.dto.ForgotPasswordRequest;
 import com.skyroute.skyroute.auth.dto.LoginRequest;
 import com.skyroute.skyroute.auth.dto.LoginResponse;
+import com.skyroute.skyroute.auth.dto.PasswordResetResponse;
 import com.skyroute.skyroute.auth.dto.RefreshTokenRequest;
 import com.skyroute.skyroute.auth.dto.RegisterResponse;
+import com.skyroute.skyroute.auth.dto.ResetPasswordRequest;
 import com.skyroute.skyroute.email.EmailService;
+import com.skyroute.skyroute.email.PasswordResetEmailTemplates;
 import com.skyroute.skyroute.email.RegistrationEmailTemplates;
 import com.skyroute.skyroute.security.details.CustomUserDetails;
 import com.skyroute.skyroute.security.jwt.JwtUtil;
@@ -23,6 +27,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -128,5 +135,61 @@ public class AuthServiceImpl implements AuthService {
         tokenBlacklistService.addToBlacklist(refreshToken);
         SecurityContextHolder.clearContext();
         log.info("User successfully logged out");
+    }
+
+    @Override
+    public PasswordResetResponse forgotPassword(ForgotPasswordRequest request) {
+        log.info("Password reset requested for email: {}", request.email());
+
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + request.email()));
+
+        String resetToken = UUID.randomUUID().toString();
+        LocalDateTime tokenExpiry = LocalDateTime.now().plusHours(1);
+
+        user.setPasswordResetToken(resetToken);
+        user.setPasswordResetTokenExpiresAt(tokenExpiry);
+        userRepository.save(user);
+
+        log.info("Password reset token generated for user: {}", user.getEmail());
+
+        try {
+            String htmlContent = PasswordResetEmailTemplates.getHtml(user.getFirstName(), user.getLastName(),
+                    resetToken);
+            String textContent = PasswordResetEmailTemplates.getPlainText(user.getFirstName(), user.getLastName(),
+                    resetToken);
+
+            emailService.sendPasswordResetEmail(
+                    user.getEmail(),
+                    PasswordResetEmailTemplates.getSubject(),
+                    textContent,
+                    htmlContent);
+            log.info("Password reset email sent to: {}", user.getEmail());
+        } catch (Exception e) {
+            log.warn("Failed to send password reset email to {}: {}", user.getEmail(), e.getMessage());
+        }
+
+        return new PasswordResetResponse("Password reset instructions have been sent to your email", true);
+    }
+
+    @Override
+    public PasswordResetResponse resetPassword(ResetPasswordRequest request) {
+        log.info("Password reset attempt with token");
+
+        User user = userRepository.findByPasswordResetToken(request.token())
+                .orElseThrow(() -> new RuntimeException("Invalid or expired reset token"));
+
+        if (user.getPasswordResetTokenExpiresAt().isBefore(LocalDateTime.now())) {
+            log.warn("Attempted to use expired reset token for user: {}", user.getEmail());
+            throw new RuntimeException("Reset token has expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordResetToken(null);
+        user.setPasswordResetTokenExpiresAt(null);
+        userRepository.save(user);
+
+        log.info("Password successfully reset for user: {}", user.getEmail());
+        return new PasswordResetResponse("Password has been successfully reset", true);
     }
 }

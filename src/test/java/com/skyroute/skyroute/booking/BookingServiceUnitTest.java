@@ -339,7 +339,7 @@ public class BookingServiceUnitTest {
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
             when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
 
-            BookingResponse result = bookingServiceImpl.confirmBooking(1L, testUser);
+            BookingResponse result = bookingServiceImpl.confirmBooking(1L, testAdmin);
 
             assertNotNull(result);
             assertEquals(BookingStatus.CONFIRMED, testBooking.getBookingStatus());

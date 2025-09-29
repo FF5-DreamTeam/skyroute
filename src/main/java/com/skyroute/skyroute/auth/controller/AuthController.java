@@ -1,10 +1,13 @@
 package com.skyroute.skyroute.auth.controller;
 
+import com.skyroute.skyroute.auth.dto.ForgotPasswordRequest;
 import com.skyroute.skyroute.auth.dto.LoginRequest;
 import com.skyroute.skyroute.auth.dto.LoginResponse;
 import com.skyroute.skyroute.auth.dto.LogoutResponse;
+import com.skyroute.skyroute.auth.dto.PasswordResetResponse;
 import com.skyroute.skyroute.auth.dto.RefreshTokenRequest;
 import com.skyroute.skyroute.auth.dto.RegisterResponse;
+import com.skyroute.skyroute.auth.dto.ResetPasswordRequest;
 import com.skyroute.skyroute.auth.service.AuthService;
 import com.skyroute.skyroute.user.dto.UserRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,6 +61,20 @@ public class AuthController {
             authService.logout(token);
         }
         LogoutResponse response = new LogoutResponse("Logout successful", true);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset", description = "Send password reset instructions to user's email")
+    public ResponseEntity<PasswordResetResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        PasswordResetResponse response = authService.forgotPassword(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password", description = "Reset user password using reset token")
+    public ResponseEntity<PasswordResetResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        PasswordResetResponse response = authService.resetPassword(request);
         return ResponseEntity.ok(response);
     }
 }
