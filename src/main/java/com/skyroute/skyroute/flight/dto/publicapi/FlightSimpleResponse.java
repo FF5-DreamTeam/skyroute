@@ -1,6 +1,8 @@
-package com.skyroute.skyroute.flight.dto.publicapi;
+package com.skyroute.skyroute.flight.dto;
 
 import java.time.LocalDateTime;
+
+import com.skyroute.skyroute.flight.entity.Flight;
 
 public record FlightSimpleResponse(
         Long id,
@@ -12,7 +14,7 @@ public record FlightSimpleResponse(
         Double price,
         Integer availableSeats
 ) {
-    public FlightSimpleResponse(com.skyroute.skyroute.flight.entity.Flight flight) {
+    public FlightSimpleResponse(Flight flight) {
         this(
                 flight.getId(),
                 flight.getFlightNumber(),

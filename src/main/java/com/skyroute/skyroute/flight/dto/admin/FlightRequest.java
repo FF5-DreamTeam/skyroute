@@ -1,35 +1,34 @@
-package com.skyroute.skyroute.flight.dto.admin;
+package com.skyroute.skyroute.flight.dto;
 
 import jakarta.validation.constraints.*;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
 
 public record FlightRequest(
-        @NotBlank(message = "Flight number is required")
-        @Size(min = 3, max = 10, message = "Flight number must be between 3 and 10 characters")
+        @NotBlank
+        @Size(min = 3, max = 10)
         String flightNumber,
 
-        @NotNull(message = "Available seats is required")
-        @Min(value = 0, message = "Available seats cannot be negative")
+        @NotNull
+        @Min(0)
         Integer availableSeats,
 
-        @NotNull(message = "Departure time is required")
-        @Future(message = "Departure time must be in the future")
+        @NotNull
+        @Future
         LocalDateTime departureTime,
 
-        @NotNull(message = "Arrival time is required")
-        @Future(message = "Arrival time must be in the future")
+        @NotNull
+        @Future
         LocalDateTime arrivalTime,
 
-        @NotNull(message = "Price is required")
-        @DecimalMin(value = "0.0", inclusive = true, message = "Price cannot be negative")
+        @NotNull
+        @DecimalMin(value = "0.0", inclusive = true)
         Double price,
 
-        @NotNull(message = "Aircraft ID is required")
+        @NotNull
         Long aircraftId,
 
-        @NotNull(message = "Route ID is required")
+        @NotNull
         Long routeId,
 
         Boolean available

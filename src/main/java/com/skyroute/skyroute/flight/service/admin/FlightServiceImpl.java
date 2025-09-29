@@ -1,10 +1,12 @@
-package com.skyroute.skyroute.flight.service.admin;
+package com.skyroute.skyroute.flight.service;
 
 import com.skyroute.skyroute.aircraft.dto.AircraftMapper;
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
-import com.skyroute.skyroute.flight.dto.admin.FlightRequest;
-import com.skyroute.skyroute.flight.dto.admin.FlightResponse;
+import com.skyroute.skyroute.flight.dto.FlightMapper;
+import com.skyroute.skyroute.flight.dto.FlightRequest;
+import com.skyroute.skyroute.flight.dto.FlightResponse;
+import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.flight.validation.FlightAdminValidator;
@@ -13,13 +15,19 @@ import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.route.repository.RouteRepository;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,17 +39,108 @@ public class FlightServiceImpl implements FlightService {
     private final AircraftRepository aircraftRepository;
     private final RouteRepository routeRepository;
     private final FlightAdminValidator flightAdminValidator;
+    private final FlightMapper flightMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public Page<FlightResponse> getFlightsPage(int page, int size, String sortBy, String sortDirection) {
-        Sort sort = sortDirection.equalsIgnoreCase("DESC")
-                ? Sort.by(sortBy).descending()
-                : Sort.by(sortBy).ascending();
+    public Page<FlightSimpleResponse> searchFlights(
+            String origin,
+            String destination,
+            String departureDate,
+            String returnDate,
+            Integer passengers,
+            Pageable pageable
+    ) {
+        LocalDateTime departureStart = null;
+        LocalDateTime departureEnd = null;
 
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
-        return flightRepository.findAll(pageRequest)
-                .map(this::toResponse);
+        if (departureDate != null && !departureDate.isBlank()) {
+            departureStart = LocalDate.parse(departureDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    .atStartOfDay();
+            departureEnd = LocalDate.parse(departureDate, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    .atTime(LocalTime.MAX);
+        }
+
+        List<Flight> flights = flightRepository.searchFlightsWithFilters(
+                origin,
+                destination,
+                departureStart,
+                departureEnd,
+                null,
+                null,
+                passengers,
+                LocalDateTime.now()
+        );
+
+        return paginateFlights(flights, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FlightSimpleResponse> searchFlightsByBudget(Double budget, Pageable pageable) {
+        List<Flight> flights = flightRepository.searchFlightsWithFilters(
+                null,
+                null,
+                null,
+                null,
+                null,
+                budget,
+                null,
+                LocalDateTime.now()
+        );
+
+        if (flights.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        return paginateFlights(flights, pageable);
+    }
+
+    private Page<FlightSimpleResponse> paginateFlights(List<Flight> flights, Pageable pageable) {
+        flights.forEach(flight -> {
+            if (flight.getAvailableSeats() <= 0) {
+                flight.setAvailable(false);
+            }
+        });
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), flights.size());
+
+        if (start >= end) {
+            return Page.empty(pageable);
+        }
+
+        List<FlightSimpleResponse> results = flights.subList(start, end).stream()
+                .map(flightMapper::toSimpleResponse)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(results, pageable, flights.size());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FlightSimpleResponse getFlightSimpleById(Long id) {
+        Flight flight = findById(id);
+        return flightMapper.toSimpleResponse(flight);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<FlightSimpleResponse> getAvailableFlightsByCity(String city) {
+        List<Flight> flights = flightRepository.findAvailableFlightsByCity(city, LocalDateTime.now());
+        return flights.stream()
+                .map(flightMapper::toSimpleResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FlightResponse> getFlightsPage(Pageable pageable) {
+        Page<Flight> flights = flightRepository.findAll(pageable);
+        List<FlightResponse> responses = flights.stream()
+                .map(this::toResponse)
+                .toList();
+        return new PageImpl<>(responses, pageable, flights.getTotalElements());
     }
 
     @Override
@@ -84,8 +183,7 @@ public class FlightServiceImpl implements FlightService {
                 request.arrivalTime()
         );
 
-        Flight flight = flightRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
+        Flight flight = findById(id);
 
         Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
                 .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + request.aircraftId()));
@@ -108,25 +206,21 @@ public class FlightServiceImpl implements FlightService {
     @Override
     @Transactional(readOnly = true)
     public FlightResponse getFlightById(Long id) {
-        Flight flight = flightRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
-        return toResponse(flight);
+        return toResponse(findById(id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<FlightResponse> getAllFlights() {
-        return flightRepository.findAll()
-                .stream()
+        return flightRepository.findAll().stream()
                 .map(this::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     @Transactional
     public void deleteFlight(Long id) {
-        Flight flight = flightRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Flight not found with id: " + id));
+        Flight flight = findById(id);
         flightRepository.delete(flight);
     }
 
@@ -157,6 +251,7 @@ public class FlightServiceImpl implements FlightService {
         }
 
         Flight flight = findById(flightId);
+
         if (bookedSeats > flight.getAvailableSeats()) {
             throw new BusinessException("Not enough seats available. Requested: " + bookedSeats + ". Available: " + flight.getAvailableSeats());
         }

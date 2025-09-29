@@ -1,4 +1,4 @@
-package com.skyroute.skyroute.flight.dto.publicapi;
+package com.skyroute.skyroute.flight.dto;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -6,7 +6,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 
 public record FlightSearchRequest(
-
         @Parameter(description = "Origin airport code or city", example = "MAD")
         String origin,
 
@@ -29,6 +28,5 @@ public record FlightSearchRequest(
 
         @Parameter(description = "Maximum price filter", example = "200")
         Double maxPrice
-
 ) {
 }

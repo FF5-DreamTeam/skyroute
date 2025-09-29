@@ -1,8 +1,7 @@
-package com.skyroute.skyroute.flight.dto.admin;
+package com.skyroute.skyroute.flight.dto;
 
 import com.skyroute.skyroute.aircraft.dto.AircraftResponse;
 import com.skyroute.skyroute.route.dto.RouteResponse;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
 
