@@ -1,45 +1,20 @@
 package com.skyroute.skyroute.flight.validation;
 
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
-import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
 import com.skyroute.skyroute.flight.entity.Flight;
-import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
-import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class FlightValidator {
 
-    private final AircraftRepository aircraftRepository;
-    private final FlightRepository flightRepository;
-
-    public void validateFlight(Long aircraftId, Integer availableSeats,
-                               LocalDateTime departureTime, LocalDateTime arrivalTime) {
-
-        validateAircraftExists(aircraftId);
-        validateAircraftCapacity(aircraftId, availableSeats);
-        validateTimes(departureTime, arrivalTime);
-        validateAircraftSchedule(aircraftId, departureTime, arrivalTime);
-    }
-
-    private void validateAircraftExists(Long aircraftId) {
-        if (aircraftId == null || !aircraftRepository.existsById(aircraftId)) {
-            throw new EntityNotFoundException("Aircraft not found with id: " + aircraftId);
+    public void validateAircraftCapacity(Aircraft aircraft, Integer availableSeats){
+        if (aircraft == null){
+            throw new BusinessException("Aircraft cannot be null");
         }
-    }
-
-    private void validateAircraftCapacity(Long aircraftId, Integer availableSeats) {
-        Aircraft aircraft = aircraftRepository.findById(aircraftId)
-                .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + aircraftId));
-
         if (availableSeats == null || availableSeats < 0) {
             throw new BusinessException("Available seats cannot be null or negative");
         }
@@ -56,7 +31,7 @@ public class FlightValidator {
             throw new BusinessException("Departure and arrival times must be provided");
         }
 
-        if (departureTime.isAfter(arrivalTime)) {
+        if (departureTime.isBefore(arrivalTime)) {
             throw new BusinessException("Departure time must be before arrival time");
         }
 
@@ -65,23 +40,38 @@ public class FlightValidator {
         }
     }
 
-    private void validateAircraftSchedule(Long aircraftId, LocalDateTime departureTime, LocalDateTime arrivalTime) {
-        Pageable pageable = Pageable.unpaged();
-        Page<Flight> flights = flightRepository.findAll(pageable);
+    public void validateFlightCreation(Aircraft aircraft, Integer availableSeats,
+                                       LocalDateTime departureTime, LocalDateTime arrivalTime) {
 
-        List<Flight> conflictingFlights = flights.stream()
-                .filter(f -> f.getAircraft().getId().equals(aircraftId))
-                .filter(f -> timesOverlap(f.getDepartureTime(), f.getArrivalTime(), departureTime, arrivalTime))
-                .toList();
+        validateAircraftCapacity(aircraft, availableSeats);
+        validateTimes(departureTime, arrivalTime);
+    }
 
-        if (!conflictingFlights.isEmpty()) {
-            throw new BusinessException("Aircraft has conflicting flight schedules in the requested timeframe.");
+    public void validateFlightUpdate(Flight existingFlight, Aircraft aircraft,
+                                     Integer availableSeats, LocalDateTime departureTime, LocalDateTime arrivalTime){
+        LocalDateTime departure = departureTime != null ? departureTime : existingFlight.getDepartureTime();
+        LocalDateTime arrival = arrivalTime != null ? arrivalTime : existingFlight.getArrivalTime();
+        Integer seats = availableSeats != null ? availableSeats : existingFlight.getAvailableSeats();
+        Aircraft aircraftToValidate = aircraft != null ? aircraft : existingFlight.getAircraft();
+
+        validateTimes(departure, arrival);
+        validateAircraftCapacity(aircraftToValidate, seats);
+    }
+
+    public void validateSeatsToBook(Flight flight, int seatsRequested){
+        if (seatsRequested <= 0){
+            throw new BusinessException("Seats requested must be greater than 0");
+        }
+
+        if (seatsRequested > flight.getAvailableSeats()){
+            throw new BusinessException("Not enough seats available. requested: " + seatsRequested
+            + ". Available: " + flight.getAvailableSeats());
         }
     }
 
-    private boolean timesOverlap(LocalDateTime existingStart, LocalDateTime existingEnd,
-                                 LocalDateTime newStart, LocalDateTime newEnd) {
-        return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
+    public void validateSeatsToRelease(int seatsToRelease){
+        if (seatsToRelease <= 0){
+            throw new BusinessException("Seats to release must be positive");
+        }
     }
 }
-

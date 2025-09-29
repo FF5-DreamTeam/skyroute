@@ -25,7 +25,4 @@ public record FlightUpdate(
         Long aircraftId,
 
         Long routeId
-) {
-}
-
-
+) {}

@@ -7,6 +7,7 @@ import com.skyroute.skyroute.aircraft.dto.AircraftMapper;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
 import com.skyroute.skyroute.shared.exception.custom_exception.AircraftDeletionException;
 import com.skyroute.skyroute.shared.exception.custom_exception.AircraftNotFoundException;
+import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,5 +95,16 @@ public class AircraftServiceImpl implements AircraftService {
             log.error("Error deleting aircraft with id: {}", id, e);
             throw new AircraftDeletionException("Error deleting aircraft with id: " + id, e);
         }
+    }
+
+    @Override
+    public Aircraft findById(Long id) {
+        return aircraftRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + id));
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return aircraftRepository.existsById(id);
     }
 }

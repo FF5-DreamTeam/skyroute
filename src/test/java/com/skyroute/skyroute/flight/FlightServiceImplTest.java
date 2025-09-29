@@ -84,7 +84,7 @@
 //        when(aircraftRepository.findById(1L)).thenReturn(Optional.empty());
 //        when(routeRepository.findById(1L)).thenReturn(Optional.of(route));
 //        doNothing().when(flightAdminValidator)
-//                .validateFlight(anyLong(), anyInt(), any(), any());
+//                .validateFlightCreation(anyLong(), anyInt(), any(), any());
 //        EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class, () -> flightService.createFlight(createRequest));
 //        assertEquals("Aircraft not found with id: 1", thrown.getMessage());
 //    }
@@ -94,7 +94,7 @@
 //        when(aircraftRepository.findById(1L)).thenReturn(Optional.of(aircraft));
 //        when(routeRepository.findById(1L)).thenReturn(Optional.empty());
 //        doNothing().when(flightAdminValidator)
-//                .validateFlight(anyLong(), anyInt(), any(), any());
+//                .validateFlightCreation(anyLong(), anyInt(), any(), any());
 //        assertThrows(EntityNotFoundException.class, () -> flightService.createFlight(createRequest));
 //    }
 //

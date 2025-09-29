@@ -7,17 +7,16 @@ import com.skyroute.skyroute.flight.dto.FlightUpdate;
 import com.skyroute.skyroute.flight.entity.Flight;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import java.util.List;
+import java.util.Optional;
 
 public interface FlightService {
 
     Page<FlightSimpleResponse> searchFlights(
-            String origin,
-            String destination,
-            String departureDate,
-            String returnDate,
-            Integer passengers,
+            Optional<String> origin,
+            Optional<String> destination,
+            Optional<String> departureDate,
+            Optional<Integer> passengers,
             Pageable pageable
     );
 
@@ -35,8 +34,6 @@ public interface FlightService {
 
     FlightResponse getFlightById(Long id);
 
-    List<FlightResponse> getAllFlights();
-
     void deleteFlight(Long id);
 
     boolean isFlightAvailable(Long flightId);
@@ -49,7 +46,3 @@ public interface FlightService {
 
     void releaseSeats(Long flightId, int seatsToRelease);
 }
-
-
-
-

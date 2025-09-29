@@ -32,5 +32,4 @@ public record FlightRequest(
         Long routeId,
 
         Boolean available
-) {
-}
+) {}

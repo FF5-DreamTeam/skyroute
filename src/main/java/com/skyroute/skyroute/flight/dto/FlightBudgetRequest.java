@@ -8,5 +8,4 @@ public record FlightBudgetRequest(
         @Schema(description = "Maximum budget for the flight", example = "300.0")
         @NotNull
         Double budget
-) {
-}
+) {}

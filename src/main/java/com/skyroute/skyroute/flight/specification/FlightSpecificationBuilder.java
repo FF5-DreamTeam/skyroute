@@ -3,7 +3,6 @@ package com.skyroute.skyroute.flight.specification;
 import com.skyroute.skyroute.flight.entity.Flight;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
 

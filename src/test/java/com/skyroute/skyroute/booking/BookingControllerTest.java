@@ -54,16 +54,16 @@ public class BookingControllerTest {
         objectMapper.registerModule(new JavaTimeModule());
     }
 
-    @Nested
-    class CreateBookingTest {
-
-        @Test
-        @WithMockUser(roles = "USER")
-        void createBooking_shouldReturnBookingResponse_whenValidRequest() {
-            BookingRequest request = new BookingRequest(1L, 2, List.of("pepa"), List.of(LocalDate.of(2020, 1, 1)));
-
-        }
-    }
+//    @Nested
+//    class CreateBookingTest {
+//
+//        @Test
+//        @WithMockUser(roles = "USER")
+//        void createBooking_shouldReturnBookingResponse_whenValidRequest() {
+//            BookingRequest request = new BookingRequest(1L, 2, List.of("pepa"), List.of(LocalDate.of(2020, 1, 1)));
+//
+//        }
+//    }
 //    private BookingRequest createBookingRequest() {
 //        return new BookingRequest()
 //

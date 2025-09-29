@@ -17,5 +17,4 @@ public record FlightResponse(
         RouteResponse route,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
-) {
-}
+) {}

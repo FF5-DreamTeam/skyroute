@@ -45,13 +45,13 @@ class FlightValidatorTest {
     }
 
     @Test
-    void validateFlight_ShouldPass_WhenAllValidationsPass() {
+    void validateFlight_Creation_ShouldPass_WhenAllValidationsPass() {
         when(aircraftRepository.existsById(1L)).thenReturn(true);
         when(aircraftRepository.findById(1L)).thenReturn(Optional.of(aircraft));
         when(flightRepository.findAll(Pageable.unpaged()))
                 .thenReturn(new PageImpl<>(List.of()));
 
-        assertDoesNotThrow(() -> flightAdminValidator.validateFlight(
+        assertDoesNotThrow(() -> flightAdminValidator.validateFlightCreation(
                 1L,
                 150,
                 LocalDateTime.now().plusDays(1),
@@ -60,11 +60,11 @@ class FlightValidatorTest {
     }
 
     @Test
-    void validateFlight_ShouldThrow_WhenAircraftDoesNotExist() {
+    void validateFlight_Creation_ShouldThrow_WhenAircraftDoesNotExist() {
         when(aircraftRepository.existsById(99L)).thenReturn(false);
 
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
-                () -> flightAdminValidator.validateFlight(
+                () -> flightAdminValidator.validateFlightCreation(
                         99L,
                         100,
                         LocalDateTime.now().plusDays(1),
@@ -75,14 +75,14 @@ class FlightValidatorTest {
     }
 
     @Test
-    void validateFlight_ShouldThrow_WhenAvailableSeatsExceedCapacity() {
+    void validateFlight_Creation_ShouldThrow_WhenAvailableSeatsExceedCapacity() {
         when(aircraftRepository.existsById(1L)).thenReturn(true);
         when(aircraftRepository.findById(1L)).thenReturn(Optional.of(aircraft));
         when(flightRepository.findAll(Pageable.unpaged()))
                 .thenReturn(new PageImpl<>(List.of()));
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> flightAdminValidator.validateFlight(
+                () -> flightAdminValidator.validateFlightCreation(
                         1L,
                         300,
                         LocalDateTime.now().plusDays(1),
@@ -93,14 +93,14 @@ class FlightValidatorTest {
     }
 
     @Test
-    void validateFlight_ShouldThrow_WhenDepartureAfterArrival() {
+    void validateFlight_Creation_ShouldThrow_WhenDepartureAfterArrival() {
         when(aircraftRepository.existsById(1L)).thenReturn(true);
         when(aircraftRepository.findById(1L)).thenReturn(Optional.of(aircraft));
         when(flightRepository.findAll(Pageable.unpaged()))
                 .thenReturn(new PageImpl<>(List.of()));
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> flightAdminValidator.validateFlight(
+                () -> flightAdminValidator.validateFlightCreation(
                         1L,
                         150,
                         LocalDateTime.now().plusDays(2),
@@ -111,14 +111,14 @@ class FlightValidatorTest {
     }
 
     @Test
-    void validateFlight_ShouldThrow_WhenDepartureInPast() {
+    void validateFlight_Creation_ShouldThrow_WhenDepartureInPast() {
         when(aircraftRepository.existsById(1L)).thenReturn(true);
         when(aircraftRepository.findById(1L)).thenReturn(Optional.of(aircraft));
         when(flightRepository.findAll(Pageable.unpaged()))
                 .thenReturn(new PageImpl<>(List.of()));
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> flightAdminValidator.validateFlight(
+                () -> flightAdminValidator.validateFlightCreation(
                         1L,
                         150,
                         LocalDateTime.now().minusDays(1),
@@ -129,7 +129,7 @@ class FlightValidatorTest {
     }
 
     @Test
-    void validateFlight_ShouldThrow_WhenScheduleConflicts() {
+    void validateFlight_Creation_ShouldThrow_WhenScheduleConflicts() {
         when(aircraftRepository.existsById(1L)).thenReturn(true);
         when(aircraftRepository.findById(1L)).thenReturn(Optional.of(aircraft));
 
@@ -142,7 +142,7 @@ class FlightValidatorTest {
                 .thenReturn(new PageImpl<>(List.of(existingFlight)));
 
         BusinessException ex = assertThrows(BusinessException.class,
-                () -> flightAdminValidator.validateFlight(
+                () -> flightAdminValidator.validateFlightCreation(
                         1L,
                         150,
                         LocalDateTime.now().plusDays(1).plusMinutes(30),
