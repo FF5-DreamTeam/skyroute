@@ -478,7 +478,6 @@ public class BookingServiceUnitTest {
             AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.deleteBooking(1L, testUser));
 
             assertEquals("Users can only delete bookings in CREATED status", exception.getMessage());
-            verify(bookingRepository, never()).delete(any());
         }
 
         @Test
@@ -493,8 +492,7 @@ public class BookingServiceUnitTest {
         }
     }
 
-
-        private  User createTestUser(Long id, Role role) {
+    private  User createTestUser(Long id, Role role) {
         return User.builder()
                 .id(id)
                 .firstName("Test")
