@@ -6,6 +6,7 @@ import com.skyroute.skyroute.flight.dto.FlightResponse;
 import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.dto.FlightUpdate;
 import com.skyroute.skyroute.flight.service.FlightService;
+import com.skyroute.skyroute.flight.service.FlightServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +28,7 @@ import java.util.List;
 @Tag(name = "Flights", description = "API for managing and browsing flights")
 public class FlightController {
 
-    private final FlightService flightService;
+    private final FlightServiceImpl flightService;
 
     @Operation(summary = "Search flights by parameters")
     @GetMapping("/search")

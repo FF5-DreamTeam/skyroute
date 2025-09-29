@@ -8,7 +8,7 @@
 //import com.skyroute.skyroute.flight.entity.Flight;
 //import com.skyroute.skyroute.flight.repository.FlightRepository;
 //import com.skyroute.skyroute.flight.service.admin.FlightServiceImpl;
-//import com.skyroute.skyroute.flight.validation.FlightAdminValidator;
+//import com.skyroute.skyroute.flight.validation.FlightValidator;
 //import com.skyroute.skyroute.route.entity.Route;
 //import com.skyroute.skyroute.route.repository.RouteRepository;
 //import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
@@ -35,7 +35,7 @@
 //    @Mock
 //    private RouteRepository routeRepository;
 //    @Mock
-//    private FlightAdminValidator flightAdminValidator;
+//    private FlightValidator flightAdminValidator;
 //
 //    @InjectMocks
 //    private FlightServiceImpl flightService;

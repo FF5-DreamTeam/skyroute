@@ -1,15 +1,13 @@
 package com.skyroute.skyroute.flight.service;
 
-import com.skyroute.skyroute.aircraft.dto.AircraftMapper;
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
-import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
+import com.skyroute.skyroute.aircraft.service.AircraftService;
 import com.skyroute.skyroute.flight.dto.*;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
-import com.skyroute.skyroute.flight.validation.FlightAdminValidator;
-import com.skyroute.skyroute.route.dto.RouteMapper;
+import com.skyroute.skyroute.flight.validation.FlightValidator;
 import com.skyroute.skyroute.route.entity.Route;
-import com.skyroute.skyroute.route.repository.RouteRepository;
+import com.skyroute.skyroute.route.service.RouteService;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +29,9 @@ import java.util.stream.Collectors;
 public class FlightServiceImpl implements FlightService {
 
     private final FlightRepository flightRepository;
-    private final AircraftRepository aircraftRepository;
-    private final RouteRepository routeRepository;
-    private final FlightAdminValidator flightAdminValidator;
+    private final AircraftService aircraftService;
+    private final RouteService routeService;
+    private final FlightValidator flightValidator;
     private final FlightMapper flightMapper;
 
     @Override
@@ -132,7 +130,7 @@ public class FlightServiceImpl implements FlightService {
     public Page<FlightResponse> getFlightsPage(Pageable pageable) {
         Page<Flight> flights = flightRepository.findAll(pageable);
         List<FlightResponse> responses = flights.stream()
-                .map(this::toResponse)
+                .map(flightMapper::toResponse)
                 .toList();
         return new PageImpl<>(responses, pageable, flights.getTotalElements());
     }
@@ -140,17 +138,17 @@ public class FlightServiceImpl implements FlightService {
     @Override
     @Transactional
     public FlightResponse createFlight(FlightRequest request) {
-        flightAdminValidator.validateFlight(
+        flightValidator.validateFlight(
                 request.aircraftId(),
                 request.availableSeats(),
                 request.departureTime(),
                 request.arrivalTime()
         );
 
-        Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
+        Aircraft aircraft = aircraftService.findById(request.aircraftId())
                 .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + request.aircraftId()));
 
-        Route route = routeRepository.findById(request.routeId())
+        Route route = routeService.findById(request.routeId())
                 .orElseThrow(() -> new EntityNotFoundException("Route not found with id: " + request.routeId()));
 
         Flight flight = Flight.builder()
@@ -164,7 +162,7 @@ public class FlightServiceImpl implements FlightService {
                 .route(route)
                 .build();
 
-        return toResponse(flightRepository.save(flight));
+        return flightMapper.toResponse(flightRepository.save(flight));
     }
 
     @Override
@@ -180,31 +178,31 @@ public class FlightServiceImpl implements FlightService {
         if (request.available() != null) flight.setAvailable(request.available());
 
         if (request.aircraftId() != null) {
-            Aircraft aircraft = aircraftRepository.findById(request.aircraftId())
+            Aircraft aircraft = aircraftService.findById(request.aircraftId())
                     .orElseThrow(() -> new EntityNotFoundException("Aircraft not found with id: " + request.aircraftId()));
             flight.setAircraft(aircraft);
         }
 
         if (request.routeId() != null) {
-            Route route = routeRepository.findById(request.routeId())
+            Route route = routeService.findById(request.routeId())
                     .orElseThrow(() -> new EntityNotFoundException("Route not found with id: " + request.routeId()));
             flight.setRoute(route);
         }
 
-        return toResponse(flightRepository.save(flight));
+        return flightMapper.toResponse(flightRepository.save(flight));
     }
 
     @Override
     @Transactional(readOnly = true)
     public FlightResponse getFlightById(Long id) {
-        return toResponse(findById(id));
+        return flightMapper.toResponse(findById(id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<FlightResponse> getAllFlights() {
         return flightRepository.findAll().stream()
-                .map(this::toResponse)
+                .map(flightMapper::toResponse)
                 .toList();
     }
 
@@ -262,21 +260,6 @@ public class FlightServiceImpl implements FlightService {
         flightRepository.save(flight);
     }
 
-    private FlightResponse toResponse(Flight flight) {
-        return new FlightResponse(
-                flight.getId(),
-                flight.getFlightNumber(),
-                flight.getAvailableSeats(),
-                flight.getDepartureTime(),
-                flight.getArrivalTime(),
-                flight.getPrice(),
-                flight.isAvailable(),
-                flight.getAircraft() != null ? AircraftMapper.toDto(flight.getAircraft()) : null,
-                flight.getRoute() != null ? RouteMapper.toDto(flight.getRoute()) : null,
-                flight.getCreatedAt(),
-                flight.getUpdatedAt()
-        );
-    }
 }
 
 

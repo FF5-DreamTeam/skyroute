@@ -4,7 +4,7 @@ import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.repository.AircraftRepository;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
-import com.skyroute.skyroute.flight.validation.FlightAdminValidator;
+import com.skyroute.skyroute.flight.validation.FlightValidator;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ class FlightValidatorTest {
     private FlightRepository flightRepository;
 
     @InjectMocks
-    private FlightAdminValidator flightAdminValidator;
+    private FlightValidator flightAdminValidator;
 
     private Aircraft aircraft;
 

@@ -40,7 +40,6 @@ public class FlightMapper {
     }
 
     public FlightResponse toResponse(Flight flight) {
-        if (flight == null) return null;
         return new FlightResponse(
                 flight.getId(),
                 flight.getFlightNumber(),
@@ -49,8 +48,8 @@ public class FlightMapper {
                 flight.getArrivalTime(),
                 flight.getPrice(),
                 flight.isAvailable(),
-                AircraftMapper.toDto(flight.getAircraft()),
-                RouteMapper.toDto(flight.getRoute()),
+                flight.getAircraft() != null ? AircraftMapper.toDto(flight.getAircraft()) : null,
+                flight.getRoute() != null ? RouteMapper.toDto(flight.getRoute()) : null,
                 flight.getCreatedAt(),
                 flight.getUpdatedAt()
         );
