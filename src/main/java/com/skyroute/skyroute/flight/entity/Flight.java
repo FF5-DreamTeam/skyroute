@@ -28,7 +28,6 @@ public class Flight extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String flightNumber;
 
-    @Min(0)
     private int availableSeats;
 
     @Column(nullable = false)
