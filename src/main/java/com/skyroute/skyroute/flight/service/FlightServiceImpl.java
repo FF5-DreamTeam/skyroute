@@ -6,6 +6,7 @@ import com.skyroute.skyroute.flight.dto.*;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.helper.FlightHelper;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
+import com.skyroute.skyroute.flight.specification.FlightSpecification;
 import com.skyroute.skyroute.flight.specification.FlightSpecificationBuilder;
 import com.skyroute.skyroute.flight.validation.FlightValidator;
 import com.skyroute.skyroute.route.entity.Route;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -174,7 +176,7 @@ public class FlightServiceImpl implements FlightService {
                 .toList();
     }
 
-    private void validateFlightUpdate(Flight flight, Aircraft aircraft, FlightUpdate request){
+    private void validateFlightUpdate(Flight flight, Aircraft aircraft, FlightUpdate request) {
         flightValidator.validateFlightUpdate(
                 flight,
                 aircraft,
@@ -182,5 +184,20 @@ public class FlightServiceImpl implements FlightService {
                 request.departureTime(),
                 request.arrivalTime()
         );
+    }
+
+    @Override
+    public int markFlightsAsUnavailableAndReleaseSeats(LocalDateTime now) {
+        Specification<Flight> spec = FlightSpecification.hasDepartedBefore(now);
+        List<Flight> flightsToUpdate = flightRepository.findAll(spec);
+
+        flightsToUpdate.forEach(flight -> {
+            flight.setAvailable(false);
+            flight.setAvailableSeats(0);
+        });
+
+        flightRepository.saveAll(flightsToUpdate);
+
+        return flightsToUpdate.size();
     }
 }

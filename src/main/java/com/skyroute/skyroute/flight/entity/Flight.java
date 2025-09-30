@@ -31,15 +31,12 @@ public class Flight extends BaseEntity {
     @Min(0)
     private int availableSeats;
 
-    @Future
     @Column(nullable = false)
     private LocalDateTime departureTime;
 
-    @Future
     @Column(nullable = false)
     private LocalDateTime arrivalTime;
 
-    @Min(0)
     private double price;
 
     @Column(nullable = false)
