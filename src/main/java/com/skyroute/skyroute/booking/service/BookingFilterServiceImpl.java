@@ -91,7 +91,17 @@ public class BookingFilterServiceImpl implements BookingFilterService{
             specification = specification.and(BookingSpecification.hasFlightNumber(filterRequest.flightNumber()));
         }
 
-        if ((filterRequest.originAirport() != null && !filterRequest.originAirport().isEmpty()) || (filterRequest.destinationAirport() != null && !filterRequest.destinationAirport().isEmpty())) {
+        boolean originAirportPresent = filterRequest.originAirport() != null && !filterRequest.originAirport().isEmpty();
+        if (originAirportPresent) {
+            specification = specification.and(BookingSpecification.hasOriginAirport(filterRequest.originAirport()));
+        }
+
+        boolean departureAirportPresent = filterRequest.destinationAirport() != null && !filterRequest.destinationAirport().isEmpty();
+        if (departureAirportPresent) {
+            specification = specification.and(BookingSpecification.hasDestinationAirport(filterRequest.destinationAirport()));
+        }
+
+        if (originAirportPresent && departureAirportPresent) {
             specification = specification.and(BookingSpecification.hasRoute(filterRequest.originAirport(), filterRequest.destinationAirport()));
         }
 

@@ -20,15 +20,6 @@ public class BookingSpecification {
         };
     }
 
-    public static Specification<Booking> hasStatusIn(BookingStatus... statuses) {
-        return (root, query, criteriaBuilder) -> {
-            if (statuses == null || statuses.length == 0) {
-                return criteriaBuilder.conjunction();
-            }
-            return root.get("bookingStatus").in((Object[]) statuses);
-        };
-    }
-
     public static Specification<Booking> hasBookingNumber(String bookingNumber) {
         return (root, query, criteriaBuilder) -> {
             if (bookingNumber == null || bookingNumber.isEmpty()) {
@@ -80,24 +71,6 @@ public class BookingSpecification {
                 return criteriaBuilder.greaterThanOrEqualTo(flight.get("departureTime"), startDate);
             }
             return criteriaBuilder.lessThanOrEqualTo(flight.get("departureTime"), endDate);
-        };
-    }
-
-    public static Specification<Booking> hasPriceGreaterThanOrEqual(Double minPrice) {
-        return (root, query, criteriaBuilder) -> {
-            if (minPrice == null) {
-                return criteriaBuilder.conjunction();
-            }
-            return criteriaBuilder.greaterThanOrEqualTo(root.get("totalPrice"), minPrice);
-        };
-    }
-
-    public static Specification<Booking> hasPriceLessThanOrEqual(Double maxPrice) {
-        return (root, query, criteriaBuilder) -> {
-            if (maxPrice == null) {
-                return criteriaBuilder.conjunction();
-            }
-            return criteriaBuilder.lessThanOrEqualTo(root.get("totalPrice"), maxPrice);
         };
     }
 
@@ -254,25 +227,14 @@ public class BookingSpecification {
             Join<Object, Object> route = flight.join("route", JoinType.INNER);
             Join<Object, Object> origin = route.join("origin", JoinType.INNER);
             Join<Object, Object> destination = route.join("destination", JoinType.INNER);
-
-            if ((originAirport != null && !originAirport.isEmpty()) && (destinationAirport != null && !destinationAirport.isEmpty())) {
-                return criteriaBuilder.and(
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(origin.get("city")), "%" + originAirport.toLowerCase() + "%"
-                        ),
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(destination.get("city")), "%" + destinationAirport.toLowerCase() + "%"
-                        )
-                );
-            } else if (originAirport != null && !originAirport.isEmpty()) {
-                return criteriaBuilder.like(
-                        criteriaBuilder.lower(origin.get("city")), "%" + originAirport.toLowerCase() + "%"
-                );
-            } else {
-                return criteriaBuilder.like(
-                        criteriaBuilder.lower(destination.get("city")), "%" + destinationAirport.toLowerCase() + "%"
-                );
-            }
+            return criteriaBuilder.and(
+                    criteriaBuilder.like(
+                            criteriaBuilder.lower(origin.get("city")), "%" + originAirport.toLowerCase() + "%"
+                    ),
+                    criteriaBuilder.like(
+                            criteriaBuilder.lower(destination.get("city")), "%" + destinationAirport.toLowerCase() + "%"
+                    )
+            );
         };
     }
 
