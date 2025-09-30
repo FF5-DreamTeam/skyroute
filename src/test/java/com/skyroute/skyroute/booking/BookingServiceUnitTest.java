@@ -6,6 +6,7 @@ import com.skyroute.skyroute.booking.dto.BookingRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
+import com.skyroute.skyroute.email.EmailService;
 import com.skyroute.skyroute.flight.service.FlightService;
 import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
@@ -16,6 +17,7 @@ import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.user.entity.User;
 import com.skyroute.skyroute.user.enums.Role;
+import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +47,9 @@ public class BookingServiceUnitTest {
     @Mock
     private FlightService flightService;
 
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private BookingServiceImpl bookingServiceImpl;
 
@@ -60,10 +65,10 @@ public class BookingServiceUnitTest {
     void setUp() {
         testUser = createTestUser(1L, Role.USER);
         testAdmin = createTestUser(2L, Role.ADMIN);
-        anotherUser =createTestUser(3L, Role.USER);
-        testBooking= createTestBooking();
+        anotherUser = createTestUser(3L, Role.USER);
+        testBooking = createTestBooking();
         testFlight = createTestFlight();
-        testBooking =createTestBooking();
+        testBooking = createTestBooking();
         testRequest = createTestRequest();
     }
 
@@ -116,7 +121,8 @@ public class BookingServiceUnitTest {
         void getBookingById_shouldReturnBooking_whenNoExist() {
             when(bookingRepository.findById(99L)).thenReturn(Optional.empty());
 
-            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> bookingServiceImpl.getBookingById(99L, testUser));
+            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                    () -> bookingServiceImpl.getBookingById(99L, testUser));
 
             assertEquals("Booking not found", exception.getMessage());
 
@@ -134,6 +140,8 @@ public class BookingServiceUnitTest {
             when(flightService.hasAvailableSeats(1L, 2)).thenReturn(true);
             when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
             doNothing().when(flightService).bookSeats(1L, 2);
+            doNothing().when(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class),
+                    any(Flight.class));
 
             BookingResponse result = bookingServiceImpl.createBooking(testRequest, testUser);
 
@@ -147,13 +155,15 @@ public class BookingServiceUnitTest {
             verify(flightService).hasAvailableSeats(1L, 2);
             verify(flightService).bookSeats(1L, 2);
             verify(bookingRepository).save(any(Booking.class));
+            verify(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class), any(Flight.class));
         }
 
         @Test
         void createBooking_shouldThrowException_whenFlightNotFound() {
             when(flightService.findById(1L)).thenThrow(new EntityNotFoundException("Flight with id: 1 not found"));
 
-            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
+            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                    () -> bookingServiceImpl.createBooking(testRequest, testUser));
 
             assertEquals("Flight with id: 1 not found", exception.getMessage());
 
@@ -167,7 +177,8 @@ public class BookingServiceUnitTest {
             when(flightService.findById(1L)).thenReturn(testFlight);
             when(flightService.isFlightAvailable(1L)).thenReturn(false);
 
-            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
+            BusinessException exception = assertThrows(BusinessException.class,
+                    () -> bookingServiceImpl.createBooking(testRequest, testUser));
 
             assertEquals("Flight not available for booking", exception.getMessage());
 
@@ -183,7 +194,8 @@ public class BookingServiceUnitTest {
             when(flightService.isFlightAvailable(1L)).thenReturn(true);
             when(flightService.hasAvailableSeats(1L, 2)).thenReturn(false);
 
-            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
+            BusinessException exception = assertThrows(BusinessException.class,
+                    () -> bookingServiceImpl.createBooking(testRequest, testUser));
 
             assertTrue(exception.getMessage().contains("Not enough seats available"));
 
@@ -202,19 +214,54 @@ public class BookingServiceUnitTest {
             when(flightService.isFlightAvailable(1L)).thenReturn(true);
             when(flightService.hasAvailableSeats(1L, 2)).thenReturn(true);
             when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> {
-                        Booking booking = invocation.getArgument(0);
-                        booking.setId(1L);
-                        return booking;
+                Booking booking = invocation.getArgument(0);
+                booking.setId(1L);
+                return booking;
             });
             doNothing().when(flightService).bookSeats(1L, 2);
+            doNothing().when(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class),
+                    any(Flight.class));
+
             BookingResponse result = bookingServiceImpl.createBooking(testRequest, testUser);
 
             assertNotNull(result);
             assertEquals(200.0, result.totalPrice());
             assertEquals(2, result.bookedSeats());
 
-            verify(bookingRepository).save(argThat(booking ->
-                    booking.getTotalPrice().equals(200.0)));
+            verify(bookingRepository).save(argThat(booking -> booking.getTotalPrice().equals(200.0)));
+            verify(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class), any(Flight.class));
+        }
+
+        @Test
+        void createBooking_shouldSendEmail_whenBookingCreated() {
+            when(flightService.findById(1L)).thenReturn(testFlight);
+            when(flightService.isFlightAvailable(1L)).thenReturn(true);
+            when(flightService.hasAvailableSeats(1L, 2)).thenReturn(true);
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+            doNothing().when(flightService).bookSeats(1L, 2);
+            doNothing().when(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class),
+                    any(Flight.class));
+
+            bookingServiceImpl.createBooking(testRequest, testUser);
+
+            verify(emailService).sendBookingConfirmationEmail(
+                    any(Booking.class),
+                    eq(testUser),
+                    any(Flight.class));
+        }
+
+        @Test
+        void createBooking_shouldNotFail_whenEmailSendingFails() {
+            when(flightService.findById(1L)).thenReturn(testFlight);
+            when(flightService.isFlightAvailable(1L)).thenReturn(true);
+            when(flightService.hasAvailableSeats(1L, 2)).thenReturn(true);
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+            doNothing().when(flightService).bookSeats(1L, 2);
+
+            BookingResponse result = bookingServiceImpl.createBooking(testRequest, testUser);
+
+            assertNotNull(result);
+            assertEquals(testBooking.getBookingNumber(), result.bookingNumber());
         }
     }
 
@@ -255,7 +302,8 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser));
+            BusinessException exception = assertThrows(BusinessException.class,
+                    () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser));
 
             assertEquals("Booking is already in CANCELLED status", exception.getMessage());
             verify(flightService, never()).releaseSeats(anyLong(), anyInt());
@@ -266,7 +314,8 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
+            BusinessException exception = assertThrows(BusinessException.class,
+                    () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
 
             assertEquals("Cannot change status of a CANCELLED booking", exception.getMessage());
         }
@@ -275,7 +324,8 @@ public class BookingServiceUnitTest {
         void updateBookingStatus_shouldThrowException_whenUserInvalidTransition() {
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                    () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
 
             assertEquals("Users cannot confirm booking", exception.getMessage());
         }
@@ -285,7 +335,8 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, testUser));
+            BusinessException exception = assertThrows(BusinessException.class,
+                    () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, testUser));
 
             assertEquals("Booking is already in CONFIRMED status", exception.getMessage());
         }
@@ -294,7 +345,8 @@ public class BookingServiceUnitTest {
         void updateBookingStatus_shouldThrowException_whenUserAccessDenied() {
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, anotherUser));
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                    () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, anotherUser));
 
             assertEquals("User cannot access this booking", exception.getMessage());
         }
@@ -370,9 +422,11 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.updatePassengerNames(1L, List.of("Pepa"), testUser));
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                    () -> bookingServiceImpl.updatePassengerNames(1L, List.of("Pepa"), testUser));
 
-            assertEquals("Cannot modify passenger names after booking is CONFORMED or CANCELLED", exception.getMessage());
+            assertEquals("Cannot modify passenger names after booking is CONFORMED or CANCELLED",
+                    exception.getMessage());
             verify(bookingRepository, never()).save(any());
         }
 
@@ -381,12 +435,14 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.updatePassengerNames(1L, List.of("Pepa"), testUser));
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                    () -> bookingServiceImpl.updatePassengerNames(1L, List.of("Pepa"), testUser));
 
-            assertEquals("Cannot modify passenger names after booking is CONFORMED or CANCELLED", exception.getMessage());
+            assertEquals("Cannot modify passenger names after booking is CONFORMED or CANCELLED",
+                    exception.getMessage());
             verify(bookingRepository, never()).save(any());
         }
-        
+
         @Test
         void updatePassengerNames_shouldAllowAdminUpdate_regardlessOfStatus() {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
@@ -421,9 +477,12 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.updatePassengerBirthDates(1L, List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                    () -> bookingServiceImpl.updatePassengerBirthDates(1L,
+                            List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
 
-            assertEquals("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED", exception.getMessage());
+            assertEquals("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED",
+                    exception.getMessage());
 
             verify(bookingRepository, never()).save(any());
         }
@@ -433,9 +492,12 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.updatePassengerBirthDates(1L, List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                    () -> bookingServiceImpl.updatePassengerBirthDates(1L,
+                            List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
 
-            assertEquals("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED", exception.getMessage());
+            assertEquals("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED",
+                    exception.getMessage());
 
             verify(bookingRepository, never()).save(any());
         }
@@ -475,7 +537,8 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> bookingServiceImpl.deleteBooking(1L, testUser));
+            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                    () -> bookingServiceImpl.deleteBooking(1L, testUser));
 
             assertEquals("Users can only delete bookings in CREATED status", exception.getMessage());
         }
@@ -492,7 +555,7 @@ public class BookingServiceUnitTest {
         }
     }
 
-    private  User createTestUser(Long id, Role role) {
+    private User createTestUser(Long id, Role role) {
         return User.builder()
                 .id(id)
                 .firstName("Test")
@@ -500,7 +563,7 @@ public class BookingServiceUnitTest {
                 .email("test" + id + "@email.com")
                 .password(ENCODED_PASSWORD)
                 .phoneNumber("+123456789")
-                .birthDate(LocalDate.of(1990,1,1))
+                .birthDate(LocalDate.of(1990, 1, 1))
                 .role(role)
                 .build();
     }
@@ -564,7 +627,6 @@ public class BookingServiceUnitTest {
                 1L,
                 2,
                 List.of("Pepito", "Maria"),
-                List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1991, 1, 1))
-        );
+                List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1991, 1, 1)));
     }
 }

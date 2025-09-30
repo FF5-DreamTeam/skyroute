@@ -5,6 +5,7 @@ import com.skyroute.skyroute.booking.dto.BookingRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
+import com.skyroute.skyroute.email.EmailService;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.service.FlightService;
 import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
@@ -25,15 +26,19 @@ import java.util.List;
 import java.util.Set;
 
 @Service
-public class BookingServiceImpl implements BookingService{
+public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final FlightService flightService;
+    private final EmailService emailService;
 
-    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "bookingNumber", "bookingStatus", "createdAt", "flightNumber");
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "bookingNumber", "bookingStatus", "createdAt",
+            "flightNumber");
 
-    public BookingServiceImpl(BookingRepository bookingRepository, FlightService flightService) {
+    public BookingServiceImpl(BookingRepository bookingRepository, FlightService flightService,
+            EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.flightService = flightService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -43,7 +48,8 @@ public class BookingServiceImpl implements BookingService{
     }
 
     @Override
-    public Page<BookingResponse> getAllBookingsUser(User user, int page, int size, String sortBy, String sortDirection) {
+    public Page<BookingResponse> getAllBookingsUser(User user, int page, int size, String sortBy,
+            String sortDirection) {
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         return bookingRepository.findAllByUser(pageable, user).map(booking -> BookingMapper.toDto(booking));
     }
@@ -58,20 +64,22 @@ public class BookingServiceImpl implements BookingService{
     @Override
     @Transactional
     public BookingResponse createBooking(BookingRequest request, User user) {
-            Flight flight = flightService.findById(request.flightId());
-            validateFlightBookingEligibility(request.flightId(), request.bookedSeats());
-            Double totalPrice = calculateTotalPrice(flight, request.bookedSeats());
-            Booking booking = BookingMapper.toEntity(request, user, flight, totalPrice);
-            flightService.bookSeats(request.flightId(), request.bookedSeats());
-            Booking savedBooking = bookingRepository.save(booking);
+        Flight flight = flightService.findById(request.flightId());
+        validateFlightBookingEligibility(request.flightId(), request.bookedSeats());
+        Double totalPrice = calculateTotalPrice(flight, request.bookedSeats());
+        Booking booking = BookingMapper.toEntity(request, user, flight, totalPrice);
+        flightService.bookSeats(request.flightId(), request.bookedSeats());
+        Booking savedBooking = bookingRepository.save(booking);
 
-            return BookingMapper.toDto(savedBooking);
+        emailService.sendBookingConfirmationEmail(savedBooking, user, flight);
+
+        return BookingMapper.toDto(savedBooking);
     }
 
     @Override
     @Transactional
     public BookingResponse updateBookingStatus(Long id, BookingStatus newStatus, User user) {
-        Booking booking  = findBookingById(id);
+        Booking booking = findBookingById(id);
         validateUserAccess(booking, user);
         validateStatusTransition(booking.getBookingStatus(), newStatus);
 
@@ -121,7 +129,8 @@ public class BookingServiceImpl implements BookingService{
     public BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new AccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
+            throw new AccessDeniedException(
+                    "Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerBirthDates(birthDates);
@@ -146,8 +155,10 @@ public class BookingServiceImpl implements BookingService{
     }
 
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
-        if (page < 0) throw new IllegalArgumentException("Page index must be 0 or greater");
-        if (size <= 0) throw new IllegalArgumentException("Page size must be greater than 0");
+        if (page < 0)
+            throw new IllegalArgumentException("Page index must be 0 or greater");
+        if (size <= 0)
+            throw new IllegalArgumentException("Page size must be greater than 0");
 
         int maxSize = 100;
         size = Math.min(size, maxSize);
@@ -171,7 +182,7 @@ public class BookingServiceImpl implements BookingService{
     private void validateUserAccess(Booking booking, User user) {
         if (user.getRole() == Role.USER && !booking.getUser().getId().equals(user.getId())) {
             throw new AccessDeniedException("User cannot access this booking");
-            }
+        }
     }
 
     private void validateFlightBookingEligibility(Long flightId, int requestedSeats) {
@@ -179,15 +190,16 @@ public class BookingServiceImpl implements BookingService{
             throw new BusinessException("Flight not available for booking");
         }
 
-        if(!flightService.hasAvailableSeats(flightId, requestedSeats)) {
+        if (!flightService.hasAvailableSeats(flightId, requestedSeats)) {
             Flight flight = flightService.findById(flightId);
-            throw new BusinessException("Not enough seats available. Requested: " + requestedSeats + ". Available: " + flight.getAvailableSeats());
+            throw new BusinessException("Not enough seats available. Requested: " + requestedSeats + ". Available: "
+                    + flight.getAvailableSeats());
         }
     }
 
     private Double calculateTotalPrice(Flight flight, int bookedSeats) {
         if (bookedSeats <= 0) {
-            throw  new IllegalArgumentException("Number of seats booked mut be positive");
+            throw new IllegalArgumentException("Number of seats booked mut be positive");
         }
 
         return flight.getPrice() * bookedSeats;
@@ -213,4 +225,5 @@ public class BookingServiceImpl implements BookingService{
                 throw new BusinessException("Cannot change status of a CANCELLED booking");
         }
     }
+
 }
