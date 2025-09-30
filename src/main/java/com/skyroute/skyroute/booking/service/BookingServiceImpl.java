@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@Transactional
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final FlightService flightService;
@@ -42,12 +43,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<BookingResponse> getAllBookingsAdmin(int page, int size, String sortBy, String sortDirection) {
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         return bookingRepository.findAll(pageable).map(booking -> BookingMapper.toDto(booking));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<BookingResponse> getAllBookingsUser(User user, int page, int size, String sortBy,
             String sortDirection) {
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
@@ -55,6 +58,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BookingResponse getBookingById(Long id, User user) {
         Booking booking = findBookingById(id);
         validateUserAccess(booking, user);
@@ -62,7 +66,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
     public BookingResponse createBooking(BookingRequest request, User user) {
         Flight flight = flightService.findById(request.flightId());
         validateFlightBookingEligibility(request.flightId(), request.bookedSeats());
@@ -77,7 +80,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
     public BookingResponse updateBookingStatus(Long id, BookingStatus newStatus, User user) {
         Booking booking = findBookingById(id);
         validateUserAccess(booking, user);
@@ -101,19 +103,16 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
     public void cancelBooking(Long id, User user) {
         updateBookingStatus(id, BookingStatus.CANCELLED, user);
     }
 
     @Override
-    @Transactional
     public BookingResponse confirmBooking(Long id, User user) {
         return updateBookingStatus(id, BookingStatus.CONFIRMED, user);
     }
 
     @Override
-    @Transactional
     public BookingResponse updatePassengerNames(Long id, List<String> names, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
@@ -125,7 +124,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
     public BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
@@ -138,7 +136,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    @Transactional
     public void deleteBooking(Long id, User user) {
         Booking booking = findBookingById(id);
         validateUserAccess(booking, user);
@@ -225,5 +222,4 @@ public class BookingServiceImpl implements BookingService {
                 throw new BusinessException("Cannot change status of a CANCELLED booking");
         }
     }
-
 }
