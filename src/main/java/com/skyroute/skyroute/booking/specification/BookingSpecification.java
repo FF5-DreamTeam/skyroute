@@ -162,7 +162,7 @@ public class BookingSpecification {
         };
     }
 
-    public static Specification<Booking> hasOriginAirport(String originAirport) {
+    public static Specification<Booking> hasOriginAirportOrCode(String originAirport) {
         return (root, query, criteriaBuilder) -> {
             if (originAirport == null || originAirport.isEmpty()) {
                 return criteriaBuilder.conjunction();
@@ -170,13 +170,14 @@ public class BookingSpecification {
             Join<Object, Object> flight = root.join("flight", JoinType.INNER);
             Join<Object, Object> route = flight.join("route", JoinType.INNER);
             Join<Object, Object> origin = route.join("origin", JoinType.INNER);
-            return criteriaBuilder.like(
-                    criteriaBuilder.lower(origin.get("city")), "%" + originAirport.toLowerCase() + "%"
+            return criteriaBuilder.or(
+                    criteriaBuilder.like(criteriaBuilder.lower(origin.get("city")), "%" + originAirport.toLowerCase() + "%"),
+                    criteriaBuilder.equal(criteriaBuilder.upper(origin.get("code")), originAirport.toUpperCase())
             );
         };
     }
 
-    public static Specification<Booking> hasDestinationAirport(String destinationAirport) {
+    public static Specification<Booking> hasDestinationAirportOrCode(String destinationAirport) {
         return (root, query, criteriaBuilder) -> {
             if (destinationAirport == null || destinationAirport.isEmpty()) {
                 return criteriaBuilder.conjunction();
@@ -184,36 +185,9 @@ public class BookingSpecification {
             Join<Object, Object> flight = root.join("flight", JoinType.INNER);
             Join<Object, Object> route = flight.join("route", JoinType.INNER);
             Join<Object, Object> destination = route.join("destination", JoinType.INNER);
-            return criteriaBuilder.like(
-                    criteriaBuilder.lower(destination.get("city")), "%" + destinationAirport.toLowerCase() + "%"
-            );
-        };
-    }
-
-    public static Specification<Booking> hasOriginAirportCode(String originAirportCode) {
-        return (root, query, criteriaBuilder) -> {
-            if (originAirportCode == null || originAirportCode.isEmpty()) {
-                return criteriaBuilder.conjunction();
-            }
-            Join<Object, Object> flight = root.join("flight", JoinType.INNER);
-            Join<Object, Object> route = flight.join("route", JoinType.INNER);
-            Join<Object, Object> origin = route.join("origin", JoinType.INNER);
-            return criteriaBuilder.equal(
-                    criteriaBuilder.upper(origin.get("code")), originAirportCode.toUpperCase()
-            );
-        };
-    }
-
-    public static Specification<Booking> hasDestinationAirportCode(String destinationAirportCode) {
-        return (root, query, criteriaBuilder) -> {
-            if (destinationAirportCode == null || destinationAirportCode.isEmpty()) {
-                return criteriaBuilder.conjunction();
-            }
-            Join<Object, Object> flight = root.join("flight", JoinType.INNER);
-            Join<Object, Object> route = flight.join("route", JoinType.INNER);
-            Join<Object, Object> destination = route.join("destination", JoinType.INNER);
-            return criteriaBuilder.equal(
-                    criteriaBuilder.upper(destination.get("code")),destinationAirportCode.toUpperCase()
+            return criteriaBuilder.or(
+                    criteriaBuilder.like(criteriaBuilder.lower(destination.get("city")), "%" + destinationAirport.toLowerCase() + "%"),
+                    criteriaBuilder.equal(criteriaBuilder.upper(destination.get("code")),destinationAirport.toUpperCase())
             );
         };
     }

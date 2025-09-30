@@ -35,8 +35,6 @@ public record BookingFilterRequest(
         String flightNumber,
         String originAirport,
         String destinationAirport,
-        String originAirportCode,
-        String destinationAirportCode,
         String passengerName,
         Boolean futureFlightsOnly,
         Boolean activeOnly,
@@ -45,6 +43,6 @@ public record BookingFilterRequest(
         Boolean pendingOnly
 ) {
     public boolean hasAnyFilter() {
-        return bookingStatus != null || bookingNumber != null || createdFrom != null || createdTo != null || flightDepartureDate != null || flightDepartureFrom != null || flightDepartureTo != null || minPrice != null || maxPrice != null || exactSeats != null || minSeats != null || userId != null || userEmail != null || userName != null || flightId != null || flightNumber != null || originAirport != null || destinationAirport != null || originAirportCode != null || destinationAirportCode != null || passengerName != null || futureFlightsOnly != null || activeOnly != null || cancelledOnly != null || confirmedOnly != null || pendingOnly != null;
+        return bookingStatus != null || bookingNumber != null || createdFrom != null || createdTo != null || flightDepartureDate != null || flightDepartureFrom != null || flightDepartureTo != null || minPrice != null || maxPrice != null || exactSeats != null || minSeats != null || userId != null || userEmail != null || userName != null || flightId != null || flightNumber != null || originAirport != null || destinationAirport != null || passengerName != null || futureFlightsOnly != null || activeOnly != null || cancelledOnly != null || confirmedOnly != null || pendingOnly != null;
     }
 }
