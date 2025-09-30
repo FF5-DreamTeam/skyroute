@@ -1,6 +1,5 @@
 package com.skyroute.skyroute.flight.controller;
 
-import com.skyroute.skyroute.flight.dto.FlightBudgetRequest;
 import com.skyroute.skyroute.flight.dto.FlightRequest;
 import com.skyroute.skyroute.flight.dto.FlightResponse;
 import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
@@ -49,15 +48,6 @@ public class FlightController {
         return ResponseEntity.ok(flights);
     }
 
-    @PostMapping("/budget")
-    @Operation(summary = "Search flights by budget", description = "Find available flights within specified budget")
-    public ResponseEntity<Page<FlightSimpleResponse>> searchFlightsByBudget(
-            @Valid @RequestBody FlightBudgetRequest request,
-            @PageableDefault(size = 10, sort = { "price", "departureTime" }) Pageable pageable) {
-        Page<FlightSimpleResponse> flights = flightService.searchFlightsByBudget(request.budget(), pageable);
-        return ResponseEntity.ok(flights);
-    }
-
     @GetMapping("/{id}")
     @Operation(summary = "Get flight by ID", description = "Retrieve flight details by ID")
     public ResponseEntity<FlightSimpleResponse> getFlightById(@PathVariable Long id) {
@@ -65,10 +55,15 @@ public class FlightController {
         return ResponseEntity.ok(flight);
     }
 
-    @GetMapping("/city/{city}")
-    @Operation(summary = "Search flights by city", description = "Find available flights from or to a specific city")
-    public ResponseEntity<List<FlightSimpleResponse>> getFlightsByCity(@PathVariable String city) {
-        List<FlightSimpleResponse> flights = flightService.getAvailableFlightsByCity(city);
+    @GetMapping("/search-filters")
+    @Operation(summary = "Search flights by city and budget", description = "Searches for available flights (which have not departed yet) by applying optional filters for Origin, Destination, and maximum budget.")
+    public ResponseEntity<Page<FlightSimpleResponse>> getFlightsByBudgetAndCity(
+            @RequestParam @Parameter(description = "Origin airport code or city") Optional<String> origin,
+            @RequestParam @Parameter(description = "Destination airport code or city") Optional<String> destination,
+            @RequestParam @Parameter(description = "Maximum flight price") Optional<Double> budget,
+            Pageable pageable
+    ) {
+        Page<FlightSimpleResponse> flights = flightService.searchFlightsByBudgetAndCity(origin, destination, budget, pageable);
         return ResponseEntity.ok(flights);
     }
 

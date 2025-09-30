@@ -4,6 +4,7 @@ import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.service.AircraftService;
 import com.skyroute.skyroute.flight.dto.*;
 import com.skyroute.skyroute.flight.entity.Flight;
+import com.skyroute.skyroute.flight.helper.FlightHelper;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.flight.specification.FlightSpecificationBuilder;
 import com.skyroute.skyroute.flight.validation.FlightValidator;
@@ -28,6 +29,7 @@ public class FlightServiceImpl implements FlightService {
     private final AircraftService aircraftService;
     private final RouteService routeService;
     private final FlightValidator flightValidator;
+    private final FlightHelper flightHelper;
 
     @Override
     @Transactional(readOnly = true)
@@ -50,31 +52,27 @@ public class FlightServiceImpl implements FlightService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<FlightSimpleResponse> searchFlightsByBudget(Double budget, Pageable pageable) {
-        LocalDateTime now = LocalDateTime.now();
-
-        Specification<Flight> specification = FlightSpecificationBuilder.builder()
-                .pricelessThanOrEqual(Optional.ofNullable(budget))
-                .onlyAvailable(Optional.of(now))
-                .build();
-
-        return flightRepository.findAll(specification, pageable)
-                .map(FlightMapper::toSimpleResponse);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public FlightSimpleResponse getFlightSimpleById(Long id) {
         return FlightMapper.toSimpleResponse(findById(id));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<FlightSimpleResponse> getAvailableFlightsByCity(String city) {
-        List<Flight> flights = flightRepository.findAvailableFlightsByCity(city, LocalDateTime.now());
-        return flights.stream()
-                .map(FlightMapper::toSimpleResponse)
-                .toList();
+    public Page<FlightSimpleResponse> searchFlightsByBudgetAndCity(
+            Optional<String> origin,
+            Optional<String> destination,
+            Optional<Double> budget,
+            Pageable pageable) {
+        LocalDateTime now = LocalDateTime.now();
+
+        Specification<Flight> specification = FlightSpecificationBuilder.builder()
+                .originEquals(origin)
+                .destinationEquals(destination)
+                .pricelessThanOrEqual(budget)
+                .onlyAvailable(Optional.of(now))
+                .build();
+        return flightRepository.findAll(specification, pageable)
+                .map(FlightMapper::toSimpleResponse);
     }
 
     @Override
@@ -96,16 +94,7 @@ public class FlightServiceImpl implements FlightService {
                 request.departureTime(),
                 request.arrivalTime());
 
-        Flight flight = Flight.builder()
-                .flightNumber(request.flightNumber())
-                .availableSeats(request.availableSeats())
-                .departureTime(request.departureTime())
-                .arrivalTime(request.arrivalTime())
-                .price(request.price())
-                .available(request.available() != null ? request.available() : true)
-                .aircraft(aircraft)
-                .route(route)
-                .build();
+        Flight flight = flightHelper.buildFlightFromRequest(request, aircraft, route);
 
         return FlightMapper.toResponse(flightRepository.save(flight));
     }
@@ -114,39 +103,10 @@ public class FlightServiceImpl implements FlightService {
     @Transactional
     public FlightResponse updateFlight(Long id, FlightUpdate request) {
         Flight flight = findById(id);
+        Aircraft aircraft = flightHelper.resolveAircraftForUpdate(request.aircraftId());
 
-        Aircraft aircraft = null;
-        if (request.aircraftId() != null) {
-            aircraft = aircraftService.findById(request.aircraftId());
-        }
-
-        flightValidator.validateFlightUpdate(
-                flight,
-                aircraft,
-                request.availableSeats(),
-                request.departureTime(),
-                request.arrivalTime());
-
-        if (request.flightNumber() != null)
-            flight.setFlightNumber(request.flightNumber());
-        if (request.availableSeats() != null)
-            flight.setAvailableSeats(request.availableSeats());
-        if (request.departureTime() != null)
-            flight.setDepartureTime(request.departureTime());
-        if (request.arrivalTime() != null)
-            flight.setArrivalTime(request.arrivalTime());
-        if (request.price() != null)
-            flight.setPrice(request.price());
-        if (request.available() != null)
-            flight.setAvailable(request.available());
-        if (aircraft != null)
-            flight.setAircraft(aircraft);
-
-        if (request.routeId() != null) {
-            Route route = routeService.findRouteById(request.routeId());
-            flight.setRoute(route);
-        }
-
+        validateFlightUpdate(flight, aircraft, request);
+        flightHelper.applyFlightUpdates(flight, request, aircraft);
         return FlightMapper.toResponse(flightRepository.save(flight));
     }
 
@@ -212,5 +172,15 @@ public class FlightServiceImpl implements FlightService {
                         (Double) result[2]
                 ))
                 .toList();
+    }
+
+    private void validateFlightUpdate(Flight flight, Aircraft aircraft, FlightUpdate request){
+        flightValidator.validateFlightUpdate(
+                flight,
+                aircraft,
+                request.availableSeats(),
+                request.departureTime(),
+                request.arrivalTime()
+        );
     }
 }

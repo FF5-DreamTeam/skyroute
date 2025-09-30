@@ -20,11 +20,14 @@ public interface FlightService {
             Optional<Integer> passengers,
             Pageable pageable);
 
-    Page<FlightSimpleResponse> searchFlightsByBudget(Double budget, Pageable pageable);
-
     FlightSimpleResponse getFlightSimpleById(Long id);
 
-    List<FlightSimpleResponse> getAvailableFlightsByCity(String city);
+    Page<FlightSimpleResponse> searchFlightsByBudgetAndCity(
+            Optional<String> origin,
+            Optional<String> destination,
+            Optional<Double> budget,
+            Pageable pageable
+    );
 
     Page<FlightResponse> getFlightsPage(Pageable pageable);
 

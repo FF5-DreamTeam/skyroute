@@ -1,8 +1,12 @@
 package com.skyroute.skyroute.flight;
 
+import com.skyroute.skyroute.aircraft.service.AircraftService;
 import com.skyroute.skyroute.flight.dto.MinPriceResponse;
+import com.skyroute.skyroute.flight.helper.FlightHelper;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
 import com.skyroute.skyroute.flight.service.FlightServiceImpl;
+import com.skyroute.skyroute.flight.validation.FlightValidator;
+import com.skyroute.skyroute.route.service.RouteService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,12 +25,20 @@ class FlightServiceTest {
 
     @Mock
     private FlightRepository flightRepository;
+    @Mock
+    private AircraftService aircraftService;
+    @Mock
+    private RouteService routeService;
+    @Mock
+    private FlightValidator flightValidator;
+    @Mock
+    private FlightHelper flightHelper;
 
     private FlightServiceImpl flightService;
 
     @BeforeEach
     void setUp() {
-        flightService = new FlightServiceImpl(flightRepository, null, null, null);
+        flightService = new FlightServiceImpl(flightRepository, aircraftService, routeService, flightValidator, flightHelper);
     }
 
     @Test
