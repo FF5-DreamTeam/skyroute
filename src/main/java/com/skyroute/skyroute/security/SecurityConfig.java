@@ -68,10 +68,10 @@ public class SecurityConfig {
                                                                 "/api/routes/**", "/api/flights/**")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/bookings",
-                                                                "/api/aircrafts", "/api/bookings/flight/**")
+                                                                "/api/aircrafts", "/api/bookings/flight/**", "/api/bookings/filter/admin")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/bookings/user/*",
-                                                                "/api/bookings/{id}")
+                                                                "/api/bookings/{id}", "/api/bookings/filter/my-bookings")
                                                 .authenticated()
                                                 .requestMatchers(HttpMethod.POST, "/api/bookings",
                                                                 "/api/bookings/{id}/confirm", "/api/bookings/{id}/cancel")
