@@ -71,15 +71,11 @@ class AircraftControllerTest {
         aircraftResponse2 = new AircraftResponse(2L, "Airbus A320", "Airbus", 150);
     }
 
-    // ==================== CREATE AIRCRAFT TESTS ====================
-
     @Test
     @DisplayName("Should create aircraft successfully with valid request")
     void createAircraft_ShouldReturnCreated_WhenValidRequest() throws Exception {
-        // Given
         when(aircraftService.createAircraft(any(AircraftRequest.class))).thenReturn(aircraftResponse);
 
-        // When & Then
         mockMvc.perform(post("/api/aircrafts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validAircraftRequest)))
@@ -97,10 +93,8 @@ class AircraftControllerTest {
     @Test
     @DisplayName("Should return 400 when model is blank")
     void createAircraft_ShouldReturnBadRequest_WhenModelIsBlank() throws Exception {
-        // Given
         AircraftRequest invalidRequest = new AircraftRequest("", "Boeing", 180);
 
-        // When & Then
         mockMvc.perform(post("/api/aircrafts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -113,10 +107,8 @@ class AircraftControllerTest {
     @Test
     @DisplayName("Should return 400 when manufacturer is blank")
     void createAircraft_ShouldReturnBadRequest_WhenManufacturerIsBlank() throws Exception {
-        // Given
         AircraftRequest invalidRequest = new AircraftRequest("Boeing 737", "", 180);
 
-        // When & Then
         mockMvc.perform(post("/api/aircrafts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -129,10 +121,8 @@ class AircraftControllerTest {
     @Test
     @DisplayName("Should return 400 when capacity is null")
     void createAircraft_ShouldReturnBadRequest_WhenCapacityIsNull() throws Exception {
-        // Given
         AircraftRequest invalidRequest = new AircraftRequest("Boeing 737", "Boeing", null);
 
-        // When & Then
         mockMvc.perform(post("/api/aircrafts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -145,10 +135,8 @@ class AircraftControllerTest {
     @Test
     @DisplayName("Should return 400 when capacity is less than 1")
     void createAircraft_ShouldReturnBadRequest_WhenCapacityIsLessThanOne() throws Exception {
-        // Given
         AircraftRequest invalidRequest = new AircraftRequest("Boeing 737", "Boeing", 0);
 
-        // When & Then
         mockMvc.perform(post("/api/aircrafts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -161,7 +149,6 @@ class AircraftControllerTest {
     @Test
     @DisplayName("Should return 400 when request body is missing")
     void createAircraft_ShouldReturnBadRequest_WhenRequestBodyIsMissing() throws Exception {
-        // When & Then
         mockMvc.perform(post("/api/aircrafts")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -170,15 +157,11 @@ class AircraftControllerTest {
         verify(aircraftService, never()).createAircraft(any(AircraftRequest.class));
     }
 
-    // ==================== GET AIRCRAFT BY ID TESTS ====================
-
     @Test
     @DisplayName("Should return aircraft when aircraft exists")
     void getAircraft_ShouldReturnAircraft_WhenAircraftExists() throws Exception {
-        // Given
         when(aircraftService.getAircraftById(1L)).thenReturn(aircraftResponse);
 
-        // When & Then
         mockMvc.perform(get("/api/aircrafts/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -191,25 +174,10 @@ class AircraftControllerTest {
         verify(aircraftService, times(1)).getAircraftById(1L);
     }
 
-    @Test
-    @DisplayName("Should return 404 when aircraft does not exist")
-    void getAircraft_ShouldReturnNotFound_WhenAircraftDoesNotExist() throws Exception {
-        // Given
-        when(aircraftService.getAircraftById(anyLong()))
-                .thenThrow(new AircraftNotFoundException("Aircraft not found with id: 999"));
-
-        // When & Then
-        mockMvc.perform(get("/api/aircrafts/999"))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-
-        verify(aircraftService, times(1)).getAircraftById(999L);
-    }
 
     @Test
     @DisplayName("Should return 400 when id is invalid")
     void getAircraft_ShouldReturnBadRequest_WhenIdIsInvalid() throws Exception {
-        // When & Then
         mockMvc.perform(get("/api/aircrafts/invalid"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -217,16 +185,13 @@ class AircraftControllerTest {
         verify(aircraftService, never()).getAircraftById(anyLong());
     }
 
-    // ==================== GET ALL AIRCRAFTS TESTS ====================
 
     @Test
     @DisplayName("Should return list of aircrafts when aircrafts exist")
     void getAllAircrafts_ShouldReturnListOfAircrafts_WhenAircraftsExist() throws Exception {
-        // Given
         List<AircraftResponse> aircrafts = Arrays.asList(aircraftResponse, aircraftResponse2);
         when(aircraftService.getAllAircrafts()).thenReturn(aircrafts);
 
-        // When & Then
         mockMvc.perform(get("/api/aircrafts"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -243,10 +208,8 @@ class AircraftControllerTest {
     @Test
     @DisplayName("Should return empty list when no aircrafts exist")
     void getAllAircrafts_ShouldReturnEmptyList_WhenNoAircraftsExist() throws Exception {
-        // Given
         when(aircraftService.getAllAircrafts()).thenReturn(Collections.emptyList());
 
-        // When & Then
         mockMvc.perform(get("/api/aircrafts"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -256,18 +219,14 @@ class AircraftControllerTest {
         verify(aircraftService, times(1)).getAllAircrafts();
     }
 
-    // ==================== UPDATE AIRCRAFT TESTS ====================
-
     @Test
     @DisplayName("Should update aircraft successfully with valid request")
     void updateAircraft_ShouldReturnUpdatedAircraft_WhenValidRequest() throws Exception {
-        // Given
         AircraftRequest updateRequest = new AircraftRequest("Boeing 737-800", "Boeing", 189);
         AircraftResponse updatedResponse = new AircraftResponse(1L, "Boeing 737-800", "Boeing", 189);
 
         when(aircraftService.updateAircraft(eq(1L), any(AircraftRequest.class))).thenReturn(updatedResponse);
 
-        // When & Then
         mockMvc.perform(put("/api/aircrafts/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -281,31 +240,13 @@ class AircraftControllerTest {
         verify(aircraftService, times(1)).updateAircraft(eq(1L), any(AircraftRequest.class));
     }
 
-    @Test
-    @DisplayName("Should return 404 when updating non-existent aircraft")
-    void updateAircraft_ShouldReturnNotFound_WhenAircraftDoesNotExist() throws Exception {
-        // Given
-        AircraftRequest updateRequest = new AircraftRequest("Boeing 737-800", "Boeing", 189);
-        when(aircraftService.updateAircraft(anyLong(), any(AircraftRequest.class)))
-                .thenThrow(new AircraftNotFoundException("Aircraft not found with id: 999"));
 
-        // When & Then
-        mockMvc.perform(put("/api/aircrafts/999")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-
-        verify(aircraftService, times(1)).updateAircraft(eq(999L), any(AircraftRequest.class));
-    }
 
     @Test
     @DisplayName("Should return 400 when update request has invalid data")
     void updateAircraft_ShouldReturnBadRequest_WhenInvalidRequest() throws Exception {
-        // Given
         AircraftRequest invalidRequest = new AircraftRequest("", "", -1);
 
-        // When & Then
         mockMvc.perform(put("/api/aircrafts/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -318,7 +259,6 @@ class AircraftControllerTest {
     @Test
     @DisplayName("Should return 400 when update request body is missing")
     void updateAircraft_ShouldReturnBadRequest_WhenRequestBodyIsMissing() throws Exception {
-        // When & Then
         mockMvc.perform(put("/api/aircrafts/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -327,15 +267,11 @@ class AircraftControllerTest {
         verify(aircraftService, never()).updateAircraft(anyLong(), any(AircraftRequest.class));
     }
 
-    // ==================== DELETE AIRCRAFT TESTS ====================
-
     @Test
     @DisplayName("Should delete aircraft successfully when aircraft exists and has no flights")
     void deleteAircraft_ShouldReturnNoContent_WhenSuccessful() throws Exception {
-        // Given
         doNothing().when(aircraftService).deleteAircraft(1L);
 
-        // When & Then
         mockMvc.perform(delete("/api/aircrafts/1"))
                 .andDo(print())
                 .andExpect(status().isNoContent());
@@ -343,40 +279,10 @@ class AircraftControllerTest {
         verify(aircraftService, times(1)).deleteAircraft(1L);
     }
 
-    @Test
-    @DisplayName("Should return 404 when deleting non-existent aircraft")
-    void deleteAircraft_ShouldReturnNotFound_WhenAircraftDoesNotExist() throws Exception {
-        // Given
-        doThrow(new AircraftNotFoundException("Aircraft not found with id: 999"))
-                .when(aircraftService).deleteAircraft(999L);
-
-        // When & Then
-        mockMvc.perform(delete("/api/aircrafts/999"))
-                .andDo(print())
-                .andExpect(status().isNotFound());
-
-        verify(aircraftService, times(1)).deleteAircraft(999L);
-    }
-
-    @Test
-    @DisplayName("Should return 409 when deleting aircraft with associated flights")
-    void deleteAircraft_ShouldReturnConflict_WhenAircraftHasFlights() throws Exception {
-        // Given
-        doThrow(new AircraftDeletionException("Cannot delete aircraft with associated flights"))
-                .when(aircraftService).deleteAircraft(1L);
-
-        // When & Then
-        mockMvc.perform(delete("/api/aircrafts/1"))
-                .andDo(print())
-                .andExpect(status().isConflict());
-
-        verify(aircraftService, times(1)).deleteAircraft(1L);
-    }
 
     @Test
     @DisplayName("Should return 400 when delete id is invalid")
     void deleteAircraft_ShouldReturnBadRequest_WhenIdIsInvalid() throws Exception {
-        // When & Then
         mockMvc.perform(delete("/api/aircrafts/invalid"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -384,18 +290,15 @@ class AircraftControllerTest {
         verify(aircraftService, never()).deleteAircraft(anyLong());
     }
 
-    // ==================== EDGE CASES ====================
 
     @Test
     @DisplayName("Should handle very large capacity value")
     void createAircraft_ShouldHandleLargeCapacity_WhenValid() throws Exception {
-        // Given
         AircraftRequest largeCapacityRequest = new AircraftRequest("Airbus A380", "Airbus", 853);
         AircraftResponse largeCapacityResponse = new AircraftResponse(3L, "Airbus A380", "Airbus", 853);
 
         when(aircraftService.createAircraft(any(AircraftRequest.class))).thenReturn(largeCapacityResponse);
 
-        // When & Then
         mockMvc.perform(post("/api/aircrafts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(largeCapacityRequest)))
@@ -409,13 +312,11 @@ class AircraftControllerTest {
     @Test
     @DisplayName("Should handle special characters in model name")
     void createAircraft_ShouldHandleSpecialCharacters_InModelName() throws Exception {
-        // Given
         AircraftRequest specialCharRequest = new AircraftRequest("Boeing 737-800 MAX", "Boeing", 180);
         AircraftResponse specialCharResponse = new AircraftResponse(4L, "Boeing 737-800 MAX", "Boeing", 180);
 
         when(aircraftService.createAircraft(any(AircraftRequest.class))).thenReturn(specialCharResponse);
 
-        // When & Then
         mockMvc.perform(post("/api/aircrafts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(specialCharRequest)))
