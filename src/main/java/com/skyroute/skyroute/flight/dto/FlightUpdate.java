@@ -1,7 +1,6 @@
 package com.skyroute.skyroute.flight.dto;
 
 import jakarta.validation.constraints.*;
-
 import java.time.LocalDateTime;
 
 public record FlightUpdate(
