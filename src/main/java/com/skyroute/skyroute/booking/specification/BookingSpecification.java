@@ -31,21 +31,6 @@ public class BookingSpecification {
         };
     }
 
-    public static Specification<Booking> createdBetween(LocalDateTime startDate, LocalDateTime endDate) {
-        return (root, query, criteriaBuilder) -> {
-            if (startDate == null && endDate == null) {
-                return criteriaBuilder.conjunction();
-            }
-            if (startDate != null && endDate != null) {
-                return criteriaBuilder.between(root.get("createdAt"), startDate, endDate);
-            }
-            if (startDate != null) {
-                return criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), startDate);
-            }
-            return criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), endDate);
-        };
-    }
-
     public static Specification<Booking> hasFlightDepartureDate(LocalDate departureDate) {
         return (root, query, criteriaBuilder) -> {
             if (departureDate == null) {
@@ -55,22 +40,6 @@ public class BookingSpecification {
             LocalDateTime startOfDay =departureDate.atStartOfDay();
             LocalDateTime endOfDay = departureDate.plusDays(1).atStartOfDay();
             return criteriaBuilder.between(flight.get("departureTime"), startOfDay, endOfDay);
-        };
-    }
-
-    public static Specification<Booking> hasFlightDepartureBetween(LocalDateTime startDate, LocalDateTime endDate) {
-        return (root, query, criteriaBuilder) -> {
-            if (startDate == null && endDate == null) {
-                return criteriaBuilder.conjunction();
-            }
-            Join<Object, Object> flight = root.join("flight", JoinType.INNER);
-            if (startDate != null && endDate != null) {
-                return criteriaBuilder.between(flight.get("departureTime"), startDate, endDate);
-            }
-            if (startDate != null) {
-                return criteriaBuilder.greaterThanOrEqualTo(flight.get("departureTime"), startDate);
-            }
-            return criteriaBuilder.lessThanOrEqualTo(flight.get("departureTime"), endDate);
         };
     }
 
@@ -86,24 +55,6 @@ public class BookingSpecification {
                 return criteriaBuilder.greaterThanOrEqualTo(root.get("totalPrice"), minPrice);
             }
             return criteriaBuilder.lessThanOrEqualTo(root.get("totalPrice"), maxPrice);
-        };
-    }
-
-    public static Specification<Booking> hasExactSeats(Integer seats) {
-        return (root, query, criteriaBuilder) -> {
-            if (seats == null) {
-                return criteriaBuilder.conjunction();
-            }
-            return criteriaBuilder.equal(root.get("bookedSeats"), seats);
-        };
-    }
-
-    public static Specification<Booking> hasMinimumSeats(Integer minSeats) {
-        return (root, query, criteriaBuilder) -> {
-            if (minSeats == null) {
-                return criteriaBuilder.conjunction();
-            }
-            return criteriaBuilder.greaterThanOrEqualTo(root.get("bookedSeats"), minSeats);
         };
     }
 
@@ -192,26 +143,6 @@ public class BookingSpecification {
         };
     }
 
-    public static Specification<Booking> hasRoute(String originAirport, String destinationAirport) {
-        return (root, query, criteriaBuilder) -> {
-            if ((originAirport == null || originAirport.isEmpty()) && (destinationAirport == null || destinationAirport.isEmpty())) {
-                return criteriaBuilder.conjunction();
-            }
-            Join<Object, Object> flight = root.join("flight", JoinType.INNER);
-            Join<Object, Object> route = flight.join("route", JoinType.INNER);
-            Join<Object, Object> origin = route.join("origin", JoinType.INNER);
-            Join<Object, Object> destination = route.join("destination", JoinType.INNER);
-            return criteriaBuilder.and(
-                    criteriaBuilder.like(
-                            criteriaBuilder.lower(origin.get("city")), "%" + originAirport.toLowerCase() + "%"
-                    ),
-                    criteriaBuilder.like(
-                            criteriaBuilder.lower(destination.get("city")), "%" + destinationAirport.toLowerCase() + "%"
-                    )
-            );
-        };
-    }
-
     public static Specification<Booking> hasPassengerName(String passengerName) {
         return (root, query, criteriaBuilder) -> {
             if (passengerName == null || passengerName.isEmpty()) {
@@ -240,14 +171,6 @@ public class BookingSpecification {
     public static Specification<Booking> isActive() {
         return (root, query, criteriaBuilder) ->
             criteriaBuilder.notEqual(root.get("bookingStatus"), BookingStatus.CANCELLED);
-    }
-
-    public static Specification<Booking> isCancelled() {
-        return hasStatus(BookingStatus.CANCELLED);
-    }
-
-    public static Specification<Booking> isConfirmed() {
-        return hasStatus(BookingStatus.CONFIRMED);
     }
 
     public static Specification<Booking> isPending() {

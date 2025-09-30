@@ -61,21 +61,12 @@ public class BookingFilterController {
     public ResponseEntity<Page<BookingResponse>> filterMyBookings(
             @Parameter(description = "Booking status filter") @RequestParam(required = false) BookingStatus bookingStatus,
             @Parameter(description = "Booking number filter") @RequestParam(required = false) String bookingNumber,
-            @Parameter(description = "Created from date (ISO date-time format)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdFrom,
-            @Parameter(description = "Created to date (ISO date-time format)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdTo,
             @Parameter(description = "Flight departure date (ISO date format)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate flightDepartureDate,
-            @Parameter(description = "Flight departure from date (ISO date-time format)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime flightDepartureFrom,
-            @Parameter(description = "Flight departure to date (ISO date-time format)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime flightDepartureTo,
             @Parameter(description = "Minimum price filter") @RequestParam(required = false) Double minPrice,
-            @Parameter(description = "Maximum price filter") @RequestParam(required = false) Double maxPrice,
             @Parameter(description = "Origin airport city filter") @RequestParam(required = false) String originAirport,
             @Parameter(description = "Destination airport city filter") @RequestParam(required = false) String destinationAirport,
             @Parameter(description = "Passenger name filter") @RequestParam(required = false) String passengerName,
             @Parameter(description = "Filter only future flights") @RequestParam(required = false) Boolean futureFlightsOnly,
-            @Parameter(description = "Filter only active bookings (not cancelled)") @RequestParam(required = false) Boolean activeOnly,
-            @Parameter(description = "Filter only cancelled bookings") @RequestParam(required = false) Boolean cancelledOnly,
-            @Parameter(description = "Filter only confirmed bookings") @RequestParam(required = false) Boolean confirmedOnly,
-            @Parameter(description = "Filter only pending bookings") @RequestParam(required = false) Boolean pendingOnly,
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -83,7 +74,7 @@ public class BookingFilterController {
     ) {
         User user = userService.getCurrentUser();
         BookingFilterRequest filterRequest = new BookingFilterRequest(
-                bookingStatus, bookingNumber, createdFrom, createdTo, flightDepartureDate, flightDepartureFrom, flightDepartureTo, minPrice, maxPrice, null, null, null, null, null, null, null, originAirport, destinationAirport, passengerName, futureFlightsOnly, activeOnly, cancelledOnly, confirmedOnly, pendingOnly
+                bookingStatus, bookingNumber, null, null, flightDepartureDate, null, null, minPrice, null, null, null, null, null, null, null, null, originAirport, destinationAirport, passengerName, futureFlightsOnly,null, null, null, null
         );
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         Page<BookingResponse> bookingResponses = bookingFilterService.filterBookings(filterRequest, pageable, user);
@@ -109,15 +100,9 @@ public class BookingFilterController {
     public ResponseEntity<Page<BookingResponse>> filterAdminBookings(
             @Parameter(description = "Booking status filter") @RequestParam(required = false) BookingStatus bookingStatus,
             @Parameter(description = "Booking number filter") @RequestParam(required = false) String bookingNumber,
-            @Parameter(description = "Created from date (ISO date-time format)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdFrom,
-            @Parameter(description = "Created to date (ISO date-time format)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdTo,
             @Parameter(description = "Flight departure date (ISO date format)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate flightDepartureDate,
-            @Parameter(description = "Flight departure from date (ISO date-time format)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime flightDepartureFrom,
-            @Parameter(description = "Flight departure to date (ISO date-time format)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime flightDepartureTo,
             @Parameter(description = "Minimum price filter") @RequestParam(required = false) Double minPrice,
             @Parameter(description = "Maximum price filter") @RequestParam(required = false) Double maxPrice,
-            @Parameter(description = "Exact number of seats") @RequestParam(required = false) Integer exactSeats,
-            @Parameter(description = "Minimum number of seats") @RequestParam(required = false) Integer minSeats,
             @Parameter(description = "User ID filter (admin only)") @RequestParam(required = false) Long userId,
             @Parameter(description = "User email filter (admin only)") @RequestParam(required = false) String userEmail,
             @Parameter(description = "User name filter (admin only)") @RequestParam(required = false) String userName,
@@ -128,8 +113,6 @@ public class BookingFilterController {
             @Parameter(description = "Passenger name filter") @RequestParam(required = false) String passengerName,
             @Parameter(description = "Filter only future flights") @RequestParam(required = false) Boolean futureFlightsOnly,
             @Parameter(description = "Filter only active bookings (not cancelled)") @RequestParam(required = false) Boolean activeOnly,
-            @Parameter(description = "Filter only cancelled bookings") @RequestParam(required = false) Boolean cancelledOnly,
-            @Parameter(description = "Filter only confirmed bookings") @RequestParam(required = false) Boolean confirmedOnly,
             @Parameter(description = "Filter only pending bookings") @RequestParam(required = false) Boolean pendingOnly,
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
@@ -138,7 +121,7 @@ public class BookingFilterController {
     ) {
         User admin = userService.getCurrentUser();
         BookingFilterRequest filterRequest = new BookingFilterRequest(
-                bookingStatus, bookingNumber, createdFrom, createdTo, flightDepartureDate, flightDepartureFrom, flightDepartureTo, minPrice, maxPrice, exactSeats, minSeats, userId, userEmail, userName, flightId, flightNumber, originAirport, destinationAirport, passengerName, futureFlightsOnly, activeOnly, cancelledOnly, confirmedOnly, pendingOnly
+                bookingStatus, bookingNumber, null, null, flightDepartureDate, null, null, minPrice, maxPrice, null, null, userId, userEmail, userName, flightId, flightNumber, originAirport, destinationAirport, passengerName, futureFlightsOnly, activeOnly, null, null, pendingOnly
         );
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         Page<BookingResponse> bookingResponses = bookingFilterService.filterBookings(filterRequest, pageable, admin);

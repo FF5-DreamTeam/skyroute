@@ -75,12 +75,12 @@ public class BookingFilterServiceImpl implements BookingFilterService{
              specification = specification.and(BookingSpecification.hasFlightNumber(filterRequest.flightNumber()));
          }
 
-         if (filterRequest.exactSeats() != null) {
-             specification = specification.and(BookingSpecification.hasExactSeats(filterRequest.exactSeats()));
+         if (Boolean.TRUE.equals(filterRequest.activeOnly())) {
+             specification = specification.and(BookingSpecification.isActive());
          }
 
-         if (filterRequest.minSeats() != null) {
-             specification = specification.and(BookingSpecification.hasMinimumSeats(filterRequest.minSeats()));
+         if (Boolean.TRUE.equals(filterRequest.pendingOnly())) {
+             specification = specification.and(BookingSpecification.isPending());
          }
 
          return specification;
@@ -98,7 +98,7 @@ public class BookingFilterServiceImpl implements BookingFilterService{
         specification = specification.and(buildPriceFilters(filterRequest));
         specification = specification.and(buildAirportFilters(filterRequest));
         specification = specification.and(buildPassengerFilters(filterRequest));
-        specification = specification.and(buildTimeilters(filterRequest));
+        specification = specification.and(buildTimeFilters(filterRequest));
         return specification;
     }
 
@@ -113,38 +113,14 @@ public class BookingFilterServiceImpl implements BookingFilterService{
             specification = specification.and(BookingSpecification.hasBookingNumber(filterRequest.bookingNumber()));
         }
 
-        if (Boolean.TRUE.equals(filterRequest.activeOnly())) {
-            specification = specification.and(BookingSpecification.isActive());
-        }
-
-        if (Boolean.TRUE.equals(filterRequest.cancelledOnly())) {
-            specification = specification.and(BookingSpecification.isCancelled());
-        }
-
-        if (Boolean.TRUE.equals(filterRequest.confirmedOnly())) {
-            specification = specification.and(BookingSpecification.isConfirmed());
-        }
-
-        if (Boolean.TRUE.equals(filterRequest.pendingOnly())) {
-            specification = specification.and(BookingSpecification.isPending());
-        }
-
         return specification;
     }
 
     private Specification<Booking> buildDateFilters(BookingFilterRequest filterRequest) {
         Specification<Booking> specification = Specification.unrestricted();
 
-        if (filterRequest.createdFrom() != null || filterRequest.createdTo() != null) {
-            specification = specification.and(BookingSpecification.createdBetween(filterRequest.createdFrom(), filterRequest.createdTo()));
-        }
-
         if (filterRequest.flightDepartureDate() != null) {
             specification = specification.and(BookingSpecification.hasFlightDepartureDate(filterRequest.flightDepartureDate()));
-        }
-
-        if (filterRequest.flightDepartureFrom() != null || filterRequest.flightDepartureTo() != null) {
-            specification = specification.and(BookingSpecification.hasFlightDepartureBetween(filterRequest.flightDepartureFrom(), filterRequest.flightDepartureTo()));
         }
 
         return specification;
@@ -162,19 +138,13 @@ public class BookingFilterServiceImpl implements BookingFilterService{
 
     private Specification<Booking> buildAirportFilters(BookingFilterRequest filterRequest) {
         Specification<Booking> specification = Specification.unrestricted();
-        boolean hasOrigin = filterRequest.originAirport() != null && !filterRequest.originAirport().isEmpty();
-        boolean hasDestination = filterRequest.destinationAirport() != null && !filterRequest.destinationAirport().isEmpty();
 
-        if (hasOrigin) {
+        if (filterRequest.originAirport() != null && !filterRequest.originAirport().isEmpty()) {
             specification = specification.and(BookingSpecification.hasOriginAirportOrCode(filterRequest.originAirport()));
         }
 
-        if (hasDestination) {
+        if (filterRequest.destinationAirport() != null && !filterRequest.destinationAirport().isEmpty()) {
             specification = specification.and(BookingSpecification.hasDestinationAirportOrCode(filterRequest.destinationAirport()));
-        }
-
-        if (hasOrigin && hasDestination) {
-            specification = specification.and(BookingSpecification.hasRoute(filterRequest.originAirport(), filterRequest.destinationAirport()));
         }
 
         return specification;
@@ -190,7 +160,7 @@ public class BookingFilterServiceImpl implements BookingFilterService{
         return specification;
     }
 
-    private Specification<Booking> buildTimeilters(BookingFilterRequest filterRequest) {
+    private Specification<Booking> buildTimeFilters(BookingFilterRequest filterRequest) {
         Specification<Booking> specification = Specification.unrestricted();
 
         if (Boolean.TRUE.equals(filterRequest.futureFlightsOnly())) {
