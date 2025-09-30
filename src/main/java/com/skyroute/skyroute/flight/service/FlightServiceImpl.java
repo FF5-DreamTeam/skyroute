@@ -36,8 +36,7 @@ public class FlightServiceImpl implements FlightService {
             Optional<String> destination,
             Optional<String> departureDate,
             Optional<Integer> passengers,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         Specification<Flight> specification = FlightSpecificationBuilder.builder()
                 .originEquals(origin)
                 .destinationEquals(destination)
@@ -95,8 +94,7 @@ public class FlightServiceImpl implements FlightService {
                 aircraft,
                 request.availableSeats(),
                 request.departureTime(),
-                request.arrivalTime()
-        );
+                request.arrivalTime());
 
         Flight flight = Flight.builder()
                 .flightNumber(request.flightNumber())
@@ -118,7 +116,7 @@ public class FlightServiceImpl implements FlightService {
         Flight flight = findById(id);
 
         Aircraft aircraft = null;
-        if (request.aircraftId() != null){
+        if (request.aircraftId() != null) {
             aircraft = aircraftService.findById(request.aircraftId());
         }
 
@@ -127,16 +125,22 @@ public class FlightServiceImpl implements FlightService {
                 aircraft,
                 request.availableSeats(),
                 request.departureTime(),
-                request.arrivalTime()
-        );
+                request.arrivalTime());
 
-        if (request.flightNumber() != null) flight.setFlightNumber(request.flightNumber());
-        if (request.availableSeats() != null) flight.setAvailableSeats(request.availableSeats());
-        if (request.departureTime() != null) flight.setDepartureTime(request.departureTime());
-        if (request.arrivalTime() != null) flight.setArrivalTime(request.arrivalTime());
-        if (request.price() != null) flight.setPrice(request.price());
-        if (request.available() != null) flight.setAvailable(request.available());
-        if (aircraft != null) flight.setAircraft(aircraft);
+        if (request.flightNumber() != null)
+            flight.setFlightNumber(request.flightNumber());
+        if (request.availableSeats() != null)
+            flight.setAvailableSeats(request.availableSeats());
+        if (request.departureTime() != null)
+            flight.setDepartureTime(request.departureTime());
+        if (request.arrivalTime() != null)
+            flight.setArrivalTime(request.arrivalTime());
+        if (request.price() != null)
+            flight.setPrice(request.price());
+        if (request.available() != null)
+            flight.setAvailable(request.available());
+        if (aircraft != null)
+            flight.setAircraft(aircraft);
 
         if (request.routeId() != null) {
             Route route = routeService.findRouteById(request.routeId());
@@ -196,5 +200,17 @@ public class FlightServiceImpl implements FlightService {
         Flight flight = findById(flightId);
         flight.setAvailableSeats(flight.getAvailableSeats() + seatsToRelease);
         flightRepository.save(flight);
+    }
+
+    @Override
+    public List<MinPriceResponse> getMinPricesByDestinations(List<String> destinationCodes) {
+        return flightRepository.findMinPricesByDestinations(destinationCodes)
+                .stream()
+                .map(result -> new MinPriceResponse(
+                        (String) result[0],
+                        (String) result[1],
+                        (Double) result[2]
+                ))
+                .toList();
     }
 }

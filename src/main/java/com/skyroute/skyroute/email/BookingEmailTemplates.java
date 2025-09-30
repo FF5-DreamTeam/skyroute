@@ -9,12 +9,14 @@ public class BookingEmailTemplates {
     }
 
     public static String getPlainText(String firstName, String lastName, String bookingNumber,
-            String flightNumber, String departureTime, String arrivalTime, Double totalPrice) {
-        return String.format(Locale.US,  "Dear %s %s,\n\n" +
-                "Your flight booking has been confirmed!\n\n" +
+            String flightNumber, String departureTime, String arrivalTime, String departureCity,
+            String arrivalCity, Double totalPrice) {
+        return String.format(Locale.US, "Dear %s %s,\n\n" +
+                "Your flight booking has been created!\n\n" +
                 "Booking Details:\n" +
                 "Booking Number: %s\n" +
                 "Flight Number: %s\n" +
+                "Route: %s → %s\n" +
                 "Departure: %s\n" +
                 "Arrival: %s\n" +
                 "Total Price: $%.2f\n\n" +
@@ -22,12 +24,13 @@ public class BookingEmailTemplates {
                 "View your bookings: http://localhost:3000/login/\n\n" +
                 "Thank you for choosing SkyRoute!\n\n" +
                 "Best regards,\n" +
-                "SkyRoute Team", firstName, lastName, bookingNumber, flightNumber, departureTime, arrivalTime,
-                totalPrice);
+                "SkyRoute Team", firstName, lastName, bookingNumber, flightNumber, departureCity, arrivalCity,
+                departureTime, arrivalTime, totalPrice);
     }
 
     public static String getHtml(String firstName, String lastName, String bookingNumber,
-            String flightNumber, String departureTime, String arrivalTime, Double totalPrice) {
+            String flightNumber, String departureTime, String arrivalTime, String departureCity,
+            String arrivalCity, Double totalPrice) {
         return String.format(Locale.US,
                 """
                         <!DOCTYPE html>
@@ -66,7 +69,7 @@ public class BookingEmailTemplates {
                                     </h2>
 
                                     <p style="font-size: 16px; line-height: 1.6; color: #ffffff">
-                                        Your flight booking has been confirmed!
+                                        Your flight booking has been created!
                                     </p>
 
                                     <div
@@ -83,6 +86,9 @@ public class BookingEmailTemplates {
                                         </p>
                                         <p style="margin: 5px 0; font-size: 16px; color: #ffffff">
                                             <strong>Flight Number:</strong> %s
+                                        </p>
+                                        <p style="margin: 5px 0; font-size: 16px; color: #ffffff">
+                                            <strong>Route:</strong> %s → %s
                                         </p>
                                         <p style="margin: 5px 0; font-size: 16px; color: #ffffff">
                                             <strong>Departure:</strong> %s
@@ -130,6 +136,7 @@ public class BookingEmailTemplates {
                         </body>
                         </html>
                         """,
-                firstName, lastName, bookingNumber, flightNumber, departureTime, arrivalTime, totalPrice);
+                firstName, lastName, bookingNumber, flightNumber, departureCity, arrivalCity,
+                departureTime, arrivalTime, totalPrice);
     }
 }

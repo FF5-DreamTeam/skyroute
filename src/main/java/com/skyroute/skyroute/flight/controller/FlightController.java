@@ -5,6 +5,7 @@ import com.skyroute.skyroute.flight.dto.FlightRequest;
 import com.skyroute.skyroute.flight.dto.FlightResponse;
 import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.dto.FlightUpdate;
+import com.skyroute.skyroute.flight.dto.MinPriceResponse;
 import com.skyroute.skyroute.flight.service.FlightService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,13 +15,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,15 +39,13 @@ public class FlightController {
             @RequestParam @Parameter(description = "Destination airport code or city") Optional<String> destination,
             @RequestParam @Parameter(description = "Departure date (dd/MM/yyyy)") Optional<String> departureDate,
             @RequestParam @Parameter(description = "Number of passengers") Optional<Integer> passengers,
-            @PageableDefault(size = 10) Pageable pageable
-    ) {
+            @PageableDefault(size = 10) Pageable pageable) {
         Page<FlightSimpleResponse> flights = flightService.searchFlights(
                 origin,
                 destination,
                 departureDate,
                 passengers,
-                pageable
-        );
+                pageable);
         return ResponseEntity.ok(flights);
     }
 
@@ -55,8 +53,7 @@ public class FlightController {
     @Operation(summary = "Search flights by budget", description = "Find available flights within specified budget")
     public ResponseEntity<Page<FlightSimpleResponse>> searchFlightsByBudget(
             @Valid @RequestBody FlightBudgetRequest request,
-            @PageableDefault(size = 10, sort = {"price", "departureTime"}) Pageable pageable
-    ) {
+            @PageableDefault(size = 10, sort = { "price", "departureTime" }) Pageable pageable) {
         Page<FlightSimpleResponse> flights = flightService.searchFlightsByBudget(request.budget(), pageable);
         return ResponseEntity.ok(flights);
     }
@@ -115,5 +112,14 @@ public class FlightController {
     public ResponseEntity<Void> deleteFlight(@PathVariable Long id) {
         flightService.deleteFlight(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/min-prices")
+    @Operation(summary = "Get minimum flight prices by destinations", description = "Retrieve minimum prices for flights to specified destinations")
+    public ResponseEntity<List<MinPriceResponse>> getMinPrices(
+            @RequestParam @Parameter(description = "Comma-separated list of destination codes (e.g., BCN,MAD)") String destinations) {
+        List<String> destinationCodes = Arrays.asList(destinations.split(","));
+        List<MinPriceResponse> minPrices = flightService.getMinPricesByDestinations(destinationCodes);
+        return ResponseEntity.ok(minPrices);
     }
 }

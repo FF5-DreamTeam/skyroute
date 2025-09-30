@@ -4,6 +4,7 @@ import com.skyroute.skyroute.flight.dto.FlightRequest;
 import com.skyroute.skyroute.flight.dto.FlightResponse;
 import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.dto.FlightUpdate;
+import com.skyroute.skyroute.flight.dto.MinPriceResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,8 +18,7 @@ public interface FlightService {
             Optional<String> destination,
             Optional<String> departureDate,
             Optional<Integer> passengers,
-            Pageable pageable
-    );
+            Pageable pageable);
 
     Page<FlightSimpleResponse> searchFlightsByBudget(Double budget, Pageable pageable);
 
@@ -45,4 +45,6 @@ public interface FlightService {
     void bookSeats(Long flightId, int bookedSeats);
 
     void releaseSeats(Long flightId, int seatsToRelease);
+
+    List<MinPriceResponse> getMinPricesByDestinations(List<String> destinationCodes);
 }
