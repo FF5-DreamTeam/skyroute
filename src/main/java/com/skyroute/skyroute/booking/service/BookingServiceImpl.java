@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -86,13 +87,23 @@ public class BookingServiceImpl implements BookingService {
         validateStatusTransition(booking.getBookingStatus(), newStatus);
 
         BookingStatus previousStatus = booking.getBookingStatus();
-        booking.setBookingStatus(newStatus);
 
         if (user.getRole() == Role.USER) {
             if (newStatus == BookingStatus.CONFIRMED) {
                 throw new AccessDeniedException("Users cannot confirm booking");
             }
+
+            if (previousStatus == BookingStatus.CONFIRMED && newStatus == BookingStatus.CANCELLED) {
+                LocalDateTime now = LocalDateTime.now();
+                LocalDateTime departure = booking.getFlight().getDepartureTime();
+
+                if (departure.minusHours(24).isBefore(now)) {
+                    throw new BusinessException("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance");
+                }
+            }
         }
+
+        booking.setBookingStatus(newStatus);
 
         if (newStatus == BookingStatus.CANCELLED && previousStatus != BookingStatus.CANCELLED) {
             flightService.releaseSeats(booking.getFlight().getId(), booking.getBookedSeats());
