@@ -4,6 +4,19 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driverClassName: org.h2.Driver
+    task:
+      scheduling:
+        pool:
+          size: 5
+        thread-name-prefix: scheduler-
+
+    app:
+      scheduler:
+        flight-availability-cron: "0 */5 * * * *"
+
+    logging:
+      level:
+        org.springframework.scheduling: DEBUG
   jpa:
     hibernate:
       ddl-auto: none
