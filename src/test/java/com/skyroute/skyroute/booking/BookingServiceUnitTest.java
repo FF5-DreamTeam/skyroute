@@ -285,6 +285,7 @@ public class BookingServiceUnitTest {
         @Test
         void updateBookingStatus_shouldReleaseSeats_whenCancellingConfirmedBooking() {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
+            testBooking.getFlight().setDepartureTime(LocalDateTime.now().plusDays(2));
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
             when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
             doNothing().when(flightService).releaseSeats(1L, 2);
@@ -295,6 +296,20 @@ public class BookingServiceUnitTest {
 
             verify(flightService).releaseSeats(1L, 2);
             verify(bookingRepository).save(testBooking);
+        }
+
+        @Test
+        void updateBookingStatus_shouldThrowException_whenUserCancelsConfirmedBookingLess24h() {
+            testBooking.setBookingStatus(BookingStatus.CONFIRMED);
+            testBooking.getFlight().setDepartureTime(LocalDateTime.now().plusHours(10));
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            BusinessException exception = assertThrows(BusinessException.class,
+                    () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser));
+
+            assertEquals("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance", exception.getMessage());
+            verify(flightService, never()).releaseSeats(anyLong(), anyInt());
+            verify(bookingRepository, never()).save(any());
         }
 
         @Test
