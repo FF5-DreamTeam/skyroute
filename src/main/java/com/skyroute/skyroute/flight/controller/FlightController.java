@@ -8,6 +8,7 @@ import com.skyroute.skyroute.flight.dto.MinPriceResponse;
 import com.skyroute.skyroute.flight.service.FlightService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -67,9 +68,14 @@ public class FlightController {
         return ResponseEntity.ok(flights);
     }
 
+    @Operation(summary = "Get all flights (Admin only)", description = "Retrieve paginated list of all flights")
+    @Parameters({
+            @Parameter(name = "page", description = "Page number (0-based)"),
+            @Parameter(name = "size", description = "Page size"),
+            @Parameter(name = "sort", description = "Sort by field, e.g. sort=price,asc")
+    })
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get all flights (Admin only)", description = "Retrieve paginated list of all flights")
     public ResponseEntity<Page<FlightResponse>> getAllFlights(@PageableDefault(size = 10) Pageable pageable) {
         Page<FlightResponse> flights = flightService.getFlightsPage(pageable);
         return ResponseEntity.ok(flights);
