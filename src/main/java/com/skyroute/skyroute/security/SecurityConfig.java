@@ -27,93 +27,85 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-        private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-        @Value("${cors.allowed-origins}")
-        private String allowedOrigins;
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
 
-        @Bean
-        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                http
-                                .csrf(AbstractHttpConfigurer::disable)
-                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                                .headers(headers -> headers
-                                                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
-                                .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**")
-                                                .permitAll()
-                                                .requestMatchers("/api/auth/**").permitAll()
-                                                .requestMatchers("/api/email/**").permitAll()
-                                                .requestMatchers("/api/public/**").permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/api/airports/**").permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/api/flights/**").permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/api/flights/budget").permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/api/routes/**").permitAll()
-                                                .requestMatchers("/actuator/**").permitAll()
-                                                .requestMatchers("/h2-console/**").permitAll()
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/flights/admin", "/api/flights/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/flights/admin").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/flights/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/flights/admin/**").hasRole("ADMIN")
 
-                                                .requestMatchers(HttpMethod.POST, "/api/users", "/api/aircrafts",
-                                                                "/api/airports",
-                                                                "/api/routes", "/api/flights")
-                                                .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/users", "/api/aircrafts", "/api/airports", "/api/routes").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**", "/api/aircrafts/**", "/api/airports/**", "/api/routes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**", "/api/aircrafts/**", "/api/airports/**", "/api/routes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users", "/api/bookings", "/api/aircrafts", "/api/bookings/flight/**", "/api/bookings/filter/admin").hasRole("ADMIN")
 
-                                                .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
 
-                                                .requestMatchers(HttpMethod.PUT, "/api/users/**", "/api/aircrafts/**",
-                                                                "/api/airports/**",
-                                                                "/api/routes/**", "/api/flights/**")
-                                                .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.DELETE, "/api/users/**",
-                                                                "/api/aircrafts/**", "/api/airports/**",
-                                                                "/api/routes/**", "/api/flights/**")
-                                                .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/api/users", "/api/bookings",
-                                                                "/api/aircrafts", "/api/bookings/flight/**", "/api/bookings/filter/admin")
-                                                .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.GET, "/api/bookings/user/*",
-                                                                "/api/bookings/{id}", "/api/bookings/filter/my-bookings")
-                                                .authenticated()
-                                                .requestMatchers(HttpMethod.POST, "/api/bookings",
-                                                                "/api/bookings/{id}/confirm", "/api/bookings/{id}/cancel")
-                                                .authenticated()
-                                                .requestMatchers(HttpMethod.PUT, "/api/bookings/{id}/passenger-names",
-                                                                "/api/bookings/{id}/passenger-birth-dates",
-                                                                "/api/bookings/{id}/status")
-                                                .authenticated()
-                                                .requestMatchers(HttpMethod.DELETE, "/api/bookings/{id}")
-                                                .authenticated()
-                                                .anyRequest().authenticated())
-                                .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .requestMatchers(HttpMethod.GET, "/api/flights/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/flights/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/flights/search-filters").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/flights/min-prices").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/flights/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/flights/budget").permitAll()
 
-                return http.build();
-        }
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/email/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/airports/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/routes/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
 
-        @Bean
-        public PasswordEncoder passwordEncoder() {
-                return new BCryptPasswordEncoder();
-        }
+                        .requestMatchers(HttpMethod.PUT, "/api/users/profile").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/user/*", "/api/bookings/{id}", "/api/bookings/filter/my-bookings").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/bookings", "/api/bookings/{id}/confirm", "/api/bookings/{id}/cancel").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/bookings/{id}/passenger-names", "/api/bookings/{id}/passenger-birth-dates", "/api/bookings/{id}/status").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/bookings/{id}").authenticated()
 
-        @Bean
-        public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-                return config.getAuthenticationManager();
-        }
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        @Bean
-        public CorsConfigurationSource corsConfigurationSource() {
-                CorsConfiguration configuration = new CorsConfiguration();
+        return http.build();
+    }
 
-                List<String> origins = Arrays.asList(allowedOrigins.split(","));
-                configuration.setAllowedOrigins(origins);
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-                configuration.setAllowedHeaders(Arrays.asList("*"));
-                configuration.setAllowCredentials(true);
-                configuration.setMaxAge(3600L);
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
 
-                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                source.registerCorsConfiguration("/**", configuration);
-                return source;
-        }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        configuration.setAllowedOrigins(origins);
+
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
