@@ -9,16 +9,12 @@ import com.skyroute.skyroute.airport.repository.AirportRepository;
 import com.skyroute.skyroute.cloudinary.CloudinaryService;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityAlreadyExistsException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
-import com.skyroute.skyroute.shared.exception.custom_exception.ImageUploadException;
 import com.skyroute.skyroute.shared.exception.custom_exception.InvalidUpdateRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,11 +25,11 @@ public class AirportServiceImpl implements AirportService {
     @Override
     @Transactional
     public AirportResponse createAirport(AirportCreateRequest request) {
-        if (airportRepository.findByCode(request.code()).isPresent()){
+        if (airportRepository.findByCode(request.code()).isPresent()) {
             throw new EntityAlreadyExistsException("Airport code already exist: " + request.code());
         }
 
-        String imageUrl = uploadImage(request.image());
+        String imageUrl = cloudinaryService.uploadImage(request.image());
 
         Airport airport = AirportMapper.toEntityFromCreate(request, imageUrl);
 
@@ -62,12 +58,13 @@ public class AirportServiceImpl implements AirportService {
         Airport airport = airportRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Airport not found with ID: " + id));
 
-        if (!request.hasAnyField() && (request.image() == null || request.image().isEmpty())){
+        if (!request.hasAnyField() && (request.image() == null || request.image().isEmpty())) {
             throw new InvalidUpdateRequestException("At least one field must be provided for update");
         }
 
-        if (request.image() != null && !request.image().isEmpty()){
-            updateAirportImage(airport, request.image());
+        if (request.image() != null && !request.image().isEmpty()) {
+            String newImageUrl = cloudinaryService.updateImage(airport.getImageUrl(), request.image());
+            airport.setImageUrl(newImageUrl);
         }
 
         AirportMapper.toEntityFromUpdate(airport, request);
@@ -80,7 +77,15 @@ public class AirportServiceImpl implements AirportService {
     public void deleteAirport(Long id) {
         Airport airport = airportRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Airport not found with ID: " + id));
-        deleteOldImage(airport.getImageUrl());
+
+        if (airport.getImageUrl() != null && !airport.getImageUrl().isEmpty()) {
+            try {
+                cloudinaryService.deleteImageByUrl(airport.getImageUrl());
+            } catch (Exception e) {
+                System.err.println("Failed to delete airport image from Cloudinary: " + e.getMessage());
+            }
+        }
+
         airportRepository.delete(airport);
     }
 
@@ -88,39 +93,5 @@ public class AirportServiceImpl implements AirportService {
     public Airport findAirportById(Long id) {
         return airportRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Airport not found with ID: " + id));
-    }
-
-    private String uploadImage(MultipartFile image){
-        if (image == null || image.isEmpty()){
-            throw new ImageUploadException("Image file is required");
-        }
-        try{
-            Map result = cloudinaryService.uploadFile(image);
-            return (String) result.get("secure_url");
-        } catch (IOException exception){
-            throw new ImageUploadException("Error uploading image: " + exception.getMessage());
-        }
-    }
-
-    private void deleteOldImage(String imageUrl){
-        if (imageUrl != null && imageUrl.contains("cloudinary.com")){
-            try {
-                String[] parts = imageUrl.split("/");
-                String fileName = parts[parts.length - 1];
-                String publicId = fileName.substring(0, fileName.lastIndexOf("."));
-
-                cloudinaryService.deleteFile(publicId);
-            } catch (IOException exception) {
-                throw new RuntimeException("Could not delete old image: " + exception.getMessage());
-            }
-        }
-    }
-
-    private void updateAirportImage(Airport airport, MultipartFile newImage){
-        String oldImageUrl = airport.getImageUrl();
-        String newImageUrl = uploadImage(newImage);
-        airport.setImageUrl(newImageUrl);
-
-        deleteOldImage(oldImageUrl);
     }
 }
