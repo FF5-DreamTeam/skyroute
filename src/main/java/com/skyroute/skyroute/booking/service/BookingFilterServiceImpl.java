@@ -60,23 +60,23 @@ public class BookingFilterServiceImpl implements BookingFilterService{
          return specification;
     }
 
-     private Specification<Booking> buildUserFilters(BookingFilterRequest filterRequest) {
-         Specification<Booking> specification = Specification.unrestricted();
+    private Specification<Booking> buildUserFilters(BookingFilterRequest filterRequest) {
+        Specification<Booking> specification = Specification.unrestricted();
 
-         if (filterRequest.userId() != null) {
-             specification = specification.and(BookingSpecification.hasUserId(filterRequest.userId()));
-         }
+        if (filterRequest.userId() != null) {
+            specification = specification.and(BookingSpecification.hasUserId(filterRequest.userId()));
+        }
 
-         if (filterRequest.userEmail() != null && !filterRequest.userEmail().isEmpty()) {
-             specification = specification.and(BookingSpecification.hasUserEmail(filterRequest.userEmail()));
-         }
+        if (filterRequest.userEmail() != null && !filterRequest.userEmail().isEmpty()) {
+            specification = specification.and(BookingSpecification.hasUserEmail(filterRequest.userEmail()));
+        }
 
-         if (filterRequest.userName() != null && !filterRequest.userName().isEmpty()) {
-             specification = specification.and(BookingSpecification.hasUserName(filterRequest.userName()));
-         }
+        if (filterRequest.userName() != null && !filterRequest.userName().isEmpty()) {
+            specification = specification.and(BookingSpecification.hasUserName(filterRequest.userName()));
+        }
 
-         return specification;
-     }
+        return specification;
+    }
 
     private Specification<Booking> buildFlightFilters(BookingFilterRequest filterRequest) {
         Specification<Booking> specification = Specification.unrestricted();
