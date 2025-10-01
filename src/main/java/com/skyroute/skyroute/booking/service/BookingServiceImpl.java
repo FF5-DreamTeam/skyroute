@@ -8,9 +8,7 @@ import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.email.EmailService;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.service.FlightService;
-import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
-import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
-import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
+import com.skyroute.skyroute.shared.exception.custom_exception.*;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
 import com.skyroute.skyroute.user.entity.User;
 import com.skyroute.skyroute.user.enums.Role;
@@ -91,7 +89,7 @@ public class BookingServiceImpl implements BookingService {
         if (user.getRole() == Role.USER) {
             if (newStatus == BookingStatus.CONFIRMED) {
                 throw new AccessDeniedException("Users cannot confirm booking");
-            }
+        }
 
             if (previousStatus == BookingStatus.CONFIRMED && newStatus == BookingStatus.CANCELLED) {
                 LocalDateTime now = LocalDateTime.now();
@@ -152,7 +150,7 @@ public class BookingServiceImpl implements BookingService {
         validateUserAccess(booking, user);
 
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new AccessDeniedException("Users can only delete bookings in CREATED status");
+            throw new com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException("Users can only delete bookings in CREATED status");
         }
 
         if (booking.getBookingStatus() != BookingStatus.CANCELLED) {
@@ -195,12 +193,12 @@ public class BookingServiceImpl implements BookingService {
 
     private void validateFlightBookingEligibility(Long flightId, int requestedSeats) {
         if (!flightService.isFlightAvailable(flightId)) {
-            throw new BusinessException("Flight not available for booking");
+            throw new InvalidBookingOperationException("Flight not available for booking");
         }
 
         if (!flightService.hasAvailableSeats(flightId, requestedSeats)) {
             Flight flight = flightService.findById(flightId);
-            throw new BusinessException("Not enough seats available. Requested: " + requestedSeats + ". Available: "
+            throw new NotEnoughSeatsException("Not enough seats available. Requested: " + requestedSeats + ". Available: "
                     + flight.getAvailableSeats());
         }
     }
@@ -215,22 +213,22 @@ public class BookingServiceImpl implements BookingService {
 
     private void validateStatusTransition(BookingStatus current, BookingStatus target) {
         if (current == target) {
-            throw new BusinessException("Booking is already in " + target + " status");
+            throw new InvalidBookingOperationException("Booking is already in " + target + " status");
         }
 
         switch (current) {
             case CREATED:
                 if (target != BookingStatus.CONFIRMED && target != BookingStatus.CANCELLED) {
-                    throw new BusinessException("A CREATED booking can only be CONFIRMED or CANCELLED");
+                    throw new InvalidBookingOperationException("A CREATED booking can only be CONFIRMED or CANCELLED");
                 }
                 break;
             case CONFIRMED:
                 if (target != BookingStatus.CANCELLED) {
-                    throw new BusinessException("A CONFIRMED booking can only be CANCELLED");
+                    throw new InvalidBookingOperationException("A CONFIRMED booking can only be CANCELLED");
                 }
                 break;
             case CANCELLED:
-                throw new BusinessException("Cannot change status of a CANCELLED booking");
+                throw new InvalidBookingOperationException("Cannot change status of a CANCELLED booking");
         }
     }
 }
