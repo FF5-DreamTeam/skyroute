@@ -52,7 +52,15 @@ public class BookingFilterServiceImpl implements BookingFilterService{
         return specification;
     }
 
-     private Specification<Booking> buildAdminOnlyFilters(BookingFilterRequest filterRequest) {
+    private Specification<Booking> buildAdminOnlyFilters(BookingFilterRequest filterRequest) {
+        Specification<Booking> specification = Specification.unrestricted();
+         specification = specification.and(buildUserFilters(filterRequest));
+         specification = specification.and(buildFlightFilters(filterRequest));
+         specification = specification.and(buildAdminChecks(filterRequest));
+         return specification;
+    }
+
+     private Specification<Booking> buildUserFilters(BookingFilterRequest filterRequest) {
          Specification<Booking> specification = Specification.unrestricted();
 
          if (filterRequest.userId() != null) {
@@ -67,25 +75,36 @@ public class BookingFilterServiceImpl implements BookingFilterService{
              specification = specification.and(BookingSpecification.hasUserName(filterRequest.userName()));
          }
 
-         if (filterRequest.flightId() != null) {
-             specification = specification.and(BookingSpecification.hasFlightId(filterRequest.flightId()));
-         }
-
-         if (filterRequest.flightNumber() != null && !filterRequest.flightNumber().isEmpty()) {
-             specification = specification.and(BookingSpecification.hasFlightNumber(filterRequest.flightNumber()));
-         }
-
-         if (Boolean.TRUE.equals(filterRequest.activeOnly())) {
-             specification = specification.and(BookingSpecification.isActive());
-         }
-
-         if (Boolean.TRUE.equals(filterRequest.pendingOnly())) {
-             specification = specification.and(BookingSpecification.isPending());
-         }
-
          return specification;
      }
 
+    private Specification<Booking> buildFlightFilters(BookingFilterRequest filterRequest) {
+        Specification<Booking> specification = Specification.unrestricted();
+
+        if (filterRequest.flightId() != null) {
+            specification = specification.and(BookingSpecification.hasFlightId(filterRequest.flightId()));
+        }
+
+        if (filterRequest.flightNumber() != null && !filterRequest.flightNumber().isEmpty()) {
+            specification = specification.and(BookingSpecification.hasFlightNumber(filterRequest.flightNumber()));
+        }
+
+        return specification;
+    }
+
+    private Specification<Booking> buildAdminChecks(BookingFilterRequest filterRequest) {
+        Specification<Booking> specification = Specification.unrestricted();
+
+        if (Boolean.TRUE.equals(filterRequest.activeOnly())) {
+            specification = specification.and(BookingSpecification.isActive());
+        }
+
+        if (Boolean.TRUE.equals(filterRequest.pendingOnly())) {
+            specification = specification.and(BookingSpecification.isPending());
+        }
+
+        return specification;
+    }
     private Specification<Booking> buildCommonFilters(BookingFilterRequest filterRequest) {
 
         if (filterRequest == null) {
