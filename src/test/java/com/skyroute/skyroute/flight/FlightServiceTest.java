@@ -3,6 +3,7 @@ package com.skyroute.skyroute.flight;
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.service.AircraftService;
 import com.skyroute.skyroute.airport.entity.Airport;
+import com.skyroute.skyroute.flight.dto.FlightResponse;
 import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.dto.MinPriceResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
@@ -135,6 +136,111 @@ class FlightServiceTest {
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
             verify(flightRepository).findAll(any(Specification.class), eq(pageable));
+        }
+    }
+
+    @Nested
+    class GetFlightSimpleByIdTests {
+        @Test
+        void getFlightSimpleById_shouldReturnFlightSimpleResponse_whenFlightExists(){
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+
+            FlightSimpleResponse result = flightService.getFlightSimpleById(1L);
+
+            assertNotNull(result);
+            assertEquals(1L, result.id());
+            assertEquals("SR001", result.flightNumber());
+            assertEquals("Madrid", result.origin());
+            assertEquals("Barcelona", result.destination());
+            verify(flightRepository).findById(1L);
+        }
+
+        @Test
+        void getFlightSimpleById_shouldThrowEntityNotFoundException_whenFlightDoesNotExist() {
+            when(flightRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> flightService.getFlightSimpleById(99L)
+            );
+
+            assertEquals("Flight with id: 99 not found", exception.getMessage());
+            verify(flightRepository).findById(99L);
+        }
+    }
+
+    @Nested
+    class SearchFlightsByBudgetAndCityTests {
+        @Test
+        void searchFlightsByBudgetAndCity_shouldReturnFilteredFlights(){
+            Pageable pageable = PageRequest.of(0, 10);
+            List<Flight> flights = List.of(testFlight);
+            Page<Flight> flightPage = new PageImpl<>(flights, pageable, flights.size());
+
+            when(flightRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(flightPage);
+
+            Page<FlightSimpleResponse> result = flightService.searchFlightsByBudgetAndCity(
+                    Optional.of("MAD"),
+                    Optional.of("BCN"),
+                    Optional.of(500.0),
+                    pageable
+            );
+
+            assertNotNull(result);
+            assertEquals(1, result.getTotalElements());
+            verify(flightRepository).findAll(any(Specification.class), eq(pageable));
+        }
+
+        @Test
+        void searchFlightsByBudgetAndCity_shouldReturnOnlyAvailableFlights() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Flight> flightPage = new PageImpl<>(List.of(), pageable, 0);
+
+            when(flightRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(flightPage);
+
+            Page<FlightSimpleResponse> result = flightService.searchFlightsByBudgetAndCity(
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    pageable
+            );
+
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+            verify(flightRepository).findAll(any(Specification.class), eq(pageable));
+        }
+    }
+
+    @Nested
+    class GetFlightsPageTest {
+        @Test
+        void getFlightsPage_shouldReturnPageOfFlightResponses() {
+            Pageable pageable = PageRequest.of(0, 10);
+            List<Flight> flights = List.of(testFlight);
+            Page<Flight> flightPage = new PageImpl<>(flights, pageable, flights.size());
+
+            when(flightRepository.findAll(pageable)).thenReturn(flightPage);
+
+            Page<FlightResponse> result = flightService.getFlightsPage(pageable);
+
+            assertNotNull(result);
+            assertEquals(1, result.getTotalElements());
+            assertEquals("SR001", result.getContent().getFirst().flightNumber());
+            verify(flightRepository).findAll(pageable);
+        }
+
+        @Test
+        void getFlightsPage_shouldReturnEmptyPage_whenNoFlights() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Flight> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+            when(flightRepository.findAll(pageable)).thenReturn(emptyPage);
+
+            Page<FlightResponse> result = flightService.getFlightsPage(pageable);
+
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+            verify(flightRepository).findAll(pageable);
         }
     }
 
