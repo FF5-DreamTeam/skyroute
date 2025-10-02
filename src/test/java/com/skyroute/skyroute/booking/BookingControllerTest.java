@@ -43,7 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureWebMvc
-@Import(GlobalExceptionHandler.class)
 @ActiveProfiles("test")
 public class BookingControllerTest {
 
@@ -454,7 +453,6 @@ public class BookingControllerTest {
         void updatePassengerNames_shouldUpdateNames_whenValidRequest() throws Exception {
             List<String> newNames = List.of("Lola", "Juan");
             BookingResponse response = createBookingResponse();
-
             when(userService.getCurrentUser()).thenReturn(testUser);
             when(bookingService.updatePassengerNames(1L, newNames, testUser)).thenReturn(response);
 
@@ -469,6 +467,21 @@ public class BookingControllerTest {
         }
 
         @Test
+        @WithMockUser(roles = "USER")
+        void updatePassengerNames_shouldReturnForbidden_whenBookingConfirmed() throws Exception {
+            List<String> newNames = List.of("Lola", "Juan");
+            when(userService.getCurrentUser()).thenReturn(testUser);
+            when(bookingService.updatePassengerNames(1L, newNames, testUser)).thenThrow(new BookingAccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED"));
+
+            mockMvc.perform(put("/api/bookings/1/passenger-names")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(newNames)))
+                    .andExpect(status().isForbidden());
+
+            verify(bookingService).updatePassengerNames(1L, newNames, testUser);
+        }
+
+        @Test
         void updatePassengerNames_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
             List<String> newNames = List.of("Lola", "Juan");
 
@@ -478,6 +491,116 @@ public class BookingControllerTest {
                     .andExpect(status().isForbidden());
 
             verify(bookingService, never()).updatePassengerNames(anyLong(), anyList(), any());
+        }
+    }
+
+    @Nested
+    class UpdatePassengerBirthDatesTests {
+        @Test
+        @WithMockUser(roles = "USER")
+        void updatePassengerBirthDates_shouldUpdateBirthDates_whenValidRequest() throws Exception {
+            List<LocalDate> newDates = List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1992, 1, 1));
+            BookingResponse response = createBookingResponse();
+            when(userService.getCurrentUser()).thenReturn(testUser);
+            when(bookingService.updatePassengerBirthDates(1L, newDates, testUser)).thenReturn(response);
+
+            mockMvc.perform(put("/api/bookings/1/passenger-birth-dates")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(newDates)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.bookingNumber").value("SR-ABC123"));
+
+            verify(bookingService).updatePassengerBirthDates(1L, newDates, testUser);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void updatePassengerBirthDates_shouldReturnForbidden_whenBookingConfirmed() throws Exception {
+            List<LocalDate> newDates = List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1992, 1, 1));
+            when(userService.getCurrentUser()).thenReturn(testUser);
+            when(bookingService.updatePassengerBirthDates(1L, newDates, testUser)).thenThrow(new BookingAccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED"));
+
+            mockMvc.perform(put("/api/bookings/1/passenger-birth-dates")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(newDates)))
+                    .andExpect(status().isForbidden());
+
+            verify(bookingService).updatePassengerBirthDates(1L, newDates, testUser);
+        }
+
+        @Test
+        void updatePassengerBirthDates_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
+            List<LocalDate> newDates = List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1992, 1, 1));
+
+            mockMvc.perform(put("/api/bookings/1/passenger-birth-dates")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(newDates)))
+                    .andExpect(status().isForbidden());
+
+            verify(bookingService, never()).updatePassengerBirthDates(anyLong(), anyList(), any());
+        }
+    }
+
+    @Nested
+    class DeleteBookingTests {
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void deleteBooking_shouldDeleteBooking_whenValidRequest() throws Exception {
+            when(userService.getCurrentUser()).thenReturn(testUser);
+            doNothing().when(bookingService).deleteBooking(1L, testUser);
+
+            mockMvc.perform(delete("/api/bookings/1"))
+                    .andExpect(status().isNoContent());
+
+            verify(bookingService).deleteBooking(1L, testUser);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void deleteBooking_shouldReturnNotFound_whenBookingDoesNotExist() throws Exception {
+            when(userService.getCurrentUser()).thenReturn(testUser);
+            doThrow(new EntityNotFoundException("Booking not found"))
+                    .when(bookingService).deleteBooking(99L, testUser);
+
+            mockMvc.perform(delete("/api/bookings/99"))
+                    .andExpect(status().isNotFound());
+
+            verify(bookingService).deleteBooking(99L, testUser);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void deleteBooking_shouldReturnForbidden_whenUserTriesToDeleteConfirmedBooking() throws Exception {
+            when(userService.getCurrentUser()).thenReturn(testUser);
+            doThrow(new BookingAccessDeniedException("Users can only delete bookings in CREATED status"))
+                    .when(bookingService).deleteBooking(1L, testUser);
+
+            mockMvc.perform(delete("/api/bookings/1"))
+                    .andExpect(status().isForbidden());
+
+            verify(bookingService).deleteBooking(1L, testUser);
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void deleteBooking_shouldAllowAdmin_toDeleteAnyBooking() throws Exception {
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            doNothing().when(bookingService).deleteBooking(1L, testAdmin);
+
+            mockMvc.perform(delete("/api/bookings/1"))
+                    .andExpect(status().isNoContent());
+
+            verify(bookingService).deleteBooking(1L, testAdmin);
+        }
+
+        @Test
+        void deleteBooking_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
+            mockMvc.perform(delete("/api/bookings/1"))
+                    .andExpect(status().isForbidden());
+
+            verify(bookingService, never()).deleteBooking(anyLong(), any());
         }
     }
 

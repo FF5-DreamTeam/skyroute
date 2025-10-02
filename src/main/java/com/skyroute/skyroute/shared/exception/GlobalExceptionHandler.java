@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BookingAccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleBookingAccessDeniedException(BookingAccessDeniedException exception,HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleBookingAccessDeniedException(BookingAccessDeniedException exception, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.FORBIDDEN,
                 exception.getMessage(),
@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidBookingOperationException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidBookingOperationException(InvalidBookingOperationException exception,HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleInvalidBookingOperationException(InvalidBookingOperationException exception, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 exception.getMessage(),
@@ -61,8 +61,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException exception,
-                                                                       HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException exception, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.NOT_FOUND,
                 exception.getMessage(),
@@ -93,8 +92,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(EntityAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEntityAlreadyExists(EntityAlreadyExistsException exception,
-                                                                   HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleEntityAlreadyExists(EntityAlreadyExistsException exception, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.CONFLICT,
                 exception.getMessage(),
