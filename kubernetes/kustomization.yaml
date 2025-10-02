@@ -11,7 +11,6 @@ resources:
   - deployment.yaml
   - service.yaml
   - configmap.yaml
-  - flyway-repair-job.yaml
 
 # Image customization - override image tags
 images:
