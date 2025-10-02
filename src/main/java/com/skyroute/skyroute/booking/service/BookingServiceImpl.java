@@ -8,9 +8,7 @@ import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.email.EmailService;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.service.FlightService;
-import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
-import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
-import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
+import com.skyroute.skyroute.shared.exception.custom_exception.*;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
 import com.skyroute.skyroute.user.entity.User;
 import com.skyroute.skyroute.user.enums.Role;
@@ -18,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,15 +89,15 @@ public class BookingServiceImpl implements BookingService {
 
         if (user.getRole() == Role.USER) {
             if (newStatus == BookingStatus.CONFIRMED) {
-                throw new AccessDeniedException("Users cannot confirm booking");
-            }
+                throw new BookingAccessDeniedException("Users cannot confirm booking");
+        }
 
             if (previousStatus == BookingStatus.CONFIRMED && newStatus == BookingStatus.CANCELLED) {
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime departure = booking.getFlight().getDepartureTime();
 
                 if (departure.minusHours(24).isBefore(now)) {
-                    throw new BusinessException("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance");
+                    throw new InvalidBookingOperationException("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance");
                 }
             }
         }
@@ -127,7 +126,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse updatePassengerNames(Long id, List<String> names, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new AccessDeniedException("Cannot modify passenger names after booking is CONFORMED or CANCELLED");
+            throw new BookingAccessDeniedException("Cannot modify passenger names after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerNames(names);
@@ -138,8 +137,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new AccessDeniedException(
-                    "Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
+            throw new BookingAccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerBirthDates(birthDates);
@@ -152,7 +150,7 @@ public class BookingServiceImpl implements BookingService {
         validateUserAccess(booking, user);
 
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new AccessDeniedException("Users can only delete bookings in CREATED status");
+            throw new BookingAccessDeniedException("Users can only delete bookings in CREATED status");
         }
 
         if (booking.getBookingStatus() != BookingStatus.CANCELLED) {
@@ -189,18 +187,18 @@ public class BookingServiceImpl implements BookingService {
 
     private void validateUserAccess(Booking booking, User user) {
         if (user.getRole() == Role.USER && !booking.getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException("User cannot access this booking");
+            throw new BookingAccessDeniedException("User cannot access this booking");
         }
     }
 
     private void validateFlightBookingEligibility(Long flightId, int requestedSeats) {
         if (!flightService.isFlightAvailable(flightId)) {
-            throw new BusinessException("Flight not available for booking");
+            throw new InvalidBookingOperationException("Flight not available for booking");
         }
 
         if (!flightService.hasAvailableSeats(flightId, requestedSeats)) {
             Flight flight = flightService.findById(flightId);
-            throw new BusinessException("Not enough seats available. Requested: " + requestedSeats + ". Available: "
+            throw new NotEnoughSeatsException("Not enough seats available. Requested: " + requestedSeats + ". Available: "
                     + flight.getAvailableSeats());
         }
     }
@@ -215,22 +213,22 @@ public class BookingServiceImpl implements BookingService {
 
     private void validateStatusTransition(BookingStatus current, BookingStatus target) {
         if (current == target) {
-            throw new BusinessException("Booking is already in " + target + " status");
+            throw new InvalidBookingOperationException("Booking is already in " + target + " status");
         }
 
         switch (current) {
             case CREATED:
                 if (target != BookingStatus.CONFIRMED && target != BookingStatus.CANCELLED) {
-                    throw new BusinessException("A CREATED booking can only be CONFIRMED or CANCELLED");
+                    throw new InvalidBookingOperationException("A CREATED booking can only be CONFIRMED or CANCELLED");
                 }
                 break;
             case CONFIRMED:
                 if (target != BookingStatus.CANCELLED) {
-                    throw new BusinessException("A CONFIRMED booking can only be CANCELLED");
+                    throw new InvalidBookingOperationException("A CONFIRMED booking can only be CANCELLED");
                 }
                 break;
             case CANCELLED:
-                throw new BusinessException("Cannot change status of a CANCELLED booking");
+                throw new InvalidBookingOperationException("Cannot change status of a CANCELLED booking");
         }
     }
 }

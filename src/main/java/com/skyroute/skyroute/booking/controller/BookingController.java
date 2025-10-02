@@ -69,7 +69,7 @@ public class BookingController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
     })
     @GetMapping("/user")
-    public ResponseEntity<Page<BookingResponse>> getUserBookings(
+    public ResponseEntity<Page<BookingResponse>> getAllBookingsUser(
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") @Min(0) int page,
             @Parameter(description = "Page size (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size,
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
