@@ -3,10 +3,9 @@ package com.skyroute.skyroute.booking;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.booking.specification.BookingSpecification;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import com.skyroute.skyroute.flight.entity.Flight;
+import jakarta.persistence.criteria.*;
+import org.hibernate.type.descriptor.java.ObjectJavaType;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +35,21 @@ public class BookingSpecificationUnitTest {
 
     @Mock
     private Predicate predicate;
+
+    @Mock
+    Join<Object, Object> flightJoin;
+
+    @Mock
+    Join<Object, Object> userJoin;
+
+    @Mock
+    Join<Object, Object> routeJoin;
+
+    @Mock
+    Join<Object, Object> originJoin;
+
+    @Mock
+    Join<Object, Object> passengerNames;
 
     @Nested
     class HasStatusTest {
@@ -113,7 +127,7 @@ public class BookingSpecificationUnitTest {
         void hasFlightDepartureDate_shouldReturnPredicate_whenDateProvided() {
             LocalDate departureDate = LocalDate.of(2025, 12, 1);
             when(criteriaBuilder.between(any(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(predicate);
-            when(root.join("flight", any())).thenReturn(null);
+            when(root.join(eq("flight"), any())).thenReturn(flightJoin);
             Specification<Booking> specification = BookingSpecification.hasFlightDepartureDate(departureDate);
             Predicate result = specification.toPredicate(root, query, criteriaBuilder);
 
@@ -135,6 +149,7 @@ public class BookingSpecificationUnitTest {
 
     @Nested
     class HasPriceBetweenTest {
+
         @Test
         void hasPriceBetween_shouldReturnPredicate_whenBothPricesProvided() {
             Double minPrice = 100.0;
@@ -148,6 +163,219 @@ public class BookingSpecificationUnitTest {
             verify(criteriaBuilder).between(any(), eq(minPrice), eq(maxPrice));
         }
 
+        @Test
+        void hasPriceBetween_shouldReturnPredicate_whenOnlyMinPriceProvided() {
+            Double minPrice = 100.0;
+            when(criteriaBuilder.greaterThanOrEqualTo(any(), eq(minPrice))).thenReturn(predicate);
+            when(root.get("totalPrice")).thenReturn(null);
+            Specification<Booking> specification = BookingSpecification.hasPriceBetween(minPrice, null);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
 
+            assertNotNull(result);
+            verify(criteriaBuilder).greaterThanOrEqualTo(any(), eq(minPrice));
+        }
+
+        @Test
+        void hasPriceBetween_shouldReturnPredicate_whenOnlyMaxPriceProvided() {
+            Double maxPrice = 500.0;
+            when(criteriaBuilder.lessThanOrEqualTo(any(), eq(maxPrice))).thenReturn(predicate);
+            when(root.get("totalPrice")).thenReturn(null);
+            Specification<Booking> specification = BookingSpecification.hasPriceBetween(null, maxPrice);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).lessThanOrEqualTo(any(), eq(maxPrice));
+        }
+
+        @Test
+        void hasPriceBetween_shouldReturnConjunction_whenBothPricesAreNull() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasPriceBetween(null, null);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
+    }
+
+    @Nested
+    class HasUserIdTest {
+
+        @Test
+        void hasUserId_shouldReturnPredicate_whenUserIdProvided() {
+            Long userId = 1L;
+            when(criteriaBuilder.equal(any(), eq(userId))).thenReturn(predicate);
+            when(root.join(eq("user"), any())).thenReturn(userJoin);
+            Specification<Booking> specification = BookingSpecification.hasUserId(userId);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).equal(any(), eq(userId));
+        }
+    }
+
+    @Nested
+    class HasUserEmailTest {
+
+        @Test
+        void hasUserEmail_shouldReturnPredicate_whenEmailProvided() {
+            String email = "test@email.com";
+            when(criteriaBuilder.equal(any(), eq(email.toLowerCase()))).thenReturn(predicate);
+            when(criteriaBuilder.lower(any())).thenReturn(null);
+            when(root.join(eq("user"), any())).thenReturn(userJoin);
+            Specification<Booking> specification = BookingSpecification.hasUserEmail(email);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).equal(any(), eq(email.toLowerCase()));
+        }
+    }
+
+    @Nested
+    class HasUserNameTest {
+
+        @Test
+        void hasUserName_shouldReturnPredicate_whenNameProvided() {
+            String name = "Pepa";
+            when(criteriaBuilder.or(any(Predicate.class), any(Predicate.class))).thenReturn(predicate);
+            when(criteriaBuilder.like(any(), anyString())).thenReturn(predicate);
+            when(criteriaBuilder.lower(any())).thenReturn(null);
+            when(root.join(eq("user"), any())).thenReturn(userJoin);
+            Specification<Booking> specification = BookingSpecification.hasUserName(name);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
+        }
+    }
+
+    @Nested
+    class HasFlightIdTest {
+
+        @Test
+        void hasFlightId_shouldReturnPredicate_whenFlightIdProvided() {
+            Long flightId = 1L;
+            when(criteriaBuilder.equal(any(), eq(flightId))).thenReturn(predicate);
+            when(root.join(eq("flight"), any())).thenReturn(flightJoin);
+            Specification<Booking> specification = BookingSpecification.hasFlightId(flightId);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).equal(any(), eq(flightId));
+        }
+    }
+
+    @Nested
+    class HasFlightNumberTest {
+
+        @Test
+        void hasFlightNumber_shouldReturnPredicate_whenFlightNumberProvided() {
+            String flightNumber = "SK123";
+            when(criteriaBuilder.like(any(), anyString())).thenReturn(predicate);
+            when(criteriaBuilder.upper(any())).thenReturn(null);
+            when(root.join(eq("flight"), any())).thenReturn(flightJoin);
+            Specification<Booking> specification = BookingSpecification.hasFlightNumber(flightNumber);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).like(any(), contains(flightNumber.toUpperCase()));
+        }
+    }
+
+//    @Nested
+//    class HasOriginAirportTest {
+//        @Test
+//        void hasOriginAirportOrCode_shouldReturnPredicate_whenAirportProvided() {
+//            String airport = "Valencia";
+//            when(criteriaBuilder.or(any(Predicate.class), any(Predicate.class))).thenReturn(predicate);
+//            when(criteriaBuilder.like(any(), anyString())).thenReturn(predicate);
+//            when(criteriaBuilder.equal(any(), anyString())).thenReturn(predicate);
+//            when(criteriaBuilder.lower(any())).thenReturn(null);
+//            when(criteriaBuilder.upper(any())).thenReturn(null);
+//            when(criteriaBuilder.or(any(Predicate.class), any(Predicate.class))).thenReturn(predicate);
+//            when(root.join(eq("flight"), any())).thenReturn(flightJoin);
+//            when(flightJoin.join(eq("route"), any(JoinType.class))).thenReturn(routeJoin);
+//            when(routeJoin.join(eq("origin"), any(JoinType.class))).thenReturn(originJoin);
+//            Specification<Booking> specification = BookingSpecification.hasOriginAirportOrCode(airport);
+//            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+//
+//            assertNotNull(result);
+//            verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
+//        }
+//    }
+    @Nested
+    class HasPassengerNameTest {
+
+        @Test
+        void hasPassengerName_shouldReturnPredicate_whenNameProvided() {
+            String passengerName = "Pepe";
+            when(criteriaBuilder.like(any(), anyString())).thenReturn(predicate);
+            when(criteriaBuilder.lower(any())).thenReturn(null);
+            when(root.join(eq("passengerNames"), any())).thenReturn(passengerNames);
+            Specification<Booking> specification = BookingSpecification.hasPassengerName(passengerName);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).like(any(), contains(passengerName.toLowerCase()));
+        }
+    }
+
+    @Nested
+    class HasFutureFlightsTest {
+
+        @Test
+        void hasFutureFlights_shouldReturnPredicate_whenCalled() {
+            when(criteriaBuilder.greaterThan(any(), any(LocalDateTime.class))).thenReturn(predicate);
+            when(root.join(eq("flight"), any())).thenReturn(flightJoin);
+            Specification<Booking> specification = BookingSpecification.hasFutureFlights();
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).greaterThan(any(), any(LocalDateTime.class));
+        }
+    }
+
+    @Nested
+    class HasPastFlightsTest {
+
+        @Test
+        void hasPastFlights_shouldReturnPredicate_whenCalled() {
+            when(criteriaBuilder.lessThanOrEqualTo(any(), any(LocalDateTime.class))).thenReturn(predicate);
+            when(root.join(eq("flight"), any())).thenReturn(flightJoin);
+            Specification<Booking> specification = BookingSpecification.hasPastFlights();
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).lessThanOrEqualTo(any(), any(LocalDateTime.class));
+        }
+    }
+
+    @Nested
+    class IsActiveTest {
+        @Test
+        void isActive_shouldReturnPredicate_whenCalled() {
+            when(criteriaBuilder.notEqual(any(), eq(BookingStatus.CANCELLED))).thenReturn(predicate);
+            when(root.get("bookingStatus")).thenReturn(null);
+            Specification<Booking> specification = BookingSpecification.isActive();
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).notEqual(any(), eq(BookingStatus.CANCELLED));
+        }
+    }
+
+    @Nested
+    class IsPendingTest {
+
+        @Test
+        void isPending_shouldReturnPredicate_whenCalled() {
+            when(criteriaBuilder.equal(any(), eq(BookingStatus.CREATED))).thenReturn(predicate);
+            when(root.get("bookingStatus")).thenReturn(null);
+            Specification<Booking> specification = BookingSpecification.isPending();
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).equal(any(), eq(BookingStatus.CREATED));
+        }
     }
 }
