@@ -1,0 +1,64 @@
+# Temporary Job to fix failed Flyway migration
+# This job will delete the failed migration record from flyway_schema_history table
+# After successful execution, this file can be deleted
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: flyway-repair-job
+  labels:
+    app: skyroute
+    component: database-maintenance
+spec:
+  ttlSecondsAfterFinished: 300 # Auto-delete after 5 minutes
+  template:
+    metadata:
+      labels:
+        app: skyroute
+        component: database-maintenance
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mysql-repair
+          image: mysql:8.0
+          env:
+            # Database credentials from Secret
+            - name: MYSQL_HOST
+              value: "mysql" # Update if your MySQL service has different name
+            - name: MYSQL_DATABASE
+              value: "skyroute"
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: database-credentials
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-credentials
+                  key: password
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "Connecting to MySQL..."
+              mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE} <<EOF
+
+              -- Show current state
+              SELECT 'Current Flyway history:' as status;
+              SELECT version, description, type, installed_on, success 
+              FROM flyway_schema_history 
+              WHERE version = '10';
+
+              -- Delete failed migration
+              DELETE FROM flyway_schema_history 
+              WHERE version = '10' AND success = 0;
+
+              -- Confirm deletion
+              SELECT 'After cleanup:' as status;
+              SELECT version, description, type, installed_on, success 
+              FROM flyway_schema_history 
+              ORDER BY installed_rank;
+
+              EOF
+
+              echo "Flyway repair completed successfully!"
