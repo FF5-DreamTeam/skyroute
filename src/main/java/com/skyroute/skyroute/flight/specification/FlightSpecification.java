@@ -5,15 +5,16 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
 public class FlightSpecification {
-    public static Specification<Flight> hasOriginEquals(String origin){
-        return (root, query, criteriaBuilder) ->{
-            if (origin == null || origin.isBlank()){
+    public static Specification<Flight> hasOriginEquals(String origin) {
+        return (root, query, criteriaBuilder) -> {
+            if (origin == null || origin.isBlank()) {
                 return criteriaBuilder.conjunction();
             }
 
@@ -30,9 +31,9 @@ public class FlightSpecification {
         };
     }
 
-    public static Specification<Flight> hasDestinationEquals(String destination){
+    public static Specification<Flight> hasDestinationEquals(String destination) {
         return (root, query, criteriaBuilder) -> {
-            if (destination == null || destination.isBlank()){
+            if (destination == null || destination.isBlank()) {
                 return criteriaBuilder.conjunction();
             }
 
@@ -87,22 +88,31 @@ public class FlightSpecification {
         };
     }
 
-    public static Specification<Flight> hasPassengersAvailable(Integer passengers){
+    public static Specification<Flight> hasPassengersAvailable(Integer passengers) {
         return (root, query, criteriaBuilder) ->
                 passengers == null ? criteriaBuilder.conjunction() :
                         criteriaBuilder.greaterThanOrEqualTo(root.get("availableSeats"), passengers);
     }
 
-    public static Specification<Flight> isOnlyAvailable(LocalDateTime now){
+    public static Specification<Flight> isOnlyAvailable(LocalDateTime now) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.and(criteriaBuilder.isTrue(root.get("available")),
                         criteriaBuilder.greaterThan(root.get("departureTime"), now)
                 );
     }
 
-    public static Specification<Flight> hasPricelessThanOrEqual(Double maxPrice){
+    public static Specification<Flight> hasPricelessThanOrEqual(Double maxPrice) {
         return (root, query, criteriaBuilder) ->
                 maxPrice == null ? criteriaBuilder.conjunction() :
                         criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice);
     }
+
+    public static Specification<Flight> hasDepartedBefore(LocalDateTime now) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.and(
+                        criteriaBuilder.isTrue(root.get("available")),
+                        criteriaBuilder.lessThan(root.get("departureTime"), now)
+                );
+    }
+
 }

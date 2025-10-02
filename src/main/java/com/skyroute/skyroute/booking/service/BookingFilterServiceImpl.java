@@ -52,40 +52,59 @@ public class BookingFilterServiceImpl implements BookingFilterService{
         return specification;
     }
 
-     private Specification<Booking> buildAdminOnlyFilters(BookingFilterRequest filterRequest) {
-         Specification<Booking> specification = Specification.unrestricted();
-
-         if (filterRequest.userId() != null) {
-             specification = specification.and(BookingSpecification.hasUserId(filterRequest.userId()));
-         }
-
-         if (filterRequest.userEmail() != null && !filterRequest.userEmail().isEmpty()) {
-             specification = specification.and(BookingSpecification.hasUserEmail(filterRequest.userEmail()));
-         }
-
-         if (filterRequest.userName() != null && !filterRequest.userName().isEmpty()) {
-             specification = specification.and(BookingSpecification.hasUserName(filterRequest.userName()));
-         }
-
-         if (filterRequest.flightId() != null) {
-             specification = specification.and(BookingSpecification.hasFlightId(filterRequest.flightId()));
-         }
-
-         if (filterRequest.flightNumber() != null && !filterRequest.flightNumber().isEmpty()) {
-             specification = specification.and(BookingSpecification.hasFlightNumber(filterRequest.flightNumber()));
-         }
-
-         if (Boolean.TRUE.equals(filterRequest.activeOnly())) {
-             specification = specification.and(BookingSpecification.isActive());
-         }
-
-         if (Boolean.TRUE.equals(filterRequest.pendingOnly())) {
-             specification = specification.and(BookingSpecification.isPending());
-         }
-
+    private Specification<Booking> buildAdminOnlyFilters(BookingFilterRequest filterRequest) {
+        Specification<Booking> specification = Specification.unrestricted();
+         specification = specification.and(buildUserFilters(filterRequest));
+         specification = specification.and(buildFlightFilters(filterRequest));
+         specification = specification.and(buildAdminChecks(filterRequest));
          return specification;
-     }
+    }
 
+    private Specification<Booking> buildUserFilters(BookingFilterRequest filterRequest) {
+        Specification<Booking> specification = Specification.unrestricted();
+
+        if (filterRequest.userId() != null) {
+            specification = specification.and(BookingSpecification.hasUserId(filterRequest.userId()));
+        }
+
+        if (filterRequest.userEmail() != null && !filterRequest.userEmail().isEmpty()) {
+            specification = specification.and(BookingSpecification.hasUserEmail(filterRequest.userEmail()));
+        }
+
+        if (filterRequest.userName() != null && !filterRequest.userName().isEmpty()) {
+            specification = specification.and(BookingSpecification.hasUserName(filterRequest.userName()));
+        }
+
+        return specification;
+    }
+
+    private Specification<Booking> buildFlightFilters(BookingFilterRequest filterRequest) {
+        Specification<Booking> specification = Specification.unrestricted();
+
+        if (filterRequest.flightId() != null) {
+            specification = specification.and(BookingSpecification.hasFlightId(filterRequest.flightId()));
+        }
+
+        if (filterRequest.flightNumber() != null && !filterRequest.flightNumber().isEmpty()) {
+            specification = specification.and(BookingSpecification.hasFlightNumber(filterRequest.flightNumber()));
+        }
+
+        return specification;
+    }
+
+    private Specification<Booking> buildAdminChecks(BookingFilterRequest filterRequest) {
+        Specification<Booking> specification = Specification.unrestricted();
+
+        if (Boolean.TRUE.equals(filterRequest.activeOnly())) {
+            specification = specification.and(BookingSpecification.isActive());
+        }
+
+        if (Boolean.TRUE.equals(filterRequest.pendingOnly())) {
+            specification = specification.and(BookingSpecification.isPending());
+        }
+
+        return specification;
+    }
     private Specification<Booking> buildCommonFilters(BookingFilterRequest filterRequest) {
 
         if (filterRequest == null) {

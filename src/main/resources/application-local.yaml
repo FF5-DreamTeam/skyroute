@@ -11,7 +11,7 @@ spring:
     init:
       mode: always
       schema-locations: classpath:db/migration/V1__Create_users_table.sql,classpath:db/migration/V2__Create_airports_table.sql,classpath:db/migration/V3__Create_aircrafts_table.sql,classpath:db/migration/V4__Create_routes_table.sql,classpath:db/migration/V5__Create_flights_table.sql,classpath:db/migration/V6__Create_booking_table.sql,classpath:db/migration/V8__Add_password_reset_fields.sql
-      data-locations: classpath:db/migration/V7__Insert_test_data.sql,classpath:db/migration/V9__Expand_test_data.sql
+      data-locations: classpath:db/migration/V7__Insert_test_data.sql,classpath:db/migration/V9__Expand_test_data.sql,classpath:db/migration/V10__Add_Valencia_airport_and_flights.sql
   flyway:
     enabled: false
   h2:

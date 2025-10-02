@@ -3,11 +3,14 @@ package com.skyroute.skyroute.flight.service;
 import com.skyroute.skyroute.flight.dto.FlightRequest;
 import com.skyroute.skyroute.flight.dto.FlightResponse;
 import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
+import com.skyroute.skyroute.flight.dto.FlightStatusUpdateRequest;
 import com.skyroute.skyroute.flight.dto.FlightUpdate;
 import com.skyroute.skyroute.flight.dto.MinPriceResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,4 +53,9 @@ public interface FlightService {
     void releaseSeats(Long flightId, int seatsToRelease);
 
     List<MinPriceResponse> getMinPricesByDestinations(List<String> destinationCodes);
+
+    int markFlightsAsUnavailableAndReleaseSeats(LocalDateTime now);
+
+    FlightResponse updateFlightStatus(Long id, FlightStatusUpdateRequest request);
+
 }

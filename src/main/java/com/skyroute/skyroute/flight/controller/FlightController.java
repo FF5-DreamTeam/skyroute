@@ -3,6 +3,7 @@ package com.skyroute.skyroute.flight.controller;
 import com.skyroute.skyroute.flight.dto.FlightRequest;
 import com.skyroute.skyroute.flight.dto.FlightResponse;
 import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
+import com.skyroute.skyroute.flight.dto.FlightStatusUpdateRequest;
 import com.skyroute.skyroute.flight.dto.FlightUpdate;
 import com.skyroute.skyroute.flight.dto.MinPriceResponse;
 import com.skyroute.skyroute.flight.service.FlightService;
@@ -61,9 +62,9 @@ public class FlightController {
             @RequestParam @Parameter(description = "Origin airport code or city") Optional<String> origin,
             @RequestParam @Parameter(description = "Destination airport code or city") Optional<String> destination,
             @RequestParam @Parameter(description = "Maximum flight price") Optional<Double> budget,
-            Pageable pageable
-    ) {
-        Page<FlightSimpleResponse> flights = flightService.searchFlightsByBudgetAndCity(origin, destination, budget, pageable);
+            Pageable pageable) {
+        Page<FlightSimpleResponse> flights = flightService.searchFlightsByBudgetAndCity(origin, destination, budget,
+                pageable);
         return ResponseEntity.ok(flights);
     }
 
@@ -116,5 +117,15 @@ public class FlightController {
         List<String> destinationCodes = Arrays.asList(destinations.split(","));
         List<MinPriceResponse> minPrices = flightService.getMinPricesByDestinations(destinationCodes);
         return ResponseEntity.ok(minPrices);
+    }
+
+    @PatchMapping("/admin/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Update flight status (Admin)", description = "Update the availability status of a flight")
+    public ResponseEntity<FlightResponse> updateFlightStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody FlightStatusUpdateRequest request) {
+        FlightResponse flight = flightService.updateFlightStatus(id, request);
+        return ResponseEntity.ok(flight);
     }
 }
