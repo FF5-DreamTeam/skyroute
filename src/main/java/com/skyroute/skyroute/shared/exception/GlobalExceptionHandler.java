@@ -118,9 +118,18 @@ public class GlobalExceptionHandler {
                     HttpServletRequest request) {
             ErrorResponse errorResponse = new ErrorResponse(
                             HttpStatus.FORBIDDEN,
-                            exception.getMessage(),
+                    "You do not have permission to perform this action",
                             request.getRequestURI());
             return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleCustomAccessDeniedException(com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException exception, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.FORBIDDEN,
+                exception.getMessage(),
+                request.getRequestURI());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(EntityAlreadyExistsException.class)
