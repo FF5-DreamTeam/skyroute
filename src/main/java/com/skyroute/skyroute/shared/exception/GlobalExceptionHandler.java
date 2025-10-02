@@ -10,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -162,5 +163,14 @@ public class GlobalExceptionHandler {
                                 exception.getMessage(),
                                 request.getRequestURI());
                 return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        @ExceptionHandler(BusinessException.class)
+        public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException exception, HttpServletRequest request){
+            ErrorResponse errorResponse = new ErrorResponse(
+                    HttpStatus.BAD_REQUEST,
+                    exception.getMessage(),
+                    request.getRequestURI());
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
 }

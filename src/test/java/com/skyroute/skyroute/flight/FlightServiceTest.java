@@ -3,6 +3,7 @@ package com.skyroute.skyroute.flight;
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.service.AircraftService;
 import com.skyroute.skyroute.airport.entity.Airport;
+import com.skyroute.skyroute.flight.dto.FlightRequest;
 import com.skyroute.skyroute.flight.dto.FlightResponse;
 import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
 import com.skyroute.skyroute.flight.dto.MinPriceResponse;
@@ -71,7 +72,7 @@ class FlightServiceTest {
         destinationAirport = createAirport(2L, "BCN", "Barcelona");
         testRoute = createRoute(1L, originAirport, destinationAirport);
         testAircraft = createAircraft(1L, "Boeing 737", 180);
-        testFlight = createFlight(1L, "SR001", testAircraft, testRoute);
+        testFlight = createFlight(1L, "SR001", testAircraft, testRoute, testAircraft.getCapacity(), true);
     }
 
     @Nested
@@ -244,6 +245,99 @@ class FlightServiceTest {
         }
     }
 
+    @Nested
+    class  CreateFlightTests{
+        @Test
+        void createFlight_shouldReturnFlightResponse_whenValidRequest() {
+            FlightRequest request = createFlightRequest();
+
+            Flight expectedFlight = createFlight(
+                    1L,
+                    request.flightNumber(),
+                    testAircraft,
+                    testRoute,
+                    request.availableSeats(),
+                    request.available());
+
+            when(aircraftService.findById(1L)).thenReturn(testAircraft);
+            when(routeService.findRouteById(1L)).thenReturn(testRoute);
+            doNothing().when(flightValidator).validateFlightCreation(
+                    any(Aircraft.class), anyInt(), any(LocalDateTime.class), any(LocalDateTime.class)
+            );
+            when(flightHelper.buildFlightFromRequest(request, testAircraft, testRoute))
+                    .thenReturn(expectedFlight);
+            when(flightRepository.save(expectedFlight)).thenReturn(expectedFlight);
+
+            FlightResponse result = flightService.createFlight(request);
+
+            assertNotNull(result);
+            assertEquals("SR001", result.flightNumber());
+            assertEquals(150, result.availableSeats());
+            assertTrue(result.available());
+            verify(aircraftService).findById(1L);
+            verify(routeService).findRouteById(1L);
+            verify(flightValidator).validateFlightCreation(
+                    testAircraft, 150, request.departureTime(), request.arrivalTime());
+            verify(flightRepository).save(expectedFlight);
+        }
+
+        @Test
+        void createFlight_shouldThrowEntityNotFoundException_whenAircraftNotFound() {
+            FlightRequest request = createFlightRequest();
+
+            when(aircraftService.findById(1L))
+                    .thenThrow(new EntityNotFoundException("Aircraft not found with ID: 1"));
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> flightService.createFlight(request)
+            );
+
+            assertEquals("Aircraft not found with ID: 1", exception.getMessage());
+            verify(aircraftService).findById(1L);
+            verify(routeService, never()).findRouteById(anyLong());
+            verify(flightRepository, never()).save(any());
+        }
+
+        @Test
+        void createFlight_shouldThrowEntityNotFoundException_whenRouteNotFound() {
+            FlightRequest request = createFlightRequest();
+
+            when(aircraftService.findById(1L)).thenReturn(testAircraft);
+            when(routeService.findRouteById(1L))
+                    .thenThrow(new EntityNotFoundException("Route not found with ID: 1"));
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> flightService.createFlight(request)
+            );
+
+            assertEquals("Route not found with ID: 1", exception.getMessage());
+            verify(aircraftService).findById(1L);
+            verify(routeService).findRouteById(1L);
+            verify(flightRepository, never()).save(any());
+        }
+
+        @Test
+        void createFlight_shouldThrowBusinessException_whenValidationFails() {
+            FlightRequest request = createFlightRequest();
+
+            when(aircraftService.findById(1L)).thenReturn(testAircraft);
+            when(routeService.findRouteById(1L)).thenReturn(testRoute);
+            doThrow(new BusinessException("Available seats exceed aircraft capacity"))
+                    .when(flightValidator).validateFlightCreation(
+                            any(Aircraft.class), anyInt(), any(LocalDateTime.class), any(LocalDateTime.class)
+                    );
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> flightService.createFlight(request)
+            );
+
+            assertEquals("Available seats exceed aircraft capacity", exception.getMessage());
+            verify(flightRepository, never()).save(any());
+        }
+    }
+
     @Test
     void getMinPricesByDestinations_shouldReturnMinPrices_whenValidDestinations() {
         List<String> destinationCodes = List.of("BCN", "MAD");
@@ -324,12 +418,27 @@ class FlightServiceTest {
                 .build();
     }
 
-    private Flight createFlight(Long id, String flightNumber, Aircraft aircraft, Route route){
+    private Flight createFlight(Long id, String flightNumber, Aircraft aircraft, Route route, int availableSeats, boolean available){
         return Flight.builder()
                 .id(id)
                 .flightNumber(flightNumber)
                 .aircraft(aircraft)
                 .route(route)
+                .availableSeats(availableSeats)
+                .available(available)
                 .build();
+    }
+
+    private FlightRequest createFlightRequest() {
+        return new FlightRequest(
+                "SR001",
+                150,
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(1).plusHours(2),
+                299.99,
+                1L,
+                1L,
+                true
+        );
     }
 }
