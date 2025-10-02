@@ -324,7 +324,7 @@ public class BookingServiceUnitTest {
         }
 
         @Test
-        void updateBookingStatus_shouldThrowException_whenInvalidTransition() {
+        void updateBookingStatus_shouldThrowException_whenInvalidTestTransition() {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 

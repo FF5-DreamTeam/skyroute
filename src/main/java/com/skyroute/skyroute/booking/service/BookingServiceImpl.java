@@ -16,7 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -174,7 +173,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         if (!"ASC".equalsIgnoreCase(sortDirection) && !"DESC".equalsIgnoreCase(sortDirection)) {
-            sortDirection = "ASC";
+            sortDirection = "DESC";
         }
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
