@@ -63,18 +63,23 @@ public class SecurityConfig {
                                                                 "/api/airports/**",
                                                                 "/api/routes/**", "/api/flights/**")
                                                 .hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PATCH, "/api/flights/admin/*/status")
+                                                .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.DELETE, "/api/users/**",
                                                                 "/api/aircrafts/**", "/api/airports/**",
                                                                 "/api/routes/**", "/api/flights/**")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/users", "/api/bookings",
-                                                                "/api/aircrafts", "/api/bookings/flight/**", "/api/bookings/filter/admin")
+                                                                "/api/aircrafts", "/api/bookings/flight/**",
+                                                                "/api/bookings/filter/admin")
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/bookings/user/*",
-                                                                "/api/bookings/{id}", "/api/bookings/filter/my-bookings")
+                                                                "/api/bookings/{id}",
+                                                                "/api/bookings/filter/my-bookings")
                                                 .authenticated()
                                                 .requestMatchers(HttpMethod.POST, "/api/bookings",
-                                                                "/api/bookings/{id}/confirm", "/api/bookings/{id}/cancel")
+                                                                "/api/bookings/{id}/confirm",
+                                                                "/api/bookings/{id}/cancel")
                                                 .authenticated()
                                                 .requestMatchers(HttpMethod.PUT, "/api/bookings/{id}/passenger-names",
                                                                 "/api/bookings/{id}/passenger-birth-dates",

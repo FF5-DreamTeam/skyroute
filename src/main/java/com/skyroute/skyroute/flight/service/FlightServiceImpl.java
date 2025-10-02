@@ -171,8 +171,7 @@ public class FlightServiceImpl implements FlightService {
                 .map(result -> new MinPriceResponse(
                         (String) result[0],
                         (String) result[1],
-                        (Double) result[2]
-                ))
+                        (Double) result[2]))
                 .toList();
     }
 
@@ -182,8 +181,7 @@ public class FlightServiceImpl implements FlightService {
                 aircraft,
                 request.availableSeats(),
                 request.departureTime(),
-                request.arrivalTime()
-        );
+                request.arrivalTime());
     }
 
     @Override
@@ -199,5 +197,14 @@ public class FlightServiceImpl implements FlightService {
         flightRepository.saveAll(flightsToUpdate);
 
         return flightsToUpdate.size();
+    }
+
+    @Override
+    @Transactional
+    public FlightResponse updateFlightStatus(Long id, FlightStatusUpdateRequest request) {
+        Flight flight = findById(id);
+        flight.setAvailable(request.available());
+        Flight savedFlight = flightRepository.save(flight);
+        return FlightMapper.toResponse(savedFlight);
     }
 }
