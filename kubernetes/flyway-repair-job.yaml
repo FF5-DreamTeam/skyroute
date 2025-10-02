@@ -1,15 +1,15 @@
-# Temporary Job to fix failed Flyway migration
-# This job will delete the failed migration record from flyway_schema_history table
-# After successful execution, this file can be deleted
+# Job to fix failed Flyway migration V10
+# Run this once manually to clean up failed migration record
+# After successful execution, delete this file from kustomization.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: flyway-repair-job
+  name: flyway-repair-v10
   labels:
     app: skyroute
     component: database-maintenance
 spec:
-  ttlSecondsAfterFinished: 300 # Auto-delete after 5 minutes
+  backoffLimit: 3
   template:
     metadata:
       labels:
@@ -21,9 +21,8 @@ spec:
         - name: mysql-repair
           image: mysql:8.0
           env:
-            # Database credentials from Secret
             - name: MYSQL_HOST
-              value: "mysql" # Update if your MySQL service has different name
+              value: "mysql"
             - name: MYSQL_DATABASE
               value: "skyroute"
             - name: MYSQL_USER
@@ -40,25 +39,37 @@ spec:
             - /bin/bash
             - -c
             - |
-              echo "Connecting to MySQL..."
+              echo "=== Flyway V10 Migration Repair ==="
+              echo "Connecting to MySQL at ${MYSQL_HOST}..."
+
               mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p${MYSQL_PASSWORD} ${MYSQL_DATABASE} <<EOF
 
-              -- Show current state
-              SELECT 'Current Flyway history:' as status;
-              SELECT version, description, type, installed_on, success 
+              -- Show current failed migration
+              SELECT 'Before cleanup:' as status;
+              SELECT version, description, installed_on, success 
               FROM flyway_schema_history 
               WHERE version = '10';
 
-              -- Delete failed migration
+              -- Delete failed migration record
               DELETE FROM flyway_schema_history 
               WHERE version = '10' AND success = 0;
 
+              -- Also delete success=1 if exists (to allow re-run)
+              DELETE FROM flyway_schema_history 
+              WHERE version = '10' AND success = 1;
+
               -- Confirm deletion
               SELECT 'After cleanup:' as status;
-              SELECT version, description, type, installed_on, success 
+              SELECT version, description, installed_on, success 
               FROM flyway_schema_history 
-              ORDER BY installed_rank;
+              WHERE version = '10';
 
               EOF
 
-              echo "Flyway repair completed successfully!"
+              if [ $? -eq 0 ]; then
+                echo "SUCCESS: V10 migration record removed"
+                echo "Next: Application will re-run V10 with fixed SQL"
+              else
+                echo "ERROR: Failed to clean up migration"
+                exit 1
+              fi
