@@ -7,7 +7,7 @@ import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.booking.service.BookingService;
 import com.skyroute.skyroute.shared.exception.GlobalExceptionHandler;
-import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
+import com.skyroute.skyroute.shared.exception.custom_exception.BookingAccessDeniedException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import com.skyroute.skyroute.shared.exception.custom_exception.InvalidBookingOperationException;
 import com.skyroute.skyroute.shared.exception.custom_exception.NotEnoughSeatsException;
@@ -179,7 +179,7 @@ public class BookingControllerTest {
 
             mockMvc.perform(get("/api/bookings/99"))
                     .andExpect(status().isNotFound());
-
+            
             verify(bookingService).getBookingById(99L, testUser);
         }
 
@@ -187,7 +187,7 @@ public class BookingControllerTest {
         @WithMockUser(roles = "USER")
         void getBookingById_shouldReturnForbidden_whenUserDoesNotOwnBooking() throws Exception {
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingService.getBookingById(1L, testUser)).thenThrow(new AccessDeniedException("User cannot access this booking"));
+            when(bookingService.getBookingById(1L, testUser)).thenThrow(new BookingAccessDeniedException("User cannot access this booking"));
 
             mockMvc.perform(get("/api/bookings/1"))
                     .andExpect(status().isForbidden());

@@ -8,7 +8,7 @@ import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.email.EmailService;
 import com.skyroute.skyroute.flight.service.FlightService;
-import com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException;
+import com.skyroute.skyroute.shared.exception.custom_exception.BookingAccessDeniedException;
 import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
@@ -17,7 +17,6 @@ import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.user.entity.User;
 import com.skyroute.skyroute.user.enums.Role;
-import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -339,7 +338,7 @@ public class BookingServiceUnitTest {
         void updateBookingStatus_shouldThrowException_whenUserInvalidTransition() {
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
                     () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
 
             assertEquals("Users cannot confirm booking", exception.getMessage());
@@ -360,7 +359,7 @@ public class BookingServiceUnitTest {
         void updateBookingStatus_shouldThrowException_whenUserAccessDenied() {
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
                     () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, anotherUser));
 
             assertEquals("User cannot access this booking", exception.getMessage());
@@ -437,7 +436,7 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
                     () -> bookingServiceImpl.updatePassengerNames(1L, List.of("Pepa"), testUser));
 
             assertEquals("Cannot modify passenger names after booking is CONFORMED or CANCELLED",
@@ -450,7 +449,7 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
                     () -> bookingServiceImpl.updatePassengerNames(1L, List.of("Pepa"), testUser));
 
             assertEquals("Cannot modify passenger names after booking is CONFORMED or CANCELLED",
@@ -492,7 +491,7 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
                     () -> bookingServiceImpl.updatePassengerBirthDates(1L,
                             List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
 
@@ -507,7 +506,7 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
                     () -> bookingServiceImpl.updatePassengerBirthDates(1L,
                             List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
 
@@ -552,7 +551,7 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
                     () -> bookingServiceImpl.deleteBooking(1L, testUser));
 
             assertEquals("Users can only delete bookings in CREATED status", exception.getMessage());

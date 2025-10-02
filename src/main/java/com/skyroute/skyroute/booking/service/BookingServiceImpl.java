@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,7 +89,7 @@ public class BookingServiceImpl implements BookingService {
 
         if (user.getRole() == Role.USER) {
             if (newStatus == BookingStatus.CONFIRMED) {
-                throw new AccessDeniedException("Users cannot confirm booking");
+                throw new BookingAccessDeniedException("Users cannot confirm booking");
         }
 
             if (previousStatus == BookingStatus.CONFIRMED && newStatus == BookingStatus.CANCELLED) {
@@ -96,7 +97,7 @@ public class BookingServiceImpl implements BookingService {
                 LocalDateTime departure = booking.getFlight().getDepartureTime();
 
                 if (departure.minusHours(24).isBefore(now)) {
-                    throw new BusinessException("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance");
+                    throw new InvalidBookingOperationException("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance");
                 }
             }
         }
@@ -125,7 +126,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse updatePassengerNames(Long id, List<String> names, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new AccessDeniedException("Cannot modify passenger names after booking is CONFORMED or CANCELLED");
+            throw new BookingAccessDeniedException("Cannot modify passenger names after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerNames(names);
@@ -136,8 +137,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new AccessDeniedException(
-                    "Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
+            throw new BookingAccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerBirthDates(birthDates);
@@ -150,7 +150,7 @@ public class BookingServiceImpl implements BookingService {
         validateUserAccess(booking, user);
 
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new com.skyroute.skyroute.shared.exception.custom_exception.AccessDeniedException("Users can only delete bookings in CREATED status");
+            throw new BookingAccessDeniedException("Users can only delete bookings in CREATED status");
         }
 
         if (booking.getBookingStatus() != BookingStatus.CANCELLED) {
@@ -187,7 +187,7 @@ public class BookingServiceImpl implements BookingService {
 
     private void validateUserAccess(Booking booking, User user) {
         if (user.getRole() == Role.USER && !booking.getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException("User cannot access this booking");
+            throw new BookingAccessDeniedException("User cannot access this booking");
         }
     }
 
