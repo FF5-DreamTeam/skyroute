@@ -26,7 +26,6 @@ labels:
       app: skyroute
       version: v1
 
-
 # Override replica count for specific deployments
 replicas:
   - name: app

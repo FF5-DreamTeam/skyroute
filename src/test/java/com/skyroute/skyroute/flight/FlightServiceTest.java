@@ -6,6 +6,7 @@ import com.skyroute.skyroute.airport.entity.Airport;
 import com.skyroute.skyroute.flight.dto.FlightRequest;
 import com.skyroute.skyroute.flight.dto.FlightResponse;
 import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
+import com.skyroute.skyroute.flight.dto.FlightStatusUpdateRequest;
 import com.skyroute.skyroute.flight.dto.MinPriceResponse;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.helper.FlightHelper;
@@ -67,21 +68,22 @@ class FlightServiceTest {
 
     @BeforeEach
     void setUp() {
-        flightService = new FlightServiceImpl(flightRepository, aircraftService, routeService, flightValidator, flightHelper);
+        flightService = new FlightServiceImpl(flightRepository, aircraftService, routeService, flightValidator,
+                flightHelper);
         originAirport = createAirport(1L, "MAD", "Madrid");
         destinationAirport = createAirport(2L, "BCN", "Barcelona");
         testRoute = createRoute(1L, originAirport, destinationAirport);
         testAircraft = createAircraft(1L, "Boeing 737", 180);
-        testFlight = createFlight(1L, "SR001", testAircraft, testRoute, testAircraft.getCapacity(), true);
+        testFlight = createFlight(1L, "SR001", testAircraft, testRoute);
     }
 
     @Nested
-    class  SearchFlightsTests {
+    class SearchFlightsTests {
         @Test
-        void searchFlights_shouldReturnPageOfFlights_whenValidParameters(){
+        void searchFlights_shouldReturnPageOfFlights_whenValidParameters() {
             Pageable pageable = PageRequest.of(0, 10);
             List<Flight> flights = List.of(testFlight);
-            Page <Flight> flightPage = new PageImpl<>(flights, pageable, flights.size());
+            Page<Flight> flightPage = new PageImpl<>(flights, pageable, flights.size());
 
             when(flightRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(flightPage);
 
@@ -90,8 +92,7 @@ class FlightServiceTest {
                     Optional.of("BCN"),
                     Optional.of("01/12/2025"),
                     Optional.of(2),
-                    pageable
-            );
+                    pageable);
 
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
@@ -102,7 +103,7 @@ class FlightServiceTest {
         @Test
         void searchFlights_shouldReturnEmptyPage_whenNoFlightsFound() {
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Flight> emptyPage = new PageImpl<>(List.of(),pageable, 0);
+            Page<Flight> emptyPage = new PageImpl<>(List.of(), pageable, 0);
 
             when(flightRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(emptyPage);
 
@@ -111,8 +112,7 @@ class FlightServiceTest {
                     Optional.empty(),
                     Optional.empty(),
                     Optional.empty(),
-                    pageable
-            );
+                    pageable);
 
             assertNotNull(result);
             assertTrue(result.isEmpty());
@@ -120,7 +120,7 @@ class FlightServiceTest {
         }
 
         @Test
-        void searchFlights_shouldHandleOptionalParameters(){
+        void searchFlights_shouldHandleOptionalParameters() {
             Pageable pageable = PageRequest.of(0, 10);
             Page<Flight> flightPage = new PageImpl<>(List.of(testFlight), pageable, 1);
 
@@ -131,8 +131,7 @@ class FlightServiceTest {
                     Optional.empty(),
                     Optional.empty(),
                     Optional.empty(),
-                    pageable
-            );
+                    pageable);
 
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
@@ -143,7 +142,7 @@ class FlightServiceTest {
     @Nested
     class GetFlightSimpleByIdTests {
         @Test
-        void getFlightSimpleById_shouldReturnFlightSimpleResponse_whenFlightExists(){
+        void getFlightSimpleById_shouldReturnFlightSimpleResponse_whenFlightExists() {
             when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
 
             FlightSimpleResponse result = flightService.getFlightSimpleById(1L);
@@ -162,8 +161,7 @@ class FlightServiceTest {
 
             EntityNotFoundException exception = assertThrows(
                     EntityNotFoundException.class,
-                    () -> flightService.getFlightSimpleById(99L)
-            );
+                    () -> flightService.getFlightSimpleById(99L));
 
             assertEquals("Flight with id: 99 not found", exception.getMessage());
             verify(flightRepository).findById(99L);
@@ -173,7 +171,7 @@ class FlightServiceTest {
     @Nested
     class SearchFlightsByBudgetAndCityTests {
         @Test
-        void searchFlightsByBudgetAndCity_shouldReturnFilteredFlights(){
+        void searchFlightsByBudgetAndCity_shouldReturnFilteredFlights() {
             Pageable pageable = PageRequest.of(0, 10);
             List<Flight> flights = List.of(testFlight);
             Page<Flight> flightPage = new PageImpl<>(flights, pageable, flights.size());
@@ -184,8 +182,7 @@ class FlightServiceTest {
                     Optional.of("MAD"),
                     Optional.of("BCN"),
                     Optional.of(500.0),
-                    pageable
-            );
+                    pageable);
 
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
@@ -203,8 +200,7 @@ class FlightServiceTest {
                     Optional.empty(),
                     Optional.empty(),
                     Optional.empty(),
-                    pageable
-            );
+                    pageable);
 
             assertNotNull(result);
             assertTrue(result.isEmpty());
@@ -393,7 +389,7 @@ class FlightServiceTest {
         assertEquals(299.0, response.minPrice());
     }
 
-    private Airport createAirport(Long id, String code, String city){
+    private Airport createAirport(Long id, String code, String city) {
         return Airport.builder()
                 .id(id)
                 .code(code)
@@ -402,7 +398,7 @@ class FlightServiceTest {
                 .build();
     }
 
-    private Route createRoute(Long id, Airport origin, Airport destination){
+    private Route createRoute(Long id, Airport origin, Airport destination) {
         return Route.builder()
                 .id(id)
                 .origin(origin)
@@ -410,7 +406,7 @@ class FlightServiceTest {
                 .build();
     }
 
-    private Aircraft createAircraft(Long id, String model, int capacity){
+    private Aircraft createAircraft(Long id, String model, int capacity) {
         return Aircraft.builder()
                 .id(id)
                 .model(model)
@@ -440,5 +436,58 @@ class FlightServiceTest {
                 1L,
                 true
         );
+    }
+
+    @Nested
+    class UpdateFlightStatusTests {
+        @Test
+        void updateFlightStatus_shouldUpdateStatusToAvailable_whenValidRequest() {
+            Long flightId = 1L;
+            FlightStatusUpdateRequest request = new FlightStatusUpdateRequest(true);
+            testFlight.setAvailable(false);
+
+            when(flightRepository.findById(flightId)).thenReturn(Optional.of(testFlight));
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            FlightResponse result = flightService.updateFlightStatus(flightId, request);
+
+            assertNotNull(result);
+            assertTrue(result.available());
+            verify(flightRepository).findById(flightId);
+            verify(flightRepository).save(testFlight);
+        }
+
+        @Test
+        void updateFlightStatus_shouldUpdateStatusToUnavailable_whenValidRequest() {
+            Long flightId = 1L;
+            FlightStatusUpdateRequest request = new FlightStatusUpdateRequest(false);
+            testFlight.setAvailable(true);
+
+            when(flightRepository.findById(flightId)).thenReturn(Optional.of(testFlight));
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            FlightResponse result = flightService.updateFlightStatus(flightId, request);
+
+            assertNotNull(result);
+            assertFalse(result.available());
+            verify(flightRepository).findById(flightId);
+            verify(flightRepository).save(testFlight);
+        }
+
+        @Test
+        void updateFlightStatus_shouldThrowException_whenFlightNotFound() {
+            Long flightId = 999L;
+            FlightStatusUpdateRequest request = new FlightStatusUpdateRequest(true);
+
+            when(flightRepository.findById(flightId)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> flightService.updateFlightStatus(flightId, request));
+
+            assertEquals("Flight with id: 999 not found", exception.getMessage());
+            verify(flightRepository).findById(flightId);
+            verify(flightRepository, never()).save(any(Flight.class));
+        }
     }
 }
