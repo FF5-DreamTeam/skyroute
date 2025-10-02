@@ -282,27 +282,6 @@ public class BookingSpecificationUnitTest {
         }
     }
 
-//    @Nested
-//    class HasOriginAirportTest {
-//        @Test
-//        void hasOriginAirportOrCode_shouldReturnPredicate_whenAirportProvided() {
-//            String airport = "Valencia";
-//            when(criteriaBuilder.or(any(Predicate.class), any(Predicate.class))).thenReturn(predicate);
-//            when(criteriaBuilder.like(any(), anyString())).thenReturn(predicate);
-//            when(criteriaBuilder.equal(any(), anyString())).thenReturn(predicate);
-//            when(criteriaBuilder.lower(any())).thenReturn(null);
-//            when(criteriaBuilder.upper(any())).thenReturn(null);
-//            when(criteriaBuilder.or(any(Predicate.class), any(Predicate.class))).thenReturn(predicate);
-//            when(root.join(eq("flight"), any())).thenReturn(flightJoin);
-//            when(flightJoin.join(eq("route"), any(JoinType.class))).thenReturn(routeJoin);
-//            when(routeJoin.join(eq("origin"), any(JoinType.class))).thenReturn(originJoin);
-//            Specification<Booking> specification = BookingSpecification.hasOriginAirportOrCode(airport);
-//            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
-//
-//            assertNotNull(result);
-//            verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
-//        }
-//    }
     @Nested
     class HasPassengerNameTest {
 
