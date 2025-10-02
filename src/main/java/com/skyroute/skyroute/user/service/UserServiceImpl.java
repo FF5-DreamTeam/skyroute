@@ -4,7 +4,6 @@ import com.skyroute.skyroute.cloudinary.CloudinaryService;
 import com.skyroute.skyroute.security.details.CustomUserDetails;
 import com.skyroute.skyroute.shared.exception.custom_exception.EmailAlreadyExistsException;
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
-import com.skyroute.skyroute.shared.exception.custom_exception.ImageUploadException;
 import com.skyroute.skyroute.shared.exception.custom_exception.InvalidUpdateRequestException;
 import com.skyroute.skyroute.user.dto.RoleUpdateRequest;
 import com.skyroute.skyroute.user.dto.UserAdminUpdateRequest;
@@ -24,9 +23,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +44,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         if (image != null && !image.isEmpty()) {
-            String imageUrl = uploadImage(image);
+            String imageUrl = cloudinaryService.uploadImage(image);
             user.setUserImgUrl(imageUrl);
         }
 
@@ -99,7 +95,8 @@ public class UserServiceImpl implements UserService {
         }
 
         if (image != null && !image.isEmpty()) {
-            updateUserImage(user, image);
+            String newImageUrl = cloudinaryService.updateImage(user.getUserImgUrl(), image);
+            user.setUserImgUrl(newImageUrl);
         }
 
         User savedUser = userRepository.save(user);
@@ -127,7 +124,8 @@ public class UserServiceImpl implements UserService {
         }
 
         if (image != null && !image.isEmpty()) {
-            updateUserImage(currentUser, image);
+            String newImageUrl = cloudinaryService.updateImage(currentUser.getUserImgUrl(), image);
+            currentUser.setUserImgUrl(newImageUrl);
         }
 
         User savedUser = userRepository.save(currentUser);
@@ -137,6 +135,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) {
         User user = findUserEntityById(id);
+
+        if (user.getUserImgUrl() != null && !user.getUserImgUrl().isEmpty()) {
+            try {
+                cloudinaryService.deleteImageByUrl(user.getUserImgUrl());
+            } catch (Exception e) {
+                System.err.println("Failed to delete user image from Cloudinary: " + e.getMessage());
+            }
+        }
+
         userRepository.delete(user);
     }
 
@@ -221,38 +228,5 @@ public class UserServiceImpl implements UserService {
             return user;
         }
         throw new IllegalStateException("No authenticated user found");
-    }
-
-    private String uploadImage(MultipartFile image) {
-        if (image == null || image.isEmpty()) {
-            throw new ImageUploadException("Image file is required");
-        }
-        try {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> result = (Map<String, Object>) cloudinaryService.uploadFile(image);
-            return (String) result.get("secure_url");
-        } catch (IOException exception) {
-            throw new ImageUploadException("Error uploading image: " + exception.getMessage());
-        }
-    }
-
-    private void deleteOldImage(String imageUrl) {
-        if (imageUrl != null && imageUrl.contains("cloudinary.com")) {
-            try {
-                String[] parts = imageUrl.split("/");
-                String fileName = parts[parts.length - 1];
-                String publicId = fileName.substring(0, fileName.lastIndexOf("."));
-                cloudinaryService.deleteFile(publicId);
-            } catch (IOException exception) {
-                throw new RuntimeException("Could not delete old image: " + exception.getMessage());
-            }
-        }
-    }
-
-    private void updateUserImage(User user, MultipartFile newImage) {
-        String oldImageUrl = user.getUserImgUrl();
-        String newImageUrl = uploadImage(newImage);
-        user.setUserImgUrl(newImageUrl);
-        deleteOldImage(oldImageUrl);
     }
 }

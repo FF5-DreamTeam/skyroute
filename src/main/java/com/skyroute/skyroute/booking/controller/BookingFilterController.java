@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/bookings/filter")
@@ -74,7 +73,7 @@ public class BookingFilterController {
     ) {
         User user = userService.getCurrentUser();
         BookingFilterRequest filterRequest = new BookingFilterRequest(
-                bookingStatus, bookingNumber, null, null, flightDepartureDate, null, null, minPrice, null, null, null, null, null, null, null, null, originAirport, destinationAirport, passengerName, futureFlightsOnly,null, null, null, null
+                bookingStatus, bookingNumber, flightDepartureDate, minPrice, null, null, null, null, null, null, originAirport, destinationAirport, passengerName, futureFlightsOnly,null, null
         );
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         Page<BookingResponse> bookingResponses = bookingFilterService.filterBookings(filterRequest, pageable, user);
@@ -121,7 +120,7 @@ public class BookingFilterController {
     ) {
         User admin = userService.getCurrentUser();
         BookingFilterRequest filterRequest = new BookingFilterRequest(
-                bookingStatus, bookingNumber, null, null, flightDepartureDate, null, null, minPrice, maxPrice, null, null, userId, userEmail, userName, flightId, flightNumber, originAirport, destinationAirport, passengerName, futureFlightsOnly, activeOnly, null, null, pendingOnly
+                bookingStatus, bookingNumber, flightDepartureDate, minPrice, maxPrice, userId, userEmail, userName, flightId, flightNumber, originAirport, destinationAirport, passengerName, futureFlightsOnly, activeOnly, pendingOnly
         );
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         Page<BookingResponse> bookingResponses = bookingFilterService.filterBookings(filterRequest, pageable, admin);
