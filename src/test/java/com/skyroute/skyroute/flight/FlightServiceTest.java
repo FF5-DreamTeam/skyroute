@@ -24,20 +24,16 @@ import com.skyroute.skyroute.shared.exception.custom_exception.BusinessException
 import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundException;
 import org.junit.jupiter.api.Nested;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
@@ -74,7 +70,7 @@ class FlightServiceTest {
         destinationAirport = createAirport(2L, "BCN", "Barcelona");
         testRoute = createRoute(1L, originAirport, destinationAirport);
         testAircraft = createAircraft(1L, "Boeing 737", 180);
-        testFlight = createFlight(1L, "SR001", testAircraft, testRoute);
+        testFlight = createFlight(1L, "SR001", testAircraft, testRoute, testAircraft.getCapacity(), true);
     }
 
     @Nested
@@ -389,55 +385,6 @@ class FlightServiceTest {
         assertEquals(299.0, response.minPrice());
     }
 
-    private Airport createAirport(Long id, String code, String city) {
-        return Airport.builder()
-                .id(id)
-                .code(code)
-                .city(city)
-                .imageUrl("http://example.com/" + code.toLowerCase() + ".jpg")
-                .build();
-    }
-
-    private Route createRoute(Long id, Airport origin, Airport destination) {
-        return Route.builder()
-                .id(id)
-                .origin(origin)
-                .destination(destination)
-                .build();
-    }
-
-    private Aircraft createAircraft(Long id, String model, int capacity) {
-        return Aircraft.builder()
-                .id(id)
-                .model(model)
-                .capacity(capacity)
-                .build();
-    }
-
-    private Flight createFlight(Long id, String flightNumber, Aircraft aircraft, Route route, int availableSeats, boolean available){
-        return Flight.builder()
-                .id(id)
-                .flightNumber(flightNumber)
-                .aircraft(aircraft)
-                .route(route)
-                .availableSeats(availableSeats)
-                .available(available)
-                .build();
-    }
-
-    private FlightRequest createFlightRequest() {
-        return new FlightRequest(
-                "SR001",
-                150,
-                LocalDateTime.now().plusDays(1),
-                LocalDateTime.now().plusDays(1).plusHours(2),
-                299.99,
-                1L,
-                1L,
-                true
-        );
-    }
-
     @Nested
     class UpdateFlightStatusTests {
         @Test
@@ -489,5 +436,54 @@ class FlightServiceTest {
             verify(flightRepository).findById(flightId);
             verify(flightRepository, never()).save(any(Flight.class));
         }
+    }
+
+    private Airport createAirport(Long id, String code, String city) {
+        return Airport.builder()
+                .id(id)
+                .code(code)
+                .city(city)
+                .imageUrl("http://example.com/" + code.toLowerCase() + ".jpg")
+                .build();
+    }
+
+    private Route createRoute(Long id, Airport origin, Airport destination) {
+        return Route.builder()
+                .id(id)
+                .origin(origin)
+                .destination(destination)
+                .build();
+    }
+
+    private Aircraft createAircraft(Long id, String model, int capacity) {
+        return Aircraft.builder()
+                .id(id)
+                .model(model)
+                .capacity(capacity)
+                .build();
+    }
+
+    private Flight createFlight(Long id, String flightNumber, Aircraft aircraft, Route route, int availableSeats, boolean available){
+        return Flight.builder()
+                .id(id)
+                .flightNumber(flightNumber)
+                .aircraft(aircraft)
+                .route(route)
+                .availableSeats(availableSeats)
+                .available(available)
+                .build();
+    }
+
+    private FlightRequest createFlightRequest() {
+        return new FlightRequest(
+                "SR001",
+                150,
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(1).plusHours(2),
+                299.99,
+                1L,
+                1L,
+                true
+        );
     }
 }
