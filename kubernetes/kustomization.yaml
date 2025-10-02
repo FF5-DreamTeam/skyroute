@@ -11,6 +11,7 @@ resources:
   - deployment.yaml
   - service.yaml
   - configmap.yaml
+  - flyway-repair-job.yaml
 
 # Image customization - override image tags
 images:
@@ -25,7 +26,6 @@ labels:
   - pairs:
       app: skyroute
       version: v1
-
 
 # Override replica count for specific deployments
 replicas:
