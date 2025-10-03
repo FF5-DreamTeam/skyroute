@@ -36,7 +36,7 @@ public class BookingController {
     private final BookingService bookingService;
     private final UserService userService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+
     @Operation(
             summary = "Get all bookings (Admin only)",
             description = "Retrieve all bookings with pagination and sorting")
@@ -48,9 +48,10 @@ public class BookingController {
         @ApiResponse(responseCode = "403", description = "Access denied, admin role required", content = @Content)
     })
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<BookingResponse>> getAllBookingsAdmin(
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number (0-based") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Parameter(description = "Number of items per page (1-100)") @Min(1) @Max(100) int size,
+            @RequestParam(defaultValue = "10") @Parameter(description = "Number of items per page (1-100)") @Min(1) @Max(10) int size,
             @RequestParam(defaultValue = "createdAt") @Parameter(description = "Field to sort by") String sortBy,
             @RequestParam(defaultValue = "DESC") @Parameter(description = "Sort direction (ASC/DESC)") String sortDirection) {
         Page<BookingResponse> bookingsResponse = bookingService.getAllBookingsAdmin(page, size, sortBy, sortDirection);
