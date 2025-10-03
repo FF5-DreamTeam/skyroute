@@ -2,7 +2,7 @@
 INSERT INTO users (first_name, last_name, birth_date, user_img_url, phone_number, email, password, role, created_at, updated_at) VALUES
 ('John', 'Administrator', '1985-03-15', 'https://res.cloudinary.com/skyroute/image/upload/v1759253377/9b56c003d032ee25521915f222270108_cropped_510x510_ynqlhf.webp', '+345676780998', 'admin@skyroute.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', '2024-01-15 09:30:00', '2024-01-15 09:30:00'),
 ('Alice', 'Johnson', '1990-07-22', 'https://res.cloudinary.com/skyroute/image/upload/v1759253376/memi-klev-club-m9i9-p-memi-smeshnoi-kot-ulibaetsya-3_amphwo.jpg', '+34321345654', 'alice.johnson@email.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER', '2024-02-10 14:20:00', '2024-02-10 14:20:00'),
-('Bob', 'Smith', '1988-11-08', 'https://res.cloudinary.com/skyroute/image/upload/v1759253416/close-up-portrait-beautiful-cat_23-2149214419_bsgt45.avif', '+34567432345', 'bob.smith@email.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER', '2024-02-15 16:45:00', '2024-02-15 16:45:00');
+('Bob', 'Smith', '1988-11-08', 'https://res.cloudinary.com/skyroute/image/upload/v1759443933/funny-klev-club-hoil-p-prikolnie-koshki-v-kartinkakh-smeshnie-2_ac5f6j.jpg', '+34567432345', 'bob.smith@email.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER', '2024-02-15 16:45:00', '2024-02-15 16:45:00');
 
 -- Insert airports
 INSERT INTO airports (code, city, image_url) VALUES
