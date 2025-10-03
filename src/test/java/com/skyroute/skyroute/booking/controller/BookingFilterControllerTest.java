@@ -303,9 +303,260 @@ public class BookingFilterControllerTest {
 
             verify(bookingFilterService, never()).filterBookings(any(), any(), any());
         }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterMyBookings_shouldReturnForbidden_whenAdminTriesToAccessUserEndpoint() throws Exception {
+            mockMvc.perform(get("/api/bookings/filter/my-bookings"))
+                    .andExpect(status().isForbidden());
+
+            verify(bookingFilterService, never()).filterBookings(any(), any(), any());
+        }
     }
 
+    @Nested
+    class FilterAdminBookingsTests {
 
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldReturnFilteredBookings_whenNoFiltersProvided() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content").isArray())
+                    .andExpect(jsonPath("$.content[0].bookingNumber").value("SR-ABC123"));
+
+            verify(userService).getCurrentUser();
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldFilterByUserId_whenUserIdProvided() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("userId", "1"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content").isArray());
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldFilterByUserEmail_whenUserEmailProvided() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("userEmail", "test@email.com"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content").isArray());
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldFilterByUserName_whenUserNameProvided() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("userName", "Test User"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content").isArray());
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldFilterByFlightId_whenFlightIdProvided() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("flightId", "1"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content[0].flightId").value(1));
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldFilterByFlightNumber_whenFlightNumberProvided() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("flightNumber", "SK123"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content[0].flightNumber").value("SK123"));
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldFilterByMaxPrice_whenMaxPriceProvided() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("maxPrice", "500.0"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content[0].totalPrice").value(399.99));
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldFilterByPriceRange_whenMinAndMaxPriceProvided() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("minPrice", "100.0")
+                            .param("maxPrice", "500.0"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content[0].totalPrice").value(399.99));
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldFilterActiveBookings_whenActiveOnlyIsTrue() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("activeOnly","true"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content").isArray());
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldFilterPendingBookings_whenPendingOnlyIsTrue() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("pendingOnly","true"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content").isArray());
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldApplyAllFilters_whenAllFiltersProvided() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("bookingStatus", "CREATED")
+                            .param("userId", "1")
+                            .param("userEmail", "test@email.com")
+                            .param("flightId", "1")
+                            .param("flightNumber", "SK123")
+                            .param("minPrice", "100.0")
+                            .param("maxPrice", "500.0")
+                            .param("originAirport", "Madrid")
+                            .param("destinationAirport", "Valencia")
+                            .param("activeOnly", "true")
+                            .param("futureFlightsOnly", "true"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content[0].bookingNumber").value("SR-ABC123"));
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void filterAdminBookings_shouldReturnForbidden_whenUserRole() throws Exception {
+            mockMvc.perform(get("/api/bookings/filter/admin"))
+                    .andExpect(status().isForbidden());
+
+            verify(bookingFilterService, never()).filterBookings(any(), any(), any());
+        }
+
+        @Test
+        void filterAdminBookings_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/bookings/filter/admin"))
+                    .andExpect(status().isForbidden());
+
+            verify(bookingFilterService, never()).filterBookings(any(), any(), any());
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldReturnEmptyPage_whenNoBookingsMatchFilters() throws Exception {
+            Page<BookingResponse> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(emptyPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("userId", "999"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content").isArray());
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void filterAdminBookings_shouldApplyPaginationAndSorting_whenParamsProvided() throws Exception {
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(2, 20), 100);
+            when(userService.getCurrentUser()).thenReturn(testAdmin);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+
+            mockMvc.perform(get("/api/bookings/filter/admin")
+                            .param("page", "2")
+                            .param("size", "20")
+                            .param("sortBy", "totalPrice")
+                            .param("sortDirection", "DESC"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.content").isArray());
+
+            verify(bookingFilterService).filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin));
+        }
+    }
 
     private User createTestUser(Long id, Role role) {
         return User.builder()
