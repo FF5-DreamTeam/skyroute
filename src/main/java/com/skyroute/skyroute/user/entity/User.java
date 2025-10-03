@@ -1,0 +1,68 @@
+package com.skyroute.skyroute.user.entity;
+
+import com.skyroute.skyroute.booking.entity.Booking;
+import com.skyroute.skyroute.shared.BaseEntity;
+import com.skyroute.skyroute.user.enums.Role;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Table(name = "users")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class User extends BaseEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank
+    @Size(min = 2, max = 50)
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @NotBlank
+    @Size(min = 2, max = 50)
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    @Past
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+
+    @Column(name = "user_img_url")
+    private String userImgUrl;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @NotBlank
+    @Email
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @NotBlank
+    @Size(min = 6)
+    @Column(nullable = false)
+    private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Booking> bookings;
+
+    @Column(name = "password_reset_token")
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_token_expires_at")
+    private LocalDateTime passwordResetTokenExpiresAt;
+}

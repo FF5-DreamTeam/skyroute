@@ -1,0 +1,32 @@
+package com.skyroute.skyroute.airport.dto;
+
+import com.skyroute.skyroute.airport.entity.Airport;
+
+public class AirportMapper {
+
+    public static AirportResponse toDto(Airport airport){
+        return new AirportResponse(
+                airport.getId(),
+                airport.getCode(),
+                airport.getCity(),
+                airport.getImageUrl()
+        );
+    }
+
+    public static Airport toEntityFromCreate(AirportCreateRequest dto, String imageUrl){
+        return Airport.builder()
+                .code(dto.code())
+                .city(dto.city())
+                .imageUrl(imageUrl)
+                .build();
+    }
+
+    public static void toEntityFromUpdate(Airport airport, AirportUpdateRequest dto){
+        if (dto.code() != null){
+            airport.setCode(dto.code());
+        }
+        if (dto.city() != null){
+            airport.setCity(dto.city());
+        }
+    }
+}
