@@ -1,11 +1,10 @@
-package com.skyroute.skyroute.booking;
+package com.skyroute.skyroute.booking.service;
 
 import com.skyroute.skyroute.booking.dto.BookingFilterRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
-import com.skyroute.skyroute.booking.service.BookingFilterServiceImpl;
 import com.skyroute.skyroute.user.entity.User;
 import com.skyroute.skyroute.user.enums.Role;
 import org.junit.jupiter.api.BeforeEach;

@@ -46,7 +46,6 @@ public class BookingFilterController {
             summary = "Filter bookings with advanced criteria",
             description = "Filter bookings by multiple criteria. Users can only see their own bookings."
     )
-    @PreAuthorize("hasRole('USER')")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -57,6 +56,7 @@ public class BookingFilterController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
     })
     @GetMapping("/my-bookings")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<BookingResponse>> filterMyBookings(
             @Parameter(description = "Booking status filter") @RequestParam(required = false) BookingStatus bookingStatus,
             @Parameter(description = "Booking number filter") @RequestParam(required = false) String bookingNumber,
@@ -84,7 +84,6 @@ public class BookingFilterController {
             summary = "Filter bookings with advanced criteria",
             description = "Filter bookings by multiple criteria. Only Admin."
     )
-    @PreAuthorize("hasRole('ADMIN')")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -96,6 +95,7 @@ public class BookingFilterController {
             @ApiResponse(responseCode = "403", description = "Forbidden, role Admin required", content = @Content)
     })
     @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<BookingResponse>> filterAdminBookings(
             @Parameter(description = "Booking status filter") @RequestParam(required = false) BookingStatus bookingStatus,
             @Parameter(description = "Booking number filter") @RequestParam(required = false) String bookingNumber,

@@ -165,7 +165,7 @@ public class BookingServiceImpl implements BookingService {
         if (size <= 0)
             throw new IllegalArgumentException("Page size must be greater than 0");
 
-        int maxSize = 100;
+        int maxSize = 10;
         size = Math.min(size, maxSize);
 
         if (!ALLOWED_SORT_FIELDS.contains(sortBy)) {

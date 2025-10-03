@@ -1,4 +1,4 @@
-package com.skyroute.skyroute.booking;
+package com.skyroute.skyroute.booking.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
