@@ -3,11 +3,7 @@ package com.skyroute.skyroute.flight;
 import com.skyroute.skyroute.aircraft.entity.Aircraft;
 import com.skyroute.skyroute.aircraft.service.AircraftService;
 import com.skyroute.skyroute.airport.entity.Airport;
-import com.skyroute.skyroute.flight.dto.FlightRequest;
-import com.skyroute.skyroute.flight.dto.FlightResponse;
-import com.skyroute.skyroute.flight.dto.FlightSimpleResponse;
-import com.skyroute.skyroute.flight.dto.FlightStatusUpdateRequest;
-import com.skyroute.skyroute.flight.dto.MinPriceResponse;
+import com.skyroute.skyroute.flight.dto.*;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.flight.helper.FlightHelper;
 import com.skyroute.skyroute.flight.repository.FlightRepository;
@@ -386,6 +382,90 @@ class FlightServiceTest {
     }
 
     @Nested
+    class UpdateFlightTests{
+        @Test
+        void updateFlight_shouldReturnUpdatedFlight_whenValidRequest(){
+            FlightUpdate update = createFlightUpdate();
+
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            when(flightHelper.resolveAircraftForUpdate(1L)).thenReturn(testAircraft);
+            doNothing().when(flightValidator).validateFlightUpdate(
+                    any(Flight.class), any(Aircraft.class), anyInt(), any(LocalDateTime.class), any(LocalDateTime.class)
+            );
+            doNothing().when(flightHelper).applyFlightUpdates(testFlight, update, testAircraft);
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            FlightResponse result = flightService.updateFlight(1L, update);
+
+            assertNotNull(result);
+            assertEquals("SR001", result.flightNumber());
+            verify(flightRepository).findById(1L);
+            verify(flightHelper).resolveAircraftForUpdate(1L);
+            verify(flightValidator).validateFlightUpdate(
+                    eq(testFlight), eq(testAircraft), eq(150), any(LocalDateTime.class), any(LocalDateTime.class)
+            );
+            verify(flightRepository).save(testFlight);
+        }
+        @Test
+        void updateFlight_shouldHandlePartialUpdate() {
+            FlightUpdate partialUpdate = new FlightUpdate(
+                    null, 100, null, null, null, null, null,
+                    null
+            );
+
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            when(flightHelper.resolveAircraftForUpdate(null)).thenReturn(null);
+            doNothing().when(flightValidator).validateFlightUpdate(
+                    any(Flight.class), any(), anyInt(), any(), any()
+            );
+            doNothing().when(flightHelper).applyFlightUpdates(testFlight, partialUpdate, null);
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            FlightResponse result = flightService.updateFlight(1L, partialUpdate);
+
+            assertNotNull(result);
+            verify(flightRepository).findById(1L);
+            verify(flightRepository).save(testFlight);
+        }
+
+        @Test
+        void updateFlight_shouldThrowEntityNotFoundException_whenFlightNotFound() {
+            FlightUpdate update = createFlightUpdate();
+
+            when(flightRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> flightService.updateFlight(99L, update)
+            );
+
+            assertEquals("Flight with id: 99 not found", exception.getMessage());
+            verify(flightRepository).findById(99L);
+            verify(flightRepository, never()).save(any());
+        }
+
+        @Test
+        void updateFlight_shouldThrowBusinessException_whenValidationFails() {
+            FlightUpdate update = createFlightUpdate();
+
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            when(flightHelper.resolveAircraftForUpdate(1L)).thenReturn(testAircraft);
+            doThrow(new BusinessException("Departure time must be in the future"))
+                    .when(flightValidator).validateFlightUpdate(
+                            any(Flight.class), any(Aircraft.class), anyInt(), any(LocalDateTime.class), any(LocalDateTime.class)
+                    );
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> flightService.updateFlight(1L, update)
+            );
+
+            assertEquals("Departure time must be in the future", exception.getMessage());
+            verify(flightRepository, never()).save(any());
+        }
+    }
+
+    @Nested
     class UpdateFlightStatusTests {
         @Test
         void updateFlightStatus_shouldUpdateStatusToAvailable_whenValidRequest() {
@@ -484,6 +564,19 @@ class FlightServiceTest {
                 1L,
                 1L,
                 true
+        );
+    }
+
+    private FlightUpdate createFlightUpdate() {
+        return new FlightUpdate(
+                "SR001",
+                150,
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(1).plusHours(2),
+                299.99,
+                true,
+                1L,
+                1L
         );
     }
 }
