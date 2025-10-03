@@ -54,7 +54,7 @@ public class RouteController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete Route")
-    private ResponseEntity<Void> deleteRoute(@PathVariable Long id){
+    public ResponseEntity<Void> deleteRoute(@PathVariable Long id){
         routeService.deleteRoute(id);
         return ResponseEntity.noContent().build();
     }
