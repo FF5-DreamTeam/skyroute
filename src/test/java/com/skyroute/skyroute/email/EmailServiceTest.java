@@ -193,4 +193,104 @@ class EmailServiceTest {
         when(mockOriginAirport.getCity()).thenReturn("New York");
         when(mockDestinationAirport.getCity()).thenReturn("Los Angeles");
     }
+
+    @Test
+    void sendBookingConfirmationStatusEmail_shouldSendEmailSuccessfully() throws MessagingException {
+        setupMockBooking();
+        setupMockUser();
+        setupMockFlight();
+        setupMockRoute();
+        setupMockAirports();
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.sendBookingConfirmationStatusEmail(mockBooking, mockUser, mockFlight);
+
+        verify(mailSender).createMimeMessage();
+        verify(mailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendBookingConfirmationStatusEmail_shouldCallMailSenderMethods() throws MessagingException {
+        setupMockBooking();
+        setupMockUser();
+        setupMockFlight();
+        setupMockRoute();
+        setupMockAirports();
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.sendBookingConfirmationStatusEmail(mockBooking, mockUser, mockFlight);
+
+        verify(mailSender, times(1)).createMimeMessage();
+        verify(mailSender, times(1)).send(mimeMessage);
+    }
+
+    @Test
+    void sendBookingConfirmationStatusEmail_shouldNotThrowException_whenMessagingFails() {
+        setupMockBooking();
+        setupMockUser();
+        setupMockFlight();
+        setupMockRoute();
+        setupMockAirports();
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        doThrow(new RuntimeException("SMTP server unavailable"))
+                .when(mailSender).send(any(MimeMessage.class));
+
+        assertDoesNotThrow(() -> emailService.sendBookingConfirmationStatusEmail(mockBooking, mockUser, mockFlight));
+
+        verify(mailSender).createMimeMessage();
+        verify(mailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendBookingCancellationEmail_shouldSendEmailSuccessfully() throws MessagingException {
+        setupMockBooking();
+        setupMockUser();
+        setupMockFlight();
+        setupMockRoute();
+        setupMockAirports();
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.sendBookingCancellationEmail(mockBooking, mockUser, mockFlight);
+
+        verify(mailSender).createMimeMessage();
+        verify(mailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendBookingCancellationEmail_shouldCallMailSenderMethods() throws MessagingException {
+        setupMockBooking();
+        setupMockUser();
+        setupMockFlight();
+        setupMockRoute();
+        setupMockAirports();
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        emailService.sendBookingCancellationEmail(mockBooking, mockUser, mockFlight);
+
+        verify(mailSender, times(1)).createMimeMessage();
+        verify(mailSender, times(1)).send(mimeMessage);
+    }
+
+    @Test
+    void sendBookingCancellationEmail_shouldNotThrowException_whenMessagingFails() {
+        setupMockBooking();
+        setupMockUser();
+        setupMockFlight();
+        setupMockRoute();
+        setupMockAirports();
+
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        doThrow(new RuntimeException("SMTP server unavailable"))
+                .when(mailSender).send(any(MimeMessage.class));
+
+        assertDoesNotThrow(() -> emailService.sendBookingCancellationEmail(mockBooking, mockUser, mockFlight));
+
+        verify(mailSender).createMimeMessage();
+        verify(mailSender).send(mimeMessage);
+    }
 }

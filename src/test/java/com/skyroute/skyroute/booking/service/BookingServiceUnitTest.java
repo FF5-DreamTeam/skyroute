@@ -294,6 +294,7 @@ public class BookingServiceUnitTest {
 
             verify(flightService).releaseSeats(1L, 2);
             verify(bookingRepository).save(testBooking);
+            verify(emailService).sendBookingCancellationEmail(any(Booking.class), any(User.class), any(Flight.class));
         }
 
         @Test
@@ -305,7 +306,9 @@ public class BookingServiceUnitTest {
             BusinessException exception = assertThrows(BusinessException.class,
                     () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser));
 
-            assertEquals("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance", exception.getMessage());
+            assertEquals(
+                    "You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance",
+                    exception.getMessage());
             verify(flightService, never()).releaseSeats(anyLong(), anyInt());
             verify(bookingRepository, never()).save(any());
         }
@@ -393,6 +396,7 @@ public class BookingServiceUnitTest {
 
             verify(flightService).releaseSeats(1L, 2);
             verify(bookingRepository).save(testBooking);
+            verify(emailService).sendBookingCancellationEmail(any(Booking.class), any(User.class), any(Flight.class));
         }
     }
 
@@ -410,6 +414,8 @@ public class BookingServiceUnitTest {
             assertEquals(BookingStatus.CONFIRMED, testBooking.getBookingStatus());
 
             verify(bookingRepository).save(testBooking);
+            verify(emailService).sendBookingConfirmationStatusEmail(any(Booking.class), any(User.class),
+                    any(Flight.class));
         }
     }
 
