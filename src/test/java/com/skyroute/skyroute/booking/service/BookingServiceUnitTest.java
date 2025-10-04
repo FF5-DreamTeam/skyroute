@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -571,6 +571,41 @@ public class BookingServiceUnitTest {
             bookingServiceImpl.deleteBooking(1L, testAdmin);
 
             verify(bookingRepository).delete(testBooking);
+        }
+    }
+
+    @Nested
+    class ValidationTests {
+
+        @Test
+        void createPageable_ShouldUseDefaults_WhenInvalidSortField() {
+            when(bookingRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+            assertDoesNotThrow(() -> bookingServiceImpl.getAllBookingsAdmin(0, 10, "invalidField", "DESC"));
+            verify(bookingRepository).findAll(argThat((Pageable pageable) -> pageable.getSort().getOrderFor("createdAt") != null));
+        }
+
+        @Test
+        void createPageable_ShouldUseDefaults_WhenInvalidSortDirection() {
+            when(bookingRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+            assertDoesNotThrow(() -> bookingServiceImpl.getAllBookingsAdmin(0, 10, "id", "INVALID"));
+            verify(bookingRepository).findAll(argThat((Pageable pageable) -> pageable.getSort().getOrderFor("id").getDirection() == Sort.Direction.DESC));
+        }
+
+        @Test
+        void createPageable_ShouldLimitPageSize_WhenTooLarge() {
+            when(bookingRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+            assertDoesNotThrow(() -> bookingServiceImpl.getAllBookingsAdmin(0, 20, "id", "ASC"));
+            verify(bookingRepository).findAll(argThat((Pageable pageable) -> pageable.getPageSize() == 10));
+        }
+
+        @Test
+        void createPageable_ShouldThrowException_WhenNegativePage() {
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> bookingServiceImpl.getAllBookingsAdmin(-1, 10, "id", "ASC"));
+
+            assertEquals("Page index must be 0 or greater", exception.getMessage());
         }
     }
 
