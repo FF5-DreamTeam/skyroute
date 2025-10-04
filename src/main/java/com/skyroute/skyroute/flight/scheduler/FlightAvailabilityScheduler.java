@@ -19,8 +19,10 @@ public class FlightAvailabilityScheduler {
 
     @Scheduled(cron = "${app.scheduler.flight-availability-cron}")
     public void updateFlightsAvailability() {
-        LocalDateTime now = LocalDateTime.now();
-        int updatedFlights = flightService.markFlightsAsUnavailableAndReleaseSeats(now);
-        log.info("Scheduler executed at {} - updated flights: {}", now, updatedFlights);
+        try {
+            flightService.markFlightsAsUnavailableAndReleaseSeats(LocalDateTime.now());
+        } catch (Exception e) {
+            log.error("Error updating flights availability", e);
+        }
     }
 }

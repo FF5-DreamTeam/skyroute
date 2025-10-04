@@ -88,4 +88,77 @@ class FlightValidatorTest {
 
         assertEquals("Departure time must be in the future", ex.getMessage());
     }
+
+    @Test
+    void validateAircraftCapacity_ShouldThrow_WhenAircraftIsNull() {
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> flightValidator.validateFlightCreation(
+                        null,
+                        10,
+                        FUTURE_DEPARTURE,
+                        FUTURE_ARRIVAL
+                ));
+        assertEquals("Aircraft cannot be null", ex.getMessage());
+    }
+
+    @Test
+    void validateAircraftCapacity_ShouldThrow_WhenSeatsNegative() {
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> flightValidator.validateFlightCreation(
+                        aircraft,
+                        -5,
+                        FUTURE_DEPARTURE,
+                        FUTURE_ARRIVAL
+                ));
+        assertEquals("Available seats cannot be null or negative", ex.getMessage());
+    }
+
+    @Test
+    void validateFlightUpdate_ShouldUseExistingFlightData_WhenArgsAreNull() {
+        Flight existing = new Flight();
+        existing.setAircraft(aircraft);
+        existing.setAvailableSeats(50);
+        existing.setDepartureTime(FUTURE_DEPARTURE);
+        existing.setArrivalTime(FUTURE_ARRIVAL);
+
+        assertDoesNotThrow(() -> flightValidator.validateFlightUpdate(
+                existing,
+                null,
+                null,
+                null,
+                null
+        ));
+    }
+
+    @Test
+    void validateSeatsToBook_ShouldThrow_WhenSeatsRequestedExceedAvailable() {
+        Flight flight = new Flight();
+        flight.setAvailableSeats(10);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> flightValidator.validateSeatsToBook(flight, 20));
+        assertTrue(ex.getMessage().contains("Not enough seats available"));
+    }
+
+    @Test
+    void validateSeatsToBook_ShouldThrow_WhenSeatsRequestedZeroOrNegative() {
+        Flight flight = new Flight();
+        flight.setAvailableSeats(10);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> flightValidator.validateSeatsToBook(flight, 0));
+        assertEquals("Seats requested must be greater than 0", ex.getMessage());
+    }
+
+    @Test
+    void validateSeatsToRelease_ShouldThrow_WhenZeroOrNegative() {
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> flightValidator.validateSeatsToRelease(0));
+        assertEquals("Seats to release must be positive", ex.getMessage());
+    }
+
+    @Test
+    void validateSeatsToRelease_ShouldPass_WhenPositive() {
+        assertDoesNotThrow(() -> flightValidator.validateSeatsToRelease(5));
+    }
 }
