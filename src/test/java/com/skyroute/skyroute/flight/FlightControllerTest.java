@@ -504,6 +504,49 @@ class FlightControllerTest {
         }
     }
 
+    @Nested
+    class DeleteFlightTests {
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void deleteFlight_shouldReturnNoContent_whenFlightExists() throws Exception {
+            doNothing().when(flightService).deleteFlight(1L);
+
+            mockMvc.perform(delete("/api/flights/admin/1"))
+                    .andExpect(status().isNoContent());
+
+            verify(flightService).deleteFlight(1L);
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void deleteFlight_shouldReturnNotFound_whenFlightDoesNotExist() throws Exception {
+            doThrow(new EntityNotFoundException("Flight with id: 99 not found"))
+                    .when(flightService).deleteFlight(99L);
+
+            mockMvc.perform(delete("/api/flights/admin/99"))
+                    .andExpect(status().isNotFound());
+
+            verify(flightService).deleteFlight(99L);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void deleteFlight_shouldReturnForbidden_whenNotAdmin() throws Exception {
+            mockMvc.perform(delete("/api/flights/admin/1"))
+                    .andExpect(status().isForbidden());
+
+            verify(flightService, never()).deleteFlight(anyLong());
+        }
+
+        @Test
+        void deleteFlight_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
+            mockMvc.perform(delete("/api/flights/admin/1"))
+                    .andExpect(status().isForbidden());
+
+            verify(flightService, never()).deleteFlight(anyLong());
+        }
+    }
+
     @Test
     void getMinPrices_shouldReturnMinPrices_whenValidDestinations() throws Exception {
         List<MinPriceResponse> expectedResponse = List.of(

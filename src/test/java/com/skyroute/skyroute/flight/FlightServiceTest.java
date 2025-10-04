@@ -466,6 +466,34 @@ class FlightServiceTest {
     }
 
     @Nested
+    class DeleteFlightTests {
+        @Test
+        void deleteFlight_shouldDeleteSuccessfully_whenFlightExists() {
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            doNothing().when(flightRepository).delete(testFlight);
+
+            assertDoesNotThrow(() -> flightService.deleteFlight(1L));
+
+            verify(flightRepository).findById(1L);
+            verify(flightRepository).delete(testFlight);
+        }
+
+        @Test
+        void deleteFlight_shouldThrowEntityNotFoundException_whenFlightDoesNotExist() {
+            when(flightRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> flightService.deleteFlight(99L)
+            );
+
+            assertEquals("Flight with id: 99 not found", exception.getMessage());
+            verify(flightRepository).findById(99L);
+            verify(flightRepository, never()).delete(any(Flight.class));
+        }
+    }
+
+    @Nested
     class UpdateFlightStatusTests {
         @Test
         void updateFlightStatus_shouldUpdateStatusToAvailable_whenValidRequest() {
