@@ -89,14 +89,15 @@ public class BookingServiceImpl implements BookingService {
         if (user.getRole() == Role.USER) {
             if (newStatus == BookingStatus.CONFIRMED) {
                 throw new BookingAccessDeniedException("Users cannot confirm booking");
-        }
+            }
 
             if (previousStatus == BookingStatus.CONFIRMED && newStatus == BookingStatus.CANCELLED) {
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime departure = booking.getFlight().getDepartureTime();
 
                 if (departure.minusHours(24).isBefore(now)) {
-                    throw new InvalidBookingOperationException("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance");
+                    throw new InvalidBookingOperationException(
+                            "You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance");
                 }
             }
         }
@@ -108,6 +109,17 @@ public class BookingServiceImpl implements BookingService {
         }
 
         Booking updatedBooking = bookingRepository.save(booking);
+
+        if (newStatus == BookingStatus.CONFIRMED && previousStatus != BookingStatus.CONFIRMED) {
+            emailService.sendBookingConfirmationStatusEmail(updatedBooking, updatedBooking.getUser(),
+                    updatedBooking.getFlight());
+        }
+
+        if (newStatus == BookingStatus.CANCELLED && previousStatus != BookingStatus.CANCELLED) {
+            emailService.sendBookingCancellationEmail(updatedBooking, updatedBooking.getUser(),
+                    updatedBooking.getFlight());
+        }
+
         return BookingMapper.toDto(updatedBooking);
     }
 
@@ -125,7 +137,8 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse updatePassengerNames(Long id, List<String> names, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new BookingAccessDeniedException("Cannot modify passenger names after booking is CONFORMED or CANCELLED");
+            throw new BookingAccessDeniedException(
+                    "Cannot modify passenger names after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerNames(names);
@@ -136,7 +149,8 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new BookingAccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
+            throw new BookingAccessDeniedException(
+                    "Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerBirthDates(birthDates);
@@ -197,8 +211,9 @@ public class BookingServiceImpl implements BookingService {
 
         if (!flightService.hasAvailableSeats(flightId, requestedSeats)) {
             Flight flight = flightService.findById(flightId);
-            throw new NotEnoughSeatsException("Not enough seats available. Requested: " + requestedSeats + ". Available: "
-                    + flight.getAvailableSeats());
+            throw new NotEnoughSeatsException(
+                    "Not enough seats available. Requested: " + requestedSeats + ". Available: "
+                            + flight.getAvailableSeats());
         }
     }
 

@@ -233,22 +233,22 @@ class FlightControllerTest {
             verify(flightService).getFlightsPage(any(Pageable.class));
         }
 
-//        @Test
-//        @WithMockUser(roles = "USER")
-//        void getAllFlights_shouldReturnForbidden_whenNotAdmin() throws Exception {
-//            mockMvc.perform(get("/api/flights/admin"))
-//                    .andExpect(status().isForbidden());
-//
-//            verify(flightService, never()).getFlightsPage(any(Pageable.class));
-//        }
-//
-//        @Test
-//        void getAllFlights_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
-//            mockMvc.perform(get("/api/flights/admin"))
-//                    .andExpect(status().isForbidden());
-//
-//            verify(flightService, never()).getFlightsPage(any(Pageable.class));
-//        }
+        @Test
+        @WithMockUser(roles = "USER")
+        void getAllFlights_shouldReturnForbidden_whenNotAdmin() throws Exception {
+            mockMvc.perform(get("/api/flights/admin"))
+                    .andExpect(status().isForbidden());
+
+            verify(flightService, never()).getFlightsPage(any(Pageable.class));
+        }
+
+        @Test
+        void getAllFlights_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/flights/admin"))
+                    .andExpect(status().isForbidden());
+
+            verify(flightService, never()).getFlightsPage(any(Pageable.class));
+        }
     }
 
     @Nested
@@ -282,14 +282,14 @@ class FlightControllerTest {
             verify(flightService).getFlightById(99L);
         }
 
-//        @Test
-//        @WithMockUser(roles = "USER")
-//        void getFlightDetailsById_shouldReturnForbidden_whenNotAdmin() throws Exception {
-//            mockMvc.perform(get("/api/flights/admin/1"))
-//                    .andExpect(status().isForbidden());
-//
-//            verify(flightService, never()).getFlightById(anyLong());
-//        }
+        @Test
+        @WithMockUser(roles = "USER")
+        void getFlightDetailsById_shouldReturnForbidden_whenNotAdmin() throws Exception {
+            mockMvc.perform(get("/api/flights/admin/1"))
+                    .andExpect(status().isForbidden());
+
+            verify(flightService, never()).getFlightById(anyLong());
+        }
     }
 
     @Nested
@@ -395,18 +395,18 @@ class FlightControllerTest {
             verify(flightService).createFlight(any(FlightRequest.class));
         }
 
-//        @Test
-//        @WithMockUser(roles = "USER")
-//        void createFlight_shouldReturnForbidden_whenNotAdmin() throws Exception{
-//            FlightRequest request = createFlightRequest();
-//
-//            mockMvc.perform(post("/api/flights/admin")
-//                    .contentType(MediaType.APPLICATION_JSON)
-//                    .content(objectMapper.writeValueAsString(request)))
-//                    .andExpect(status().isForbidden());
-//
-//            verify(flightService, never()).createFlight(any());
-//        }
+        @Test
+        @WithMockUser(roles = "USER")
+        void createFlight_shouldReturnForbidden_whenNotAdmin() throws Exception{
+            FlightRequest request = createFlightRequest();
+
+            mockMvc.perform(post("/api/flights/admin")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isForbidden());
+
+            verify(flightService, never()).createFlight(any());
+        }
 
         @Test
         void createFlight_shouldReturnForbidden_whenNotAuthenticated() throws Exception{
@@ -418,6 +418,132 @@ class FlightControllerTest {
                     .andExpect(status().isForbidden());
 
             verify(flightService, never()).createFlight(any());
+        }
+    }
+
+    @Nested
+    class UpdateFlightTests {
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateFlight_shouldReturnUpdatedFlight_whenValidRequest() throws Exception {
+            FlightUpdate update = createFlightUpdate();
+            FlightResponse response = createFlightResponse();
+
+            when(flightService.updateFlight(eq(1L), any(FlightUpdate.class))).thenReturn(response);
+
+            mockMvc.perform(put("/api/flights/admin/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(update)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.id").value(1L))
+                    .andExpect(jsonPath("$.flightNumber").value("SR001"));
+
+            verify(flightService).updateFlight(eq(1L), any(FlightUpdate.class));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateFlight_shouldReturnUpdatedFlight_whenPartialUpdate() throws Exception {
+            FlightUpdate partialUpdate = new FlightUpdate(null, 100, null, null,
+                    null, null, null,null);
+
+            FlightResponse response = createFlightResponse();
+
+            when(flightService.updateFlight(eq(1L), any(FlightUpdate.class))).thenReturn(response);
+
+            mockMvc.perform(put("/api/flights/admin/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(partialUpdate)))
+                    .andExpect(status().isOk());
+
+            verify(flightService).updateFlight(eq(1L), any(FlightUpdate.class));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateFlight_shouldReturnNotFound_whenFlightDoesNotExist() throws Exception {
+            FlightUpdate update = createFlightUpdate();
+
+            when(flightService.updateFlight(eq(99L), any(FlightUpdate.class)))
+                    .thenThrow(new EntityNotFoundException("Flight with id: 99 not found"));
+
+            mockMvc.perform(put("/api/flights/admin/99")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(update)))
+                    .andExpect(status().isNotFound());
+
+            verify(flightService).updateFlight(eq(99L), any(FlightUpdate.class));
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void updateFlight_shouldReturnBadRequest_whenInvalidFlightNumber() throws Exception {
+            FlightUpdate update = new FlightUpdate("AB", 150, null,null,
+                    null,null,null,null);
+
+            mockMvc.perform(put("/api/flights/admin/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(update)))
+                    .andExpect(status().isBadRequest());
+
+            verify(flightService, never()).updateFlight(anyLong(), any());
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void updateFlight_shouldReturnForbidden_whenNotAdmin() throws Exception {
+            FlightUpdate update = createFlightUpdate();
+
+            mockMvc.perform(put("/api/flights/admin/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(update)))
+                            .andExpect(status().isForbidden());
+
+            verify(flightService, never()).updateFlight(anyLong(), any());
+        }
+    }
+
+    @Nested
+    class DeleteFlightTests {
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void deleteFlight_shouldReturnNoContent_whenFlightExists() throws Exception {
+            doNothing().when(flightService).deleteFlight(1L);
+
+            mockMvc.perform(delete("/api/flights/admin/1"))
+                    .andExpect(status().isNoContent());
+
+            verify(flightService).deleteFlight(1L);
+        }
+
+        @Test
+        @WithMockUser(roles = "ADMIN")
+        void deleteFlight_shouldReturnNotFound_whenFlightDoesNotExist() throws Exception {
+            doThrow(new EntityNotFoundException("Flight with id: 99 not found"))
+                    .when(flightService).deleteFlight(99L);
+
+            mockMvc.perform(delete("/api/flights/admin/99"))
+                    .andExpect(status().isNotFound());
+
+            verify(flightService).deleteFlight(99L);
+        }
+
+        @Test
+        @WithMockUser(roles = "USER")
+        void deleteFlight_shouldReturnForbidden_whenNotAdmin() throws Exception {
+            mockMvc.perform(delete("/api/flights/admin/1"))
+                    .andExpect(status().isForbidden());
+
+            verify(flightService, never()).deleteFlight(anyLong());
+        }
+
+        @Test
+        void deleteFlight_shouldReturnForbidden_whenNotAuthenticated() throws Exception {
+            mockMvc.perform(delete("/api/flights/admin/1"))
+                    .andExpect(status().isForbidden());
+
+            verify(flightService, never()).deleteFlight(anyLong());
         }
     }
 
@@ -639,5 +765,18 @@ class FlightControllerTest {
                                 "http://example.com/bcn.jpg")),
                 LocalDateTime.now(),
                 LocalDateTime.now());
+    }
+
+    private FlightUpdate createFlightUpdate() {
+        return new FlightUpdate(
+                "SR001",
+                150,
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(1).plusHours(2),
+                299.99,
+                true,
+                1L,
+                1L
+        );
     }
 }
