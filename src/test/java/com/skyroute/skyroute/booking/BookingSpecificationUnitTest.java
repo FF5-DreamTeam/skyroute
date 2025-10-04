@@ -398,6 +398,26 @@ public class BookingSpecificationUnitTest {
             verify(criteriaBuilder).upper(codePath);
             verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
         }
+
+        @Test
+        void hasOriginAirportOrCode_shouldReturnConjunction_whenAirportIsNull() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasOriginAirportOrCode(null);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
+
+        @Test
+        void hasOriginAirportOrCode_shouldReturnConjunction_whenAirportIsEmpty() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasOriginAirportOrCode("");
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
     }
 
     @Nested
@@ -433,6 +453,26 @@ public class BookingSpecificationUnitTest {
             verify(criteriaBuilder).lower(cityPath);
             verify(criteriaBuilder).upper(codePath);
             verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
+        }
+
+        @Test
+        void hasDestinationAirportOrCode_shouldReturnConjunction_whenAirportIsNull() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasDestinationAirportOrCode(null);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
+
+        @Test
+        void hasDestinationAirportOrCode_shouldReturnConjunction_whenAirportIsEmpty() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasDestinationAirportOrCode("");
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
         }
     }
 
