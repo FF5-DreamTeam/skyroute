@@ -49,6 +49,9 @@ public class BookingSpecificationUnitTest {
     Join<Object, Object> originJoin;
 
     @Mock
+    Join<Object, Object> destinationJoin;
+
+    @Mock
     Join<Object, Object> passengerNames;
 
     @Nested
@@ -212,6 +215,16 @@ public class BookingSpecificationUnitTest {
             assertNotNull(result);
             verify(criteriaBuilder).equal(any(), eq(userId));
         }
+
+        @Test
+        void hasUserId_shouldReturnConjunction_whenUserIdIsNull() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasUserId(null);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
     }
 
     @Nested
@@ -228,6 +241,26 @@ public class BookingSpecificationUnitTest {
 
             assertNotNull(result);
             verify(criteriaBuilder).equal(any(), eq(email.toLowerCase()));
+        }
+
+        @Test
+        void hasUserEmail_shouldReturnConjunction_whenEmailIsNull() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasUserEmail(null);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
+
+        @Test
+        void hasUserEmail_shouldReturnConjunction_whenEmailIsEmpty() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasUserEmail("");
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
         }
     }
 
@@ -247,6 +280,26 @@ public class BookingSpecificationUnitTest {
             assertNotNull(result);
             verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
         }
+
+        @Test
+        void hasUserEmail_shouldReturnConjunction_whenNameIsNull() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasUserName(null);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
+
+        @Test
+        void hasUserEmail_shouldReturnConjunction_whenNameIsEmpty() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasUserName("");
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
     }
 
     @Nested
@@ -262,6 +315,16 @@ public class BookingSpecificationUnitTest {
 
             assertNotNull(result);
             verify(criteriaBuilder).equal(any(), eq(flightId));
+        }
+
+        @Test
+        void hasUserEmail_shouldReturnConjunction_whenFlightIdIsNull() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasFlightId(null);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
         }
     }
 
@@ -280,6 +343,97 @@ public class BookingSpecificationUnitTest {
             assertNotNull(result);
             verify(criteriaBuilder).like(any(), contains(flightNumber.toUpperCase()));
         }
+
+        @Test
+        void hasUserEmail_shouldReturnConjunction_whenFlightNumberIsNull() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasFlightNumber(null);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
+
+        @Test
+        void hasUserEmail_shouldReturnConjunction_whenFlightNumberIsEmpty() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasFlightNumber("");
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
+    }
+
+    @Nested
+    class HasOriginAirportTest {
+
+        @Test
+        void hasOriginAirportOrCode_shouldReturnPredicate_whenAirportProvided() {
+            String airport = "Madrid";
+            Path cityPath = mock(Path.class);
+            Path codePath = mock(Path.class);
+            Expression lowerExpression = mock(Expression.class);
+            Expression upperExpression = mock(Expression.class);
+            when(root.join(eq("flight"), any(JoinType.class))).thenReturn(flightJoin);
+            when(flightJoin.join(eq("route"), any(JoinType.class))).thenReturn(routeJoin);
+            when(routeJoin.join(eq("origin"), any(JoinType.class))).thenReturn(originJoin);
+            when(originJoin.get("city")).thenReturn(cityPath);
+            when(originJoin.get("code")).thenReturn(codePath);
+            when(criteriaBuilder.lower(cityPath)).thenReturn(lowerExpression);
+            when(criteriaBuilder.upper(codePath)).thenReturn(upperExpression);
+            when(criteriaBuilder.like(eq(lowerExpression), anyString())).thenReturn(predicate);
+            when(criteriaBuilder.equal(eq(upperExpression), anyString())).thenReturn(predicate);
+            when(criteriaBuilder.or(any(Predicate.class), any(Predicate.class))).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasOriginAirportOrCode(airport);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(root).join(eq("flight"), any(JoinType.class));
+            verify(flightJoin).join(eq("route"), any(JoinType.class));
+            verify(routeJoin).join(eq("origin"), any(JoinType.class));
+            verify(originJoin).get("city");
+            verify(originJoin).get("code");
+            verify(criteriaBuilder).lower(cityPath);
+            verify(criteriaBuilder).upper(codePath);
+            verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
+        }
+    }
+
+    @Nested
+    class HasDepartureAirportTest {
+
+        @Test
+        void hasDepartureAirportOrCode_shouldReturnPredicate_whenAirportProvided() {
+            String airport = "Madrid";
+            Path cityPath = mock(Path.class);
+            Path codePath = mock(Path.class);
+            Expression lowerExpression = mock(Expression.class);
+            Expression upperExpression = mock(Expression.class);
+            when(root.join(eq("flight"), any(JoinType.class))).thenReturn(flightJoin);
+            when(flightJoin.join(eq("route"), any(JoinType.class))).thenReturn(routeJoin);
+            when(routeJoin.join(eq("destination"), any(JoinType.class))).thenReturn(destinationJoin);
+            when(destinationJoin.get("city")).thenReturn(cityPath);
+            when(destinationJoin.get("code")).thenReturn(codePath);
+            when(criteriaBuilder.lower(cityPath)).thenReturn(lowerExpression);
+            when(criteriaBuilder.upper(codePath)
+            ).thenReturn(upperExpression);
+            when(criteriaBuilder.like(eq(lowerExpression), anyString())).thenReturn(predicate);
+            when(criteriaBuilder.equal(eq(upperExpression), anyString())).thenReturn(predicate);
+            when(criteriaBuilder.or(any(Predicate.class), any(Predicate.class))).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasDestinationAirportOrCode(airport);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(root).join(eq("flight"), any(JoinType.class));
+            verify(flightJoin).join(eq("route"), any(JoinType.class));
+            verify(routeJoin).join(eq("destination"), any(JoinType.class));
+            verify(destinationJoin).get("city");
+            verify(destinationJoin).get("code");
+            verify(criteriaBuilder).lower(cityPath);
+            verify(criteriaBuilder).upper(codePath);
+            verify(criteriaBuilder).or(any(Predicate.class), any(Predicate.class));
+        }
     }
 
     @Nested
@@ -296,6 +450,26 @@ public class BookingSpecificationUnitTest {
 
             assertNotNull(result);
             verify(criteriaBuilder).like(any(), contains(passengerName.toLowerCase()));
+        }
+
+        @Test
+        void hasUserEmail_shouldReturnConjunction_whenPassengerNameIsNull() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasPassengerName(null);
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
+        }
+
+        @Test
+        void hasUserEmail_shouldReturnConjunction_whenPassengerNameIsEmpty() {
+            when(criteriaBuilder.conjunction()).thenReturn(predicate);
+            Specification<Booking> specification = BookingSpecification.hasPassengerName("");
+            Predicate result = specification.toPredicate(root, query, criteriaBuilder);
+
+            assertNotNull(result);
+            verify(criteriaBuilder).conjunction();
         }
     }
 
@@ -357,4 +531,6 @@ public class BookingSpecificationUnitTest {
             verify(criteriaBuilder).equal(any(), eq(BookingStatus.CREATED));
         }
     }
+
+
 }
