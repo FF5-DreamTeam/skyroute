@@ -406,6 +406,7 @@ class FlightServiceTest {
             );
             verify(flightRepository).save(testFlight);
         }
+
         @Test
         void updateFlight_shouldHandlePartialUpdate() {
             FlightUpdate partialUpdate = new FlightUpdate(
@@ -462,6 +463,316 @@ class FlightServiceTest {
 
             assertEquals("Departure time must be in the future", exception.getMessage());
             verify(flightRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    class DeleteFlightTests {
+        @Test
+        void deleteFlight_shouldDeleteSuccessfully_whenFlightExists() {
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            doNothing().when(flightRepository).delete(testFlight);
+
+            assertDoesNotThrow(() -> flightService.deleteFlight(1L));
+
+            verify(flightRepository).findById(1L);
+            verify(flightRepository).delete(testFlight);
+        }
+
+        @Test
+        void deleteFlight_shouldThrowEntityNotFoundException_whenFlightDoesNotExist() {
+            when(flightRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> flightService.deleteFlight(99L)
+            );
+
+            assertEquals("Flight with id: 99 not found", exception.getMessage());
+            verify(flightRepository).findById(99L);
+            verify(flightRepository, never()).delete(any(Flight.class));
+        }
+    }
+
+    @Nested
+    class GetFlightByIdTests {
+        @Test
+        void getFlightById_shouldReturnFlightResponse_whenFlightExists() {
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+
+            FlightResponse result = flightService.getFlightById(1L);
+
+            assertNotNull(result);
+            assertEquals(1L, result.id());
+            assertEquals("SR001", result.flightNumber());
+            verify(flightRepository).findById(1L);
+        }
+
+        @Test
+        void getFlightById_shouldThrowEntityNotFoundException_whenFlightDoesNotExist() {
+            when(flightRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> flightService.getFlightById(99L)
+            );
+
+            assertEquals("Flight with id: 99 not found", exception.getMessage());
+            verify(flightRepository).findById(99L);
+        }
+    }
+
+    @Nested
+    class IsFlightAvailableTests {
+        @Test
+        void isFlightAvailable_shouldReturnTrue_whenFlightIsAvailable() {
+            testFlight.setAvailable(true);
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+
+            boolean result = flightService.isFlightAvailable(1L);
+
+            assertTrue(result);
+            verify(flightRepository).findById(1L);
+        }
+
+        @Test
+        void isFlightAvailable_shouldReturnFalse_whenFlightIsNotAvailable() {
+            testFlight.setAvailable(false);
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+
+            boolean result = flightService.isFlightAvailable(1L);
+
+            assertFalse(result);
+            verify(flightRepository).findById(1L);
+        }
+
+        @Test
+        void isFlightAvailable_shouldThrowException_whenFlightDoesNotExist() {
+            when(flightRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThrows(EntityNotFoundException.class,
+                    () -> flightService.isFlightAvailable(99L));
+
+            verify(flightRepository).findById(99L);
+        }
+    }
+
+    @Nested
+    class HasAvailableSeatsTests {
+        @Test
+        void hasAvailableSeats_shouldReturnTrue_whenEnoughSeatsAvailable() {
+            testFlight.setAvailableSeats(150);
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+
+            boolean result = flightService.hasAvailableSeats(1L, 50);
+
+            assertTrue(result);
+            verify(flightRepository).findById(1L);
+        }
+
+        @Test
+        void hasAvailableSeats_shouldReturnFalse_whenNotEnoughSeatsAvailable() {
+            testFlight.setAvailableSeats(10);
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+
+            boolean result = flightService.hasAvailableSeats(1L, 50);
+
+            assertFalse(result);
+            verify(flightRepository).findById(1L);
+        }
+
+        @Test
+        void hasAvailableSeats_shouldReturnTrue_whenExactSeatsAvailable() {
+            testFlight.setAvailableSeats(50);
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+
+            boolean result = flightService.hasAvailableSeats(1L, 50);
+
+            assertTrue(result);
+            verify(flightRepository).findById(1L);
+        }
+    }
+
+    @Nested
+    class FindByIdTests {
+        @Test
+        void findById_shouldReturnFlight_whenFlightExists() {
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+
+            Flight result = flightService.findById(1L);
+
+            assertNotNull(result);
+            assertEquals(1L, result.getId());
+            assertEquals("SR001", result.getFlightNumber());
+            verify(flightRepository).findById(1L);
+        }
+
+        @Test
+        void findById_shouldThrowEntityNotFoundException_whenFlightDoesNotExist() {
+            when(flightRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> flightService.findById(99L)
+            );
+
+            assertEquals("Flight with id: 99 not found", exception.getMessage());
+            verify(flightRepository).findById(99L);
+        }
+    }
+
+    @Nested
+    class BookSeatsTests {
+        @Test
+        void bookSeats_shouldDecreaseAvailableSeats_whenValidRequest() {
+            testFlight.setAvailableSeats(150);
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            doNothing().when(flightValidator).validateSeatsToBook(testFlight, 10);
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            flightService.bookSeats(1L, 10);
+
+            assertEquals(140, testFlight.getAvailableSeats());
+            verify(flightRepository).findById(1L);
+            verify(flightValidator).validateSeatsToBook(testFlight, 10);
+            verify(flightRepository).save(testFlight);
+        }
+
+        @Test
+        void bookSeats_shouldThrowBusinessException_whenNotEnoughSeats() {
+            testFlight.setAvailableSeats(5);
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            doThrow(new BusinessException("Not enough seats available. requested: 10. Available: 5"))
+                    .when(flightValidator).validateSeatsToBook(testFlight, 10);
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> flightService.bookSeats(1L, 10)
+            );
+
+            assertTrue(exception.getMessage().contains("Not enough seats available"));
+            verify(flightRepository).findById(1L);
+            verify(flightValidator).validateSeatsToBook(testFlight, 10);
+            verify(flightRepository, never()).save(any());
+        }
+
+        @Test
+        void bookSeats_shouldThrowBusinessException_whenZeroSeatsRequested() {
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            doThrow(new BusinessException("Seats requested must be greater than 0"))
+                    .when(flightValidator).validateSeatsToBook(testFlight, 0);
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> flightService.bookSeats(1L, 0)
+            );
+
+            assertEquals("Seats requested must be greater than 0", exception.getMessage());
+            verify(flightRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    class ReleaseSeatsTests {
+        @Test
+        void releaseSeats_shouldIncreaseAvailableSeats_whenValidRequest() {
+            testFlight.setAvailableSeats(140);
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            doNothing().when(flightValidator).validateSeatsToRelease(10);
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            flightService.releaseSeats(1L, 10);
+
+            assertEquals(150, testFlight.getAvailableSeats());
+            verify(flightRepository).findById(1L);
+            verify(flightValidator).validateSeatsToRelease(10);
+            verify(flightRepository).save(testFlight);
+        }
+
+        @Test
+        void releaseSeats_shouldThrowBusinessException_whenNegativeSeats() {
+            doThrow(new BusinessException("Seats to release must be positive"))
+                    .when(flightValidator).validateSeatsToRelease(-5);
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> flightService.releaseSeats(1L, -5)
+            );
+
+            assertEquals("Seats to release must be positive", exception.getMessage());
+            verify(flightRepository, never()).findById(anyLong());
+            verify(flightRepository, never()).save(any());
+        }
+
+        @Test
+        void releaseSeats_shouldThrowBusinessException_whenZeroSeats() {
+            doThrow(new BusinessException("Seats to release must be positive"))
+                    .when(flightValidator).validateSeatsToRelease(0);
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> flightService.releaseSeats(1L, 0)
+            );
+
+            assertEquals("Seats to release must be positive", exception.getMessage());
+            verify(flightRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    class MarkFlightsAsUnavailableAndReleaseSeatsTests {
+        @Test
+        void markFlightsAsUnavailableAndReleaseSeats_shouldUpdateDepartedFlights() {
+            LocalDateTime now = LocalDateTime.now();
+            List<Flight> departedFlights = List.of(
+                    createFlight(1L, "SR001", testAircraft, testRoute),
+                    createFlight(2L, "SR002", testAircraft, testRoute)
+            );
+
+            when(flightRepository.findAll(any(Specification.class))).thenReturn(departedFlights);
+            when(flightRepository.saveAll(departedFlights)).thenReturn(departedFlights);
+
+            int result = flightService.markFlightsAsUnavailableAndReleaseSeats(now);
+
+            assertEquals(2, result);
+            departedFlights.forEach(flight -> {
+                assertFalse(flight.isAvailable());
+                assertEquals(0, flight.getAvailableSeats());
+            });
+            verify(flightRepository).findAll(any(Specification.class));
+            verify(flightRepository).saveAll(departedFlights);
+        }
+
+        @Test
+        void markFlightsAsUnavailableAndReleaseSeats_shouldReturnZero_whenNoFlightsDeparted() {
+            LocalDateTime now = LocalDateTime.now();
+
+            when(flightRepository.findAll(any(Specification.class))).thenReturn(List.of());
+
+            int result = flightService.markFlightsAsUnavailableAndReleaseSeats(now);
+
+            assertEquals(0, result);
+            verify(flightRepository).findAll(any(Specification.class));
+            verify(flightRepository).saveAll(List.of());
+        }
+
+        @Test
+        void markFlightsAsUnavailableAndReleaseSeats_shouldHandleSingleFlight() {
+            LocalDateTime now = LocalDateTime.now();
+            Flight departedFlight = createFlight(1L, "SR001", testAircraft, testRoute);
+            departedFlight.setAvailableSeats(100);
+            departedFlight.setAvailable(true);
+
+            when(flightRepository.findAll(any(Specification.class))).thenReturn(List.of(departedFlight));
+            when(flightRepository.saveAll(List.of(departedFlight))).thenReturn(List.of(departedFlight));
+
+            int result = flightService.markFlightsAsUnavailableAndReleaseSeats(now);
+
+            assertEquals(1, result);
+            assertFalse(departedFlight.isAvailable());
+            assertEquals(0, departedFlight.getAvailableSeats());
+            verify(flightRepository).findAll(any(Specification.class));
+            verify(flightRepository).saveAll(List.of(departedFlight));
         }
     }
 
@@ -578,5 +889,9 @@ class FlightServiceTest {
                 1L,
                 1L
         );
+    }
+
+    private Flight createFlight(Long id, String flightNumber, Aircraft aircraft, Route route){
+        return createFlight(id, flightNumber, aircraft, route, 100, true);
     }
 }
