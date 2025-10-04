@@ -72,7 +72,6 @@ public class EmailService {
                         String departureTime = flight.getDepartureTime().format(DATE_TIME_FORMATTER);
                         String arrivalTime = flight.getArrivalTime().format(DATE_TIME_FORMATTER);
 
-                        // Get cities from route
                         String departureCity = flight.getRoute().getOrigin().getCity();
                         String arrivalCity = flight.getRoute().getDestination().getCity();
 
@@ -107,6 +106,98 @@ public class EmailService {
                         log.info("Booking confirmation email sent successfully to {}", user.getEmail());
                 } catch (Exception e) {
                         log.error("Failed to send booking confirmation email to {}: {}",
+                                        user.getEmail(), e.getMessage(), e);
+                }
+        }
+
+        public void sendBookingConfirmationStatusEmail(Booking booking, User user, Flight flight) {
+                try {
+                        log.info("Sending booking confirmation status email for booking {} to user {}",
+                                        booking.getBookingNumber(), user.getEmail());
+
+                        String departureTime = flight.getDepartureTime().format(DATE_TIME_FORMATTER);
+                        String arrivalTime = flight.getArrivalTime().format(DATE_TIME_FORMATTER);
+
+                        String departureCity = flight.getRoute().getOrigin().getCity();
+                        String arrivalCity = flight.getRoute().getDestination().getCity();
+
+                        String plainText = BookingConfirmationStatusEmailTemplates.getPlainText(
+                                        user.getFirstName(),
+                                        user.getLastName(),
+                                        booking.getBookingNumber(),
+                                        flight.getFlightNumber(),
+                                        departureTime,
+                                        arrivalTime,
+                                        departureCity,
+                                        arrivalCity,
+                                        booking.getTotalPrice());
+
+                        String htmlContent = BookingConfirmationStatusEmailTemplates.getHtml(
+                                        user.getFirstName(),
+                                        user.getLastName(),
+                                        booking.getBookingNumber(),
+                                        flight.getFlightNumber(),
+                                        departureTime,
+                                        arrivalTime,
+                                        departureCity,
+                                        arrivalCity,
+                                        booking.getTotalPrice());
+
+                        sendBookingEmail(
+                                        user.getEmail(),
+                                        BookingConfirmationStatusEmailTemplates.getSubject(),
+                                        plainText,
+                                        htmlContent);
+
+                        log.info("Booking confirmation status email sent successfully to {}", user.getEmail());
+                } catch (Exception e) {
+                        log.error("Failed to send booking confirmation status email to {}: {}",
+                                        user.getEmail(), e.getMessage(), e);
+                }
+        }
+
+        public void sendBookingCancellationEmail(Booking booking, User user, Flight flight) {
+                try {
+                        log.info("Sending booking cancellation email for booking {} to user {}",
+                                        booking.getBookingNumber(), user.getEmail());
+
+                        String departureTime = flight.getDepartureTime().format(DATE_TIME_FORMATTER);
+                        String arrivalTime = flight.getArrivalTime().format(DATE_TIME_FORMATTER);
+
+                        String departureCity = flight.getRoute().getOrigin().getCity();
+                        String arrivalCity = flight.getRoute().getDestination().getCity();
+
+                        String plainText = BookingCancellationEmailTemplates.getPlainText(
+                                        user.getFirstName(),
+                                        user.getLastName(),
+                                        booking.getBookingNumber(),
+                                        flight.getFlightNumber(),
+                                        departureTime,
+                                        arrivalTime,
+                                        departureCity,
+                                        arrivalCity,
+                                        booking.getTotalPrice());
+
+                        String htmlContent = BookingCancellationEmailTemplates.getHtml(
+                                        user.getFirstName(),
+                                        user.getLastName(),
+                                        booking.getBookingNumber(),
+                                        flight.getFlightNumber(),
+                                        departureTime,
+                                        arrivalTime,
+                                        departureCity,
+                                        arrivalCity,
+                                        booking.getTotalPrice());
+
+                        sendBookingEmail(
+                                        user.getEmail(),
+                                        BookingCancellationEmailTemplates.getSubject(),
+                                        plainText,
+                                        htmlContent);
+
+                        log.info("Booking cancellation email sent successfully to {}", user.getEmail());
+                } catch (Exception e) {
+                        log.error("Failed to send booking cancellation email to {}: {}",
                                         user.getEmail(), e.getMessage(), e);
                 }
         }

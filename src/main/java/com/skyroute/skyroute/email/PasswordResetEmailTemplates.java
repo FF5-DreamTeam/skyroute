@@ -27,77 +27,93 @@ public class PasswordResetEmailTemplates {
                             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                             <title>Password Reset - SkyRoute</title>
                         </head>
-                        <body
-                            style="
-                                margin: 0;
-                                padding: 0;
-                                font-family: Arial, sans-serif;
-                                background-color: #2c2c2c;
-                                color: #ffffff;
-                            "
-                        >
-                            <div style="max-width: 600px; margin: 0 auto; background-color: #2c2c2c">
-                                <!-- Header -->
-                                <div style="background-color: #4a9b9b; padding: 20px; text-align: center">
-                                    <img
-                                        src="cid:logo"
-                                        alt="SkyRoute Logo"
-                                        style="max-height: 60px; margin-bottom: 40px"
-                                    />
-                                    <h1 style="margin: 0; color: #ffffff; font-size: 24px">
-                                        Password Reset Request
-                                    </h1>
-                                </div>
+                        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+                            <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 40px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <!-- Main Container -->
+                                        <table width="600" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #4a9b9b 0%%, #6dbaba 100%%); border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #4a9b9b;">
+                                            <!-- Header -->
+                                            <tr>
+                                                <td align="center" style="padding: 40px 20px 30px 20px;">
+                                                    <img src="cid:logo" alt="SkyRoute Logo" style="max-height: 60px; margin-bottom: 20px;" />
+                                                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                                                        Password Reset Request
+                                                    </h1>
+                                                </td>
+                                            </tr>
 
-                                <!-- Content -->
-                                <div style="padding: 30px 20px">
-                                    <h2 style="color: #ffffff; margin-top: 0">
-                                        Dear %s %s,
-                                    </h2>
+                                            <!-- Content -->
+                                            <tr>
+                                                <td style="background-color: #ffffff; padding: 40px 30px;">
+                                                    <table width="100%%" cellpadding="0" cellspacing="0" border="0">
+                                                        <tr>
+                                                            <td>
+                                                                <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 22px;">
+                                                                    Dear %s %s,
+                                                                </h2>
 
-                                    <p style="font-size: 16px; line-height: 1.6; color: #ffffff">
-                                        You have requested to reset your password for your SkyRoute account.
-                                    </p>
+                                                                <p style="font-size: 16px; line-height: 1.6; color: #555555; margin: 0 0 15px 0;">
+                                                                    You have requested to reset your password for your SkyRoute account.
+                                                                </p>
 
-                                    <p style="font-size: 16px; line-height: 1.6; color: #ffffff">
-                                        To reset your password, please click on the button below:
-                                    </p>
+                                                                <p style="font-size: 16px; line-height: 1.6; color: #555555; margin: 0 0 30px 0;">
+                                                                    To reset your password, please click on the button below:
+                                                                </p>
 
-                                    <div style="text-align: center; margin: 30px 0">
-                                        <a href="http://localhost:3000/reset-password?token=%s"
-                                           style="
-                                               display: inline-block;
-                                               background-color: #4a9b9b;
-                                               color: #ffffff;
-                                               padding: 15px 30px;
-                                               text-decoration: none;
-                                               border-radius: 5px;
-                                               font-weight: bold;
-                                               font-size: 16px;
-                                           ">
-                                            Reset Password
-                                        </a>
-                                    </div>
+                                                                <!-- Button -->
+                                                                <table width="100%%" cellpadding="0" cellspacing="0" border="0">
+                                                                    <tr>
+                                                                        <td align="center" style="padding: 20px 0;">
+                                                                            <table cellpadding="0" cellspacing="0" border="0">
+                                                                                <tr>
+                                                                                    <td align="center" style="background-color: #f7a34f; border-radius: 8px; box-shadow: 0 2px 4px rgba(247,163,79,0.3);">
+                                                                                        <a href="http://localhost:3000/reset-password?token=%s" style="display: inline-block; padding: 14px 35px; font-size: 16px; color: #ffffff; text-decoration: none; font-weight: bold;">
+                                                                                            Reset Password
+                                                                                        </a>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
 
-                                    <p style="font-size: 14px; line-height: 1.6; color: #cccccc">
-                                        This link will expire in 1 hour for security reasons.
-                                    </p>
+                                                                <!-- Warning Box -->
+                                                                <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 25px;">
+                                                                    <tr>
+                                                                        <td style="background-color: #fff4e6; border-left: 4px solid #f7a34f; padding: 15px; border-radius: 5px;">
+                                                                            <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #666666;">
+                                                                                ⏱️ <strong>Important:</strong> This link will expire in 1 hour for security reasons.
+                                                                            </p>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
 
-                                    <p style="font-size: 14px; line-height: 1.6; color: #cccccc">
-                                        If you did not request this password reset, please ignore this email.
-                                    </p>
-                                </div>
+                                                                <p style="font-size: 14px; line-height: 1.6; color: #888888; margin: 20px 0 0 0;">
+                                                                    If you did not request this password reset, please ignore this email and your password will remain unchanged.
+                                                                </p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
 
-                                <!-- Footer -->
-                                <div style="background-color: #1a1a1a; padding: 20px; text-align: center">
-                                    <p style="margin: 0; color: #cccccc; font-size: 14px">
-                                        Best regards,<br />
-                                        SkyRoute Team
-                                    </p>
-                                </div>
-                            </div>
+                                            <!-- Footer -->
+                                            <tr>
+                                                <td align="center" style="background-color: #4a9b9b; padding: 25px 20px;">
+                                                    <p style="margin: 0; color: #ffffff; font-size: 14px; line-height: 1.6;">
+                                                        Best regards,<br />
+                                                        <strong>SkyRoute Team</strong>
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
                         </body>
                         </html>
-                        """, firstName, lastName, resetToken);
+                        """,
+                firstName, lastName, resetToken);
     }
 }

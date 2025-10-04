@@ -40,99 +40,143 @@ public class BookingEmailTemplates {
                             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
                             <title>Booking Confirmation - SkyRoute</title>
                         </head>
-                        <body
-                            style="
-                                margin: 0;
-                                padding: 0;
-                                font-family: Arial, sans-serif;
-                                background-color: #2c2c2c;
-                                color: #ffffff;
-                            "
-                        >
-                            <div style="max-width: 600px; margin: 0 auto; background-color: #2c2c2c">
+                        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+                            <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 40px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <!-- Main Container -->
+                                        <table width="600" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #4a9b9b 0%%, #6dbaba 100%%); border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #4a9b9b;">
                                 <!-- Header -->
-                                <div style="background-color: #4a9b9b; padding: 20px; text-align: center">
-                                    <img
-                                        src="cid:logo"
-                                        alt="SkyRoute Logo"
-                                        style="max-height: 60px; margin-bottom: 40px"
-                                    />
-                                    <h1 style="margin: 0; color: #ffffff; font-size: 24px">
-                                        Booking Confirmation
+                                            <tr>
+                                                <td align="center" style="padding: 40px 20px 30px 20px;">
+                                                    <img src="cid:logo" alt="SkyRoute Logo" style="max-height: 60px; margin-bottom: 20px;" />
+                                                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                                                        ✈️ Booking Created Successfully!
                                     </h1>
-                                </div>
+                                                </td>
+                                            </tr>
 
                                 <!-- Content -->
-                                <div style="padding: 30px 20px">
-                                    <h2 style="color: #ffffff; margin-top: 0">
+                                            <tr>
+                                                <td style="background-color: #ffffff; padding: 40px 30px;">
+                                                    <table width="100%%" cellpadding="0" cellspacing="0" border="0">
+                                                        <tr>
+                                                            <td>
+                                                                <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 22px;">
                                         Dear %s %s,
                                     </h2>
 
-                                    <p style="font-size: 16px; line-height: 1.6; color: #ffffff">
-                                        Your flight booking has been created!
-                                    </p>
+                                                                <p style="font-size: 16px; line-height: 1.6; color: #555555; margin: 0 0 25px 0;">
+                                                                    Your flight booking has been created successfully! Below are your booking details:
+                                                                </p>
 
-                                    <div
-                                        style="
-                                            background-color: #3a3a3a;
-                                            padding: 20px;
-                                            border-radius: 5px;
-                                            margin: 20px 0;
-                                        "
-                                    >
-                                        <h3 style="color: #ffffff; margin-top: 0">Booking Details:</h3>
-                                        <p style="margin: 5px 0; font-size: 16px; color: #ffffff">
-                                            <strong>Booking Number:</strong> %s
-                                        </p>
-                                        <p style="margin: 5px 0; font-size: 16px; color: #ffffff">
-                                            <strong>Flight Number:</strong> %s
-                                        </p>
-                                        <p style="margin: 5px 0; font-size: 16px; color: #ffffff">
-                                            <strong>Route:</strong> %s → %s
-                                        </p>
-                                        <p style="margin: 5px 0; font-size: 16px; color: #ffffff">
-                                            <strong>Departure:</strong> %s
-                                        </p>
-                                        <p style="margin: 5px 0; font-size: 16px; color: #ffffff">
-                                            <strong>Arrival:</strong> %s
-                                        </p>
-                                        <p style="margin: 5px 0; font-size: 16px; color: #ffffff">
-                                            <strong>Total Price:</strong> $%.2f
-                                        </p>
-                                    </div>
+                                                                <!-- Booking Details Table -->
+                                                                <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f8f9fa; border: 2px solid #4a9b9b; border-radius: 10px; overflow: hidden; margin-bottom: 25px;">
+                                                                    <tr>
+                                                                        <td colspan="2" style="background-color: #4a9b9b; padding: 15px; text-align: center;">
+                                                                            <h3 style="margin: 0; color: #ffffff; font-size: 18px;">Flight Details</h3>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td style="padding: 12px 20px; border-bottom: 1px solid #e0e0e0; width: 40%%; background-color: #ffffff;">
+                                                                            <strong style="color: #4a9b9b;">Booking Number:</strong>
+                                                                        </td>
+                                                                        <td style="padding: 12px 20px; border-bottom: 1px solid #e0e0e0; background-color: #ffffff;">
+                                                                            <span style="color: #333333; font-weight: bold; font-size: 16px;">%s</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td style="padding: 12px 20px; border-bottom: 1px solid #e0e0e0; background-color: #f8f9fa;">
+                                                                            <strong style="color: #4a9b9b;">Flight Number:</strong>
+                                                                        </td>
+                                                                        <td style="padding: 12px 20px; border-bottom: 1px solid #e0e0e0; background-color: #f8f9fa;">
+                                                                            <span style="color: #333333;">%s</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td style="padding: 12px 20px; border-bottom: 1px solid #e0e0e0; background-color: #ffffff;">
+                                                                            <strong style="color: #4a9b9b;">Route:</strong>
+                                                                        </td>
+                                                                        <td style="padding: 12px 20px; border-bottom: 1px solid #e0e0e0; background-color: #ffffff;">
+                                                                            <span style="color: #333333;">%s → %s</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td style="padding: 12px 20px; border-bottom: 1px solid #e0e0e0; background-color: #f8f9fa;">
+                                                                            <strong style="color: #4a9b9b;">Departure:</strong>
+                                                                        </td>
+                                                                        <td style="padding: 12px 20px; border-bottom: 1px solid #e0e0e0; background-color: #f8f9fa;">
+                                                                            <span style="color: #333333;">🛫 %s</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td style="padding: 12px 20px; border-bottom: 1px solid #e0e0e0; background-color: #ffffff;">
+                                                                            <strong style="color: #4a9b9b;">Arrival:</strong>
+                                                                        </td>
+                                                                        <td style="padding: 12px 20px; border-bottom: 1px solid #e0e0e0; background-color: #ffffff;">
+                                                                            <span style="color: #333333;">🛬 %s</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td style="padding: 12px 20px; background-color: #f8f9fa;">
+                                                                            <strong style="color: #4a9b9b;">Total Price:</strong>
+                                                                        </td>
+                                                                        <td style="padding: 12px 20px; background-color: #f8f9fa;">
+                                                                            <span style="color: #f7a34f; font-weight: bold; font-size: 18px;">$%.2f</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
 
-                                    <p style="font-size: 16px; line-height: 1.6; color: #ffffff">
-                                        Please arrive at the airport at least 2 hours before departure.
-                                    </p>
+                                                                <!-- Info Box -->
+                                                                <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 25px;">
+                                                                    <tr>
+                                                                        <td style="background-color: #e8f5f5; border-left: 4px solid #4a9b9b; padding: 15px; border-radius: 5px;">
+                                                                            <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #555555;">
+                                                                                ℹ️ <strong>Important:</strong> Please arrive at the airport at least 2 hours before departure.
+                                                                            </p>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
 
-                                    <div style="text-align: center; margin: 30px 0">
-                                        <a
-                                            href="http://localhost:3000/login/"
-                                            style="
-                                                background-color: #f7a34f;
-                                                color: #ffffff !important;
-                                                padding: 12px 30px;
-                                                text-decoration: none;
-                                                border-radius: 5px;
-                                                font-weight: bold;
-                                                display: inline-block;
-                                                text-decoration: none !important;
-                                            "
-                                        >
-                                            <span style="color: #ffffff !important; text-decoration: none !important;">View Your Bookings</span>
-                                        </a>
-                                    </div>
+                                                                <!-- Button -->
+                                                                <table width="100%%" cellpadding="0" cellspacing="0" border="0">
+                                                                    <tr>
+                                                                        <td align="center" style="padding: 20px 0;">
+                                                                            <table cellpadding="0" cellspacing="0" border="0">
+                                                                                <tr>
+                                                                                    <td align="center" style="background-color: #f7a34f; border-radius: 8px; box-shadow: 0 2px 4px rgba(247,163,79,0.3);">
+                                                                                        <a href="http://localhost:3000/login/" style="display: inline-block; padding: 14px 35px; font-size: 16px; color: #ffffff; text-decoration: none; font-weight: bold;">
+                                                                                            View Your Bookings
+                                                                                        </a>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
 
-                                    <p style="font-size: 16px; line-height: 1.6; color: #ffffff">
+                                                                <p style="font-size: 16px; line-height: 1.6; color: #555555; margin: 20px 0 0 0;">
                                         Thank you for choosing SkyRoute!
                                     </p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
 
-                                    <p style="font-size: 16px; line-height: 1.6; color: #ffffff">
+                                            <!-- Footer -->
+                                            <tr>
+                                                <td align="center" style="background-color: #4a9b9b; padding: 25px 20px;">
+                                                    <p style="margin: 0; color: #ffffff; font-size: 14px; line-height: 1.6;">
                                         Best regards,<br />
-                                        SkyRoute Team
-                                    </p>
-                                </div>
-                            </div>
+                                                        <strong>SkyRoute Team</strong>
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
                         </body>
                         </html>
                         """,

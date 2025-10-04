@@ -80,7 +80,7 @@ class BookingEmailTemplatesTest {
         assertNotNull(html);
         assertTrue(html.contains("<!DOCTYPE html>"));
         assertTrue(html.contains("Dear Jane Smith,"));
-        assertTrue(html.contains("Your flight booking has been created!"));
+        assertTrue(html.contains("Your flight booking has been created successfully!"));
         assertTrue(html.contains("BK789012"));
         assertTrue(html.contains("SR002"));
         assertTrue(html.contains("Chicago → Miami"));
