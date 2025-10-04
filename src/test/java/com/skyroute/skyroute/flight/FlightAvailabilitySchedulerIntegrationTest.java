@@ -18,7 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 @ActiveProfiles("test")
 @SpringBootTest
 @TestPropertySource(properties = {
-        "spring.task.scheduling.enabled=false"
+        "spring.task.scheduling.enabled=false",
+        "app.scheduler.enabled=true"
 })
 public class FlightAvailabilitySchedulerIntegrationTest {
 
@@ -65,7 +66,6 @@ public class FlightAvailabilitySchedulerIntegrationTest {
                 .when(flightService)
                 .markFlightsAsUnavailableAndReleaseSeats(any(LocalDateTime.class));
 
-        // Verificamos que no lanza la excepción al nivel del scheduler
         assertDoesNotThrow(() -> scheduler.updateFlightsAvailability());
 
         verifyServiceInvocation(1);
