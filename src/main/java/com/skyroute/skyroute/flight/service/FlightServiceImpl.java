@@ -71,7 +71,7 @@ public class FlightServiceImpl implements FlightService {
                 .originEquals(origin)
                 .destinationEquals(destination)
                 .pricelessThanOrEqual(budget)
-                .onlyAvailable(Optional.of(now))
+                .onlyAvailable(Optional.of(now), true)
                 .build();
         return flightRepository.findAll(specification, pageable)
                 .map(FlightMapper::toSimpleResponse);
@@ -207,4 +207,17 @@ public class FlightServiceImpl implements FlightService {
         Flight savedFlight = flightRepository.save(flight);
         return FlightMapper.toResponse(savedFlight);
     }
+
+    @Override
+    public void updateAvailabilityIfNeeded(Long flightId) {
+        Flight flight = findById(flightId);
+        LocalDateTime now = LocalDateTime.now();
+
+        if (flight.getAvailableSeats() <= 0 || flight.getDepartureTime().isBefore(now)) {
+            flight.setAvailable(false);
+            flightRepository.save(flight);
+        }
+    }
+
+
 }
