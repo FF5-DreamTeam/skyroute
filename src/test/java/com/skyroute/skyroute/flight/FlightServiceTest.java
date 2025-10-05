@@ -26,10 +26,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ActiveProfiles;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
@@ -234,7 +236,7 @@ class FlightServiceTest {
     }
 
     @Nested
-    class  CreateFlightTests{
+    class CreateFlightTests {
         @Test
         void createFlight_shouldReturnFlightResponse_whenValidRequest() {
             FlightRequest request = createFlightRequest();
@@ -330,8 +332,8 @@ class FlightServiceTest {
     void getMinPricesByDestinations_shouldReturnMinPrices_whenValidDestinations() {
         List<String> destinationCodes = List.of("BCN", "MAD");
         List<Object[]> mockResults = new ArrayList<>();
-        mockResults.add(new Object[] { "BCN", "Barcelona", 299.0 });
-        mockResults.add(new Object[] { "MAD", "Madrid", 249.0 });
+        mockResults.add(new Object[]{"BCN", "Barcelona", 299.0});
+        mockResults.add(new Object[]{"MAD", "Madrid", 249.0});
 
         when(flightRepository.findMinPricesByDestinations(anyList())).thenReturn(mockResults);
 
@@ -366,7 +368,7 @@ class FlightServiceTest {
     void getMinPricesByDestinations_shouldHandleSingleDestination() {
         List<String> destinationCodes = List.of("BCN");
         List<Object[]> mockResults = new ArrayList<>();
-        mockResults.add(new Object[] { "BCN", "Barcelona", 299.0 });
+        mockResults.add(new Object[]{"BCN", "Barcelona", 299.0});
 
         when(flightRepository.findMinPricesByDestinations(anyList())).thenReturn(mockResults);
 
@@ -382,9 +384,9 @@ class FlightServiceTest {
     }
 
     @Nested
-    class UpdateFlightTests{
+    class UpdateFlightTests {
         @Test
-        void updateFlight_shouldReturnUpdatedFlight_whenValidRequest(){
+        void updateFlight_shouldReturnUpdatedFlight_whenValidRequest() {
             FlightUpdate update = createFlightUpdate();
 
             when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
@@ -677,6 +679,8 @@ class FlightServiceTest {
         @Test
         void releaseSeats_shouldIncreaseAvailableSeats_whenValidRequest() {
             testFlight.setAvailableSeats(140);
+            testFlight.setDepartureTime(LocalDateTime.now().plusDays(1));
+            testFlight.setArrivalTime(LocalDateTime.now().plusDays(1).plusHours(2));
             when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
             doNothing().when(flightValidator).validateSeatsToRelease(10);
             when(flightRepository.save(testFlight)).thenReturn(testFlight);
@@ -686,6 +690,24 @@ class FlightServiceTest {
             assertEquals(150, testFlight.getAvailableSeats());
             verify(flightRepository).findById(1L);
             verify(flightValidator).validateSeatsToRelease(10);
+            verify(flightRepository).save(testFlight);
+        }
+
+        @Test
+        void releaseSeats_shouldReactivateFlight_whenSeatsReleasedAndFlightNotDeparted() {
+            testFlight.setAvailableSeats(0);
+            testFlight.setAvailable(false);
+            testFlight.setDepartureTime(LocalDateTime.now().plusHours(2));
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            doNothing().when(flightValidator).validateSeatsToRelease(5);
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            flightService.releaseSeats(1L, 5);
+
+            assertEquals(5, testFlight.getAvailableSeats());
+            assertTrue(testFlight.isAvailable(), "The flight should become available again");
+            verify(flightRepository).findById(1L);
+            verify(flightValidator).validateSeatsToRelease(5);
             verify(flightRepository).save(testFlight);
         }
 
@@ -965,7 +987,7 @@ class FlightServiceTest {
                 .build();
     }
 
-    private Flight createFlight(Long id, String flightNumber, Aircraft aircraft, Route route, int availableSeats, boolean available){
+    private Flight createFlight(Long id, String flightNumber, Aircraft aircraft, Route route, int availableSeats, boolean available) {
         return Flight.builder()
                 .id(id)
                 .flightNumber(flightNumber)
@@ -1002,7 +1024,7 @@ class FlightServiceTest {
         );
     }
 
-    private Flight createFlight(Long id, String flightNumber, Aircraft aircraft, Route route){
+    private Flight createFlight(Long id, String flightNumber, Aircraft aircraft, Route route) {
         return createFlight(id, flightNumber, aircraft, route, 100, true);
     }
 }
