@@ -5,8 +5,6 @@ import com.skyroute.skyroute.aircraft.controller.AircraftController;
 import com.skyroute.skyroute.aircraft.dto.AircraftRequest;
 import com.skyroute.skyroute.aircraft.dto.AircraftResponse;
 import com.skyroute.skyroute.aircraft.service.AircraftService;
-import com.skyroute.skyroute.shared.exception.custom_exception.AircraftDeletionException;
-import com.skyroute.skyroute.shared.exception.custom_exception.AircraftNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AircraftController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@ContextConfiguration(classes = {AircraftController.class, AircraftControllerTest.TestConfig.class})
+@ContextConfiguration(classes = { AircraftController.class, AircraftControllerTest.TestConfig.class })
 @ActiveProfiles("test")
 @DisplayName("Aircraft Controller Tests")
 class AircraftControllerTest {
@@ -77,8 +75,8 @@ class AircraftControllerTest {
         when(aircraftService.createAircraft(any(AircraftRequest.class))).thenReturn(aircraftResponse);
 
         mockMvc.perform(post("/api/aircrafts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validAircraftRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(validAircraftRequest)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -96,8 +94,8 @@ class AircraftControllerTest {
         AircraftRequest invalidRequest = new AircraftRequest("", "Boeing", 180);
 
         mockMvc.perform(post("/api/aircrafts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -110,8 +108,8 @@ class AircraftControllerTest {
         AircraftRequest invalidRequest = new AircraftRequest("Boeing 737", "", 180);
 
         mockMvc.perform(post("/api/aircrafts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -124,8 +122,8 @@ class AircraftControllerTest {
         AircraftRequest invalidRequest = new AircraftRequest("Boeing 737", "Boeing", null);
 
         mockMvc.perform(post("/api/aircrafts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -138,8 +136,8 @@ class AircraftControllerTest {
         AircraftRequest invalidRequest = new AircraftRequest("Boeing 737", "Boeing", 0);
 
         mockMvc.perform(post("/api/aircrafts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -150,7 +148,7 @@ class AircraftControllerTest {
     @DisplayName("Should return 400 when request body is missing")
     void createAircraft_ShouldReturnBadRequest_WhenRequestBodyIsMissing() throws Exception {
         mockMvc.perform(post("/api/aircrafts")
-                        .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -174,7 +172,6 @@ class AircraftControllerTest {
         verify(aircraftService, times(1)).getAircraftById(1L);
     }
 
-
     @Test
     @DisplayName("Should return 400 when id is invalid")
     void getAircraft_ShouldReturnBadRequest_WhenIdIsInvalid() throws Exception {
@@ -184,7 +181,6 @@ class AircraftControllerTest {
 
         verify(aircraftService, never()).getAircraftById(anyLong());
     }
-
 
     @Test
     @DisplayName("Should return list of aircrafts when aircrafts exist")
@@ -228,8 +224,8 @@ class AircraftControllerTest {
         when(aircraftService.updateAircraft(eq(1L), any(AircraftRequest.class))).thenReturn(updatedResponse);
 
         mockMvc.perform(put("/api/aircrafts/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -240,16 +236,14 @@ class AircraftControllerTest {
         verify(aircraftService, times(1)).updateAircraft(eq(1L), any(AircraftRequest.class));
     }
 
-
-
     @Test
     @DisplayName("Should return 400 when update request has invalid data")
     void updateAircraft_ShouldReturnBadRequest_WhenInvalidRequest() throws Exception {
         AircraftRequest invalidRequest = new AircraftRequest("", "", -1);
 
         mockMvc.perform(put("/api/aircrafts/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -260,7 +254,7 @@ class AircraftControllerTest {
     @DisplayName("Should return 400 when update request body is missing")
     void updateAircraft_ShouldReturnBadRequest_WhenRequestBodyIsMissing() throws Exception {
         mockMvc.perform(put("/api/aircrafts/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -279,7 +273,6 @@ class AircraftControllerTest {
         verify(aircraftService, times(1)).deleteAircraft(1L);
     }
 
-
     @Test
     @DisplayName("Should return 400 when delete id is invalid")
     void deleteAircraft_ShouldReturnBadRequest_WhenIdIsInvalid() throws Exception {
@@ -290,7 +283,6 @@ class AircraftControllerTest {
         verify(aircraftService, never()).deleteAircraft(anyLong());
     }
 
-
     @Test
     @DisplayName("Should handle very large capacity value")
     void createAircraft_ShouldHandleLargeCapacity_WhenValid() throws Exception {
@@ -300,8 +292,8 @@ class AircraftControllerTest {
         when(aircraftService.createAircraft(any(AircraftRequest.class))).thenReturn(largeCapacityResponse);
 
         mockMvc.perform(post("/api/aircrafts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(largeCapacityRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(largeCapacityRequest)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.capacity").value(853));
@@ -318,8 +310,8 @@ class AircraftControllerTest {
         when(aircraftService.createAircraft(any(AircraftRequest.class))).thenReturn(specialCharResponse);
 
         mockMvc.perform(post("/api/aircrafts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(specialCharRequest)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(specialCharRequest)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.model").value("Boeing 737-800 MAX"));

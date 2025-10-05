@@ -5,8 +5,6 @@ import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.route.entity.Route;
 import com.skyroute.skyroute.shared.BaseEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.Min;
 import lombok.*;
 
 import java.time.LocalDateTime;

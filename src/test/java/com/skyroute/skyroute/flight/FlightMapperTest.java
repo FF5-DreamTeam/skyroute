@@ -12,8 +12,6 @@ import com.skyroute.skyroute.route.entity.Route;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
-
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,7 +40,7 @@ public class FlightMapperTest {
     @Nested
     class ToEntityTests {
         @Test
-        void toEntity_shouldMapAllFields_whenValidRequest(){
+        void toEntity_shouldMapAllFields_whenValidRequest() {
             FlightRequest request = new FlightRequest(
                     "SR001",
                     150,
@@ -51,8 +49,7 @@ public class FlightMapperTest {
                     299.99,
                     1L,
                     1L,
-                    true
-            );
+                    true);
 
             Flight result = flightMapper.toEntity(request);
 
@@ -66,7 +63,7 @@ public class FlightMapperTest {
         }
 
         @Test
-        void toEntity_shouldSetAvailableToTrue_whenAvailableIsNull(){
+        void toEntity_shouldSetAvailableToTrue_whenAvailableIsNull() {
             FlightRequest request = new FlightRequest(
                     "SR001",
                     150,
@@ -75,8 +72,7 @@ public class FlightMapperTest {
                     299.99,
                     1L,
                     1L,
-                    null
-            );
+                    null);
 
             Flight result = flightMapper.toEntity(request);
 
@@ -85,7 +81,7 @@ public class FlightMapperTest {
         }
 
         @Test
-        void toEntity_shouldSetAvailableToFalse_whenExplicitlySetToFalse(){
+        void toEntity_shouldSetAvailableToFalse_whenExplicitlySetToFalse() {
             FlightRequest request = new FlightRequest(
                     "SR001",
                     150,
@@ -94,8 +90,7 @@ public class FlightMapperTest {
                     299.99,
                     1L,
                     1L,
-                    false
-            );
+                    false);
 
             Flight result = flightMapper.toEntity(request);
 
@@ -111,7 +106,7 @@ public class FlightMapperTest {
         }
 
         @Test
-        void toEntity_shouldNotSetAircraftAndRoute(){
+        void toEntity_shouldNotSetAircraftAndRoute() {
             FlightRequest request = new FlightRequest(
                     "SR001",
                     150,
@@ -120,8 +115,7 @@ public class FlightMapperTest {
                     299.99,
                     1L,
                     1L,
-                    true
-            );
+                    true);
 
             Flight result = flightMapper.toEntity(request);
 
@@ -131,7 +125,7 @@ public class FlightMapperTest {
         }
 
         @Test
-        void toEntity_shouldMapWithZeroSeats(){
+        void toEntity_shouldMapWithZeroSeats() {
             FlightRequest request = new FlightRequest(
                     "SR001",
                     0,
@@ -140,8 +134,7 @@ public class FlightMapperTest {
                     299.99,
                     1L,
                     1L,
-                    true
-            );
+                    true);
 
             Flight result = flightMapper.toEntity(request);
 
@@ -159,8 +152,7 @@ public class FlightMapperTest {
                     0.0,
                     1L,
                     1L,
-                    true
-            );
+                    true);
 
             Flight result = flightMapper.toEntity(request);
 
@@ -170,9 +162,9 @@ public class FlightMapperTest {
     }
 
     @Nested
-    class ToSimpleResponseTests{
+    class ToSimpleResponseTests {
         @Test
-        void toSimpleResponse_shouldMapAllFields_whenFlightHasAllData(){
+        void toSimpleResponse_shouldMapAllFields_whenFlightHasAllData() {
             Flight flight = createFlight(1L, "SR001", testAircraft, testRoute);
 
             FlightSimpleResponse result = FlightMapper.toSimpleResponse(flight);
