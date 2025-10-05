@@ -1,10 +1,7 @@
 package com.skyroute.skyroute.booking.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.skyroute.skyroute.booking.dto.BookingFilterRequest;
 import com.skyroute.skyroute.booking.dto.BookingResponse;
-import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.booking.service.BookingFilterService;
 import com.skyroute.skyroute.user.entity.User;
 import com.skyroute.skyroute.user.enums.Role;
@@ -72,9 +69,11 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldReturnFilteredBookings_whenNoFiltersProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings"))
                     .andExpect(status().isOk())
@@ -89,12 +88,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldFilterByStatus_whenStatusProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                                .param("bookingStatus", "CREATED" ))
+                    .param("bookingStatus", "CREATED"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray())
@@ -106,12 +107,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldFilterByBookingNumber_whenBookingNumberProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                                .param("bookingNumber", "SR-ABC123"))
+                    .param("bookingNumber", "SR-ABC123"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content[0].bookingNumber").value("SR-ABC123"));
@@ -123,12 +126,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldFilterByFlightDepartureDate_whenDateProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                            .param("flightDepartureDate", "2020-12-31"))
+                    .param("flightDepartureDate", "2020-12-31"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -140,12 +145,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldFilterByMinPrice_whenMinPriceProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                            .param("minPrice", "100.0"))
+                    .param("minPrice", "100.0"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content[0].totalPrice").value(399.99));
@@ -157,12 +164,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldFilterByOriginAirport_whenOriginProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                            .param("originAirport", "Madrid"))
+                    .param("originAirport", "Madrid"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content[0].originAirport").value("Madrid"));
@@ -174,12 +183,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldFilterByDestinationAirport_whenDestinationProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                            .param("destinationAirport", "Valencia"))
+                    .param("destinationAirport", "Valencia"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content[0].destinationAirport").value("Valencia"));
@@ -191,12 +202,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldFilterByPassengerName_whenPassengerNameProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                            .param("passengerName", "Pepa"))
+                    .param("passengerName", "Pepa"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content[0].passengerNames[0]").value("Pepa"));
@@ -208,12 +221,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldFilterFutureFlights_whenFutureFlightsOnlyIsTrue() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                            .param("futureFlightsOnly", "true"))
+                    .param("futureFlightsOnly", "true"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -225,16 +240,18 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldApplyMultipleFilters_whenMultipleFiltersProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                        .param("bookingStatus", "CREATED")
-                        .param("originAirport", "Madrid")
-                        .param("destinationAirport", "Valencia")
-                        .param("minPrice", "100.0")
-                            .param("futureFlightsOnly", "true"))
+                    .param("bookingStatus", "CREATED")
+                    .param("originAirport", "Madrid")
+                    .param("destinationAirport", "Valencia")
+                    .param("minPrice", "100.0")
+                    .param("futureFlightsOnly", "true"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -246,13 +263,15 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldApplyPagination_whenPaginationParamsProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                            .param("page", "1")
-                            .param("size", "5"))
+                    .param("page", "1")
+                    .param("size", "5"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -264,13 +283,15 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "USER")
         void filterMyBookings_shouldApplySorting_whenSortParamsProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                            .param("sortBy", "totalPrice")
-                            .param("sortDirection", "ASC"))
+                    .param("sortBy", "totalPrice")
+                    .param("sortDirection", "ASC"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -284,10 +305,11 @@ public class BookingFilterControllerTest {
         void filterMyBookings_shouldReturnEmptyPage_whenNoBookingsMatchFilters() throws Exception {
             Page<BookingResponse> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
             when(userService.getCurrentUser()).thenReturn(testUser);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser))).thenReturn(emptyPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testUser)))
+                    .thenReturn(emptyPage);
 
             mockMvc.perform(get("/api/bookings/filter/my-bookings")
-                            .param("bookingStatus", "CANCELLED"))
+                    .param("bookingStatus", "CANCELLED"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -320,9 +342,11 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldReturnFilteredBookings_whenNoFiltersProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin"))
                     .andExpect(status().isOk())
@@ -337,12 +361,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldFilterByUserId_whenUserIdProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("userId", "1"))
+                    .param("userId", "1"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -353,12 +379,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldFilterByUserEmail_whenUserEmailProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("userEmail", "test@email.com"))
+                    .param("userEmail", "test@email.com"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -369,12 +397,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldFilterByUserName_whenUserNameProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("userName", "Test User"))
+                    .param("userName", "Test User"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -385,12 +415,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldFilterByFlightId_whenFlightIdProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("flightId", "1"))
+                    .param("flightId", "1"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content[0].flightId").value(1));
@@ -401,12 +433,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldFilterByFlightNumber_whenFlightNumberProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("flightNumber", "SK123"))
+                    .param("flightNumber", "SK123"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content[0].flightNumber").value("SK123"));
@@ -417,12 +451,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldFilterByMaxPrice_whenMaxPriceProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("maxPrice", "500.0"))
+                    .param("maxPrice", "500.0"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content[0].totalPrice").value(399.99));
@@ -433,13 +469,15 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldFilterByPriceRange_whenMinAndMaxPriceProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("minPrice", "100.0")
-                            .param("maxPrice", "500.0"))
+                    .param("minPrice", "100.0")
+                    .param("maxPrice", "500.0"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content[0].totalPrice").value(399.99));
@@ -450,12 +488,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldFilterActiveBookings_whenActiveOnlyIsTrue() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("activeOnly","true"))
+                    .param("activeOnly", "true"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -466,12 +506,14 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldFilterPendingBookings_whenPendingOnlyIsTrue() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("pendingOnly","true"))
+                    .param("pendingOnly", "true"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -482,22 +524,24 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldApplyAllFilters_whenAllFiltersProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10), 1);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(0, 10),
+                    1);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("bookingStatus", "CREATED")
-                            .param("userId", "1")
-                            .param("userEmail", "test@email.com")
-                            .param("flightId", "1")
-                            .param("flightNumber", "SK123")
-                            .param("minPrice", "100.0")
-                            .param("maxPrice", "500.0")
-                            .param("originAirport", "Madrid")
-                            .param("destinationAirport", "Valencia")
-                            .param("activeOnly", "true")
-                            .param("futureFlightsOnly", "true"))
+                    .param("bookingStatus", "CREATED")
+                    .param("userId", "1")
+                    .param("userEmail", "test@email.com")
+                    .param("flightId", "1")
+                    .param("flightNumber", "SK123")
+                    .param("minPrice", "100.0")
+                    .param("maxPrice", "500.0")
+                    .param("originAirport", "Madrid")
+                    .param("destinationAirport", "Valencia")
+                    .param("activeOnly", "true")
+                    .param("futureFlightsOnly", "true"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content[0].bookingNumber").value("SR-ABC123"));
@@ -527,10 +571,11 @@ public class BookingFilterControllerTest {
         void filterAdminBookings_shouldReturnEmptyPage_whenNoBookingsMatchFilters() throws Exception {
             Page<BookingResponse> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(emptyPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(emptyPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("userId", "999"))
+                    .param("userId", "999"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -541,15 +586,17 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldApplyPaginationAndSorting_whenParamsProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(2, 20), 100);
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(2, 20),
+                    100);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
-            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin))).thenReturn(bookingPage);
+            when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
+                    .thenReturn(bookingPage);
 
             mockMvc.perform(get("/api/bookings/filter/admin")
-                            .param("page", "2")
-                            .param("size", "20")
-                            .param("sortBy", "totalPrice")
-                            .param("sortDirection", "DESC"))
+                    .param("page", "2")
+                    .param("size", "20")
+                    .param("sortBy", "totalPrice")
+                    .param("sortDirection", "DESC"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.content").isArray());
@@ -566,14 +613,15 @@ public class BookingFilterControllerTest {
                 .email("test@email.com")
                 .password("encodedPassword")
                 .phoneNumber("+123456789")
-                .birthDate(LocalDate.of(1990,1, 1))
+                .birthDate(LocalDate.of(1990, 1, 1))
                 .role(role)
                 .build();
     }
 
     private BookingResponse createBookingResponse() {
         return new BookingResponse(
-                1L, "SR-ABC123", CREATED, 1L, "SK123", "Madrid", "Valencia", LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(1).plusHours(2), List.of("Pepa", "Maria"), List.of("1990, 1, 1", "1991, 1, 1"), 2, 399.99, LocalDateTime.now(), LocalDateTime.now()
-        );
+                1L, "SR-ABC123", CREATED, 1L, "SK123", "Madrid", "Valencia", LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(1).plusHours(2), List.of("Pepa", "Maria"),
+                List.of("1990, 1, 1", "1991, 1, 1"), 2, 399.99, LocalDateTime.now(), LocalDateTime.now());
     }
 }

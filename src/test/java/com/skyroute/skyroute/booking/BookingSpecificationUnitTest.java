@@ -3,9 +3,7 @@ package com.skyroute.skyroute.booking;
 import com.skyroute.skyroute.booking.entity.Booking;
 import com.skyroute.skyroute.booking.enums.BookingStatus;
 import com.skyroute.skyroute.booking.specification.BookingSpecification;
-import com.skyroute.skyroute.flight.entity.Flight;
 import jakarta.persistence.criteria.*;
-import org.hibernate.type.descriptor.java.ObjectJavaType;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -129,7 +127,8 @@ public class BookingSpecificationUnitTest {
         @Test
         void hasFlightDepartureDate_shouldReturnPredicate_whenDateProvided() {
             LocalDate departureDate = LocalDate.of(2025, 12, 1);
-            when(criteriaBuilder.between(any(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(predicate);
+            when(criteriaBuilder.between(any(), any(LocalDateTime.class), any(LocalDateTime.class)))
+                    .thenReturn(predicate);
             when(root.join(eq("flight"), any())).thenReturn(flightJoin);
             Specification<Booking> specification = BookingSpecification.hasFlightDepartureDate(departureDate);
             Predicate result = specification.toPredicate(root, query, criteriaBuilder);
@@ -436,8 +435,7 @@ public class BookingSpecificationUnitTest {
             when(destinationJoin.get("city")).thenReturn(cityPath);
             when(destinationJoin.get("code")).thenReturn(codePath);
             when(criteriaBuilder.lower(cityPath)).thenReturn(lowerExpression);
-            when(criteriaBuilder.upper(codePath)
-            ).thenReturn(upperExpression);
+            when(criteriaBuilder.upper(codePath)).thenReturn(upperExpression);
             when(criteriaBuilder.like(eq(lowerExpression), anyString())).thenReturn(predicate);
             when(criteriaBuilder.equal(eq(upperExpression), anyString())).thenReturn(predicate);
             when(criteriaBuilder.or(any(Predicate.class), any(Predicate.class))).thenReturn(predicate);
@@ -571,6 +569,5 @@ public class BookingSpecificationUnitTest {
             verify(criteriaBuilder).equal(any(), eq(BookingStatus.CREATED));
         }
     }
-
 
 }
