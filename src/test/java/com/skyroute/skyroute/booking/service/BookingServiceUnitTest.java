@@ -152,6 +152,7 @@ public class BookingServiceUnitTest {
             verify(flightService).isFlightAvailable(1L);
             verify(flightService).hasAvailableSeats(1L, 2);
             verify(flightService).bookSeats(1L, 2);
+            verify(flightService).updateAvailabilityIfNeeded(1L);
             verify(bookingRepository).save(any(Booking.class));
             verify(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class), any(Flight.class));
         }
