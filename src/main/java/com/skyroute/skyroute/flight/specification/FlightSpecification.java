@@ -96,7 +96,7 @@ public class FlightSpecification {
 
     public static Specification<Flight> isOnlyAvailable(LocalDateTime now, boolean filterOnlyAvailable) {
         if (!filterOnlyAvailable) {
-            return null;
+            return (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
         }
 
         return (root, query, criteriaBuilder) ->
@@ -119,5 +119,4 @@ public class FlightSpecification {
                         criteriaBuilder.lessThan(root.get("departureTime"), now)
                 );
     }
-
 }

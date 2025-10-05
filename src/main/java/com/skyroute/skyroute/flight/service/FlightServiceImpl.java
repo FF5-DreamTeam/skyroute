@@ -218,6 +218,4 @@ public class FlightServiceImpl implements FlightService {
             flightRepository.save(flight);
         }
     }
-
-
 }
