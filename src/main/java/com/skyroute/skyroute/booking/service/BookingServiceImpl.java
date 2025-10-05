@@ -35,7 +35,7 @@ public class BookingServiceImpl implements BookingService {
             "flightNumber");
 
     public BookingServiceImpl(BookingRepository bookingRepository, FlightService flightService,
-            EmailService emailService) {
+                              EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.flightService = flightService;
         this.emailService = emailService;
@@ -51,7 +51,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public Page<BookingResponse> getAllBookingsUser(User user, int page, int size, String sortBy,
-            String sortDirection) {
+                                                    String sortDirection) {
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         return bookingRepository.findAllByUser(pageable, user).map(booking -> BookingMapper.toDto(booking));
     }
@@ -71,12 +71,14 @@ public class BookingServiceImpl implements BookingService {
         Double totalPrice = calculateTotalPrice(flight, request.bookedSeats());
         Booking booking = BookingMapper.toEntity(request, user, flight, totalPrice);
         flightService.bookSeats(request.flightId(), request.bookedSeats());
+        flightService.updateAvailabilityIfNeeded(request.flightId());
         Booking savedBooking = bookingRepository.save(booking);
 
         emailService.sendBookingConfirmationEmail(savedBooking, user, flight);
 
         return BookingMapper.toDto(savedBooking);
     }
+
 
     @Override
     public BookingResponse updateBookingStatus(Long id, BookingStatus newStatus, User user) {
