@@ -829,6 +829,117 @@ class FlightServiceTest {
         }
     }
 
+    @Nested
+    class UpdateAvailabilityIfNeededTests {
+        @Test
+        void updateAvailabilityIfNeeded_shouldSetFlightToUnavailable_whenNoSeatsAvailable() {
+            testFlight.setAvailableSeats(0);
+            testFlight.setAvailable(true);
+            testFlight.setDepartureTime(LocalDateTime.now().plusDays(1));
+
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            flightService.updateAvailabilityIfNeeded(1L);
+
+            assertFalse(testFlight.isAvailable());
+            verify(flightRepository).findById(1L);
+            verify(flightRepository).save(testFlight);
+        }
+
+        @Test
+        void updateAvailabilityIfNeeded_shouldSetFlightToUnavailable_whenDepartureTimeHasPassed() {
+            testFlight.setAvailableSeats(100);
+            testFlight.setAvailable(true);
+            testFlight.setDepartureTime(LocalDateTime.now().minusHours(1));
+
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            flightService.updateAvailabilityIfNeeded(1L);
+
+            assertFalse(testFlight.isAvailable());
+            verify(flightRepository).findById(1L);
+            verify(flightRepository).save(testFlight);
+        }
+
+        @Test
+        void updateAvailabilityIfNeeded_shouldSetFlightToUnavailable_whenBothConditionsMet() {
+            testFlight.setAvailableSeats(0);
+            testFlight.setAvailable(true);
+            testFlight.setDepartureTime(LocalDateTime.now().minusHours(1));
+
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            flightService.updateAvailabilityIfNeeded(1L);
+
+            assertFalse(testFlight.isAvailable());
+            verify(flightRepository).findById(1L);
+            verify(flightRepository).save(testFlight);
+        }
+
+        @Test
+        void updateAvailabilityIfNeeded_shouldNotChangeAvailability_whenSeatsAvailableAndFutureDeparture() {
+            testFlight.setAvailableSeats(100);
+            testFlight.setAvailable(true);
+            testFlight.setDepartureTime(LocalDateTime.now().plusDays(1));
+
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+
+            flightService.updateAvailabilityIfNeeded(1L);
+
+            assertTrue(testFlight.isAvailable());
+            verify(flightRepository).findById(1L);
+            verify(flightRepository, never()).save(any(Flight.class));
+        }
+
+        @Test
+        void updateAvailabilityIfNeeded_shouldNotChangeAvailability_whenAlreadyUnavailable() {
+            testFlight.setAvailableSeats(100);
+            testFlight.setAvailable(false);
+            testFlight.setDepartureTime(LocalDateTime.now().plusDays(1));
+
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+
+            flightService.updateAvailabilityIfNeeded(1L);
+
+            assertFalse(testFlight.isAvailable());
+            verify(flightRepository).findById(1L);
+            verify(flightRepository, never()).save(any(Flight.class));
+        }
+
+        @Test
+        void updateAvailabilityIfNeeded_shouldSetFlightToUnavailable_whenNegativeSeats() {
+            testFlight.setAvailableSeats(-1);
+            testFlight.setAvailable(true);
+            testFlight.setDepartureTime(LocalDateTime.now().plusDays(1));
+
+            when(flightRepository.findById(1L)).thenReturn(Optional.of(testFlight));
+            when(flightRepository.save(testFlight)).thenReturn(testFlight);
+
+            flightService.updateAvailabilityIfNeeded(1L);
+
+            assertFalse(testFlight.isAvailable());
+            verify(flightRepository).findById(1L);
+            verify(flightRepository).save(testFlight);
+        }
+
+        @Test
+        void updateAvailabilityIfNeeded_shouldThrowException_whenFlightNotFound() {
+            when(flightRepository.findById(99L)).thenReturn(Optional.empty());
+
+            EntityNotFoundException exception = assertThrows(
+                    EntityNotFoundException.class,
+                    () -> flightService.updateAvailabilityIfNeeded(99L)
+            );
+
+            assertEquals("Flight with id: 99 not found", exception.getMessage());
+            verify(flightRepository).findById(99L);
+            verify(flightRepository, never()).save(any(Flight.class));
+        }
+    }
+
     private Airport createAirport(Long id, String code, String city) {
         return Airport.builder()
                 .id(id)
