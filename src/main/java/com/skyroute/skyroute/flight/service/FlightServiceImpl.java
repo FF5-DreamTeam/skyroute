@@ -41,11 +41,13 @@ public class FlightServiceImpl implements FlightService {
             Optional<String> departureDate,
             Optional<Integer> passengers,
             Pageable pageable) {
+        LocalDateTime now = LocalDateTime.now();
         Specification<Flight> specification = FlightSpecificationBuilder.builder()
                 .originEquals(origin)
                 .destinationEquals(destination)
                 .departureDateEquals(departureDate)
                 .passengersAvailable(passengers)
+                .onlyAvailable(Optional.of(LocalDateTime.now()), true)
                 .build();
 
         return flightRepository.findAll(specification, pageable)
@@ -161,6 +163,11 @@ public class FlightServiceImpl implements FlightService {
 
         Flight flight = findById(flightId);
         flight.setAvailableSeats(flight.getAvailableSeats() + seatsToRelease);
+
+        if (flight.getAvailableSeats() > 0 &&
+                flight.getDepartureTime().isAfter(LocalDateTime.now())) {
+            flight.setAvailable(true);
+        }
         flightRepository.save(flight);
     }
 
