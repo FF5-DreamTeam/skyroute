@@ -438,6 +438,7 @@ public class FlightMapperTest {
                 .destination(destination)
                 .build();
     }
+
     private Flight createFlightWithPrice(Long id, String flightNumber, double price) {
         Flight flight = createFlight(id, flightNumber, testAircraft, testRoute);
         flight.setPrice(price);
