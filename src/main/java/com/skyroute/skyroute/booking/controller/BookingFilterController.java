@@ -77,6 +77,7 @@ public class BookingFilterController {
         );
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         Page<BookingResponse> bookingResponses = bookingFilterService.filterBookings(filterRequest, pageable, user);
+
         return ResponseEntity.status(HttpStatus.OK).body(bookingResponses);
     }
 
@@ -124,11 +125,13 @@ public class BookingFilterController {
         );
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         Page<BookingResponse> bookingResponses = bookingFilterService.filterBookings(filterRequest, pageable, admin);
+
         return ResponseEntity.status(HttpStatus.OK).body(bookingResponses);
     }
 
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
         Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+
         return PageRequest.of(page, size, Sort.by(direction,sortBy));
     }
 }

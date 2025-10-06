@@ -24,6 +24,7 @@ public class BookingFilterServiceImpl implements BookingFilterService{
     @Override
     public Page<BookingResponse> filterBookings(BookingFilterRequest filterRequest, Pageable pageable, User user) {
         Specification<Booking> specification = buildSpecificationByRole(filterRequest, user);
+
         return bookingRepository.findAll(specification, pageable).map(booking -> BookingMapper.toDto(booking));
     }
 
@@ -35,6 +36,7 @@ public class BookingFilterServiceImpl implements BookingFilterService{
 
     private Specification<Booking> buildUserSpecification(BookingFilterRequest filterRequest, User user) {
         Specification<Booking> specification = BookingSpecification.hasUserId(user.getId());
+
         return specification.and(buildCommonFilters(filterRequest));
     }
 
@@ -47,6 +49,7 @@ public class BookingFilterServiceImpl implements BookingFilterService{
 
         specification = specification.and(buildAdminOnlyFilters(filterRequest));
         specification = specification.and(buildCommonFilters(filterRequest));
+
         return specification;
     }
 
@@ -55,6 +58,7 @@ public class BookingFilterServiceImpl implements BookingFilterService{
          specification = specification.and(buildUserFilters(filterRequest));
          specification = specification.and(buildFlightFilters(filterRequest));
          specification = specification.and(buildAdminChecks(filterRequest));
+
          return specification;
     }
 
@@ -103,6 +107,7 @@ public class BookingFilterServiceImpl implements BookingFilterService{
 
         return specification;
     }
+
     private Specification<Booking> buildCommonFilters(BookingFilterRequest filterRequest) {
 
         if (filterRequest == null) {
@@ -116,6 +121,7 @@ public class BookingFilterServiceImpl implements BookingFilterService{
         specification = specification.and(buildAirportFilters(filterRequest));
         specification = specification.and(buildPassengerFilters(filterRequest));
         specification = specification.and(buildTimeFilters(filterRequest));
+
         return specification;
     }
 
