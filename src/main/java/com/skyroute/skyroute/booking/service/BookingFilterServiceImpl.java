@@ -8,6 +8,7 @@ import com.skyroute.skyroute.booking.repository.BookingRepository;
 import com.skyroute.skyroute.booking.specification.BookingSpecification;
 import com.skyroute.skyroute.user.entity.User;
 import com.skyroute.skyroute.user.enums.Role;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -16,12 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class BookingFilterServiceImpl implements BookingFilterService{
     private final BookingRepository bookingRepository;
-
-    public BookingFilterServiceImpl(BookingRepository bookingRepository) {
-        this.bookingRepository = bookingRepository;
-    }
 
     @Override
     public Page<BookingResponse> filterBookings(BookingFilterRequest filterRequest, Pageable pageable, User user) {
