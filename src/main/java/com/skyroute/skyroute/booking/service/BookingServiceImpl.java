@@ -107,6 +107,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse updatePassengerNames(Long id, List<String> names, User user) {
         Booking booking = findBookingById(id);
+        validateUserAccess(booking, user);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
             throw new BookingAccessDeniedException("Cannot modify passenger names after booking is CONFORMED or CANCELLED");
         }
@@ -118,6 +119,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user) {
         Booking booking = findBookingById(id);
+        validateUserAccess(booking, user);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
             throw new BookingAccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
         }
