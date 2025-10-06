@@ -586,7 +586,7 @@ public class BookingFilterControllerTest {
         @Test
         @WithMockUser(roles = "ADMIN")
         void filterAdminBookings_shouldApplyPaginationAndSorting_whenParamsProvided() throws Exception {
-            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(2, 20),
+            Page<BookingResponse> bookingPage = new PageImpl<>(List.of(createBookingResponse()), PageRequest.of(2, 10),
                     100);
             when(userService.getCurrentUser()).thenReturn(testAdmin);
             when(bookingFilterService.filterBookings(any(BookingFilterRequest.class), any(), eq(testAdmin)))
@@ -594,7 +594,7 @@ public class BookingFilterControllerTest {
 
             mockMvc.perform(get("/api/bookings/filter/admin")
                     .param("page", "2")
-                    .param("size", "20")
+                    .param("size", "10")
                     .param("sortBy", "totalPrice")
                     .param("sortDirection", "DESC"))
                     .andExpect(status().isOk())
