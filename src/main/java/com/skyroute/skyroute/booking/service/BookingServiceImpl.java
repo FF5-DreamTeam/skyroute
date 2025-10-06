@@ -33,13 +33,13 @@ public class BookingServiceImpl implements BookingService {
     private final FlightService flightService;
     private final EmailService emailService;
 
-    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "bookingNumber", "bookingStatus", "createdAt",
-            "flightNumber");
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "bookingNumber", "bookingStatus", "createdAt", "flightNumber");
 
     @Override
     @Transactional(readOnly = true)
     public Page<BookingResponse> getAllBookingsAdmin(int page, int size, String sortBy, String sortDirection) {
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
+
         return bookingRepository.findAll(pageable).map(booking -> BookingMapper.toDto(booking));
     }
 
@@ -47,6 +47,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public Page<BookingResponse> getAllBookingsUser(User user, int page, int size, String sortBy, String sortDirection) {
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
+
         return bookingRepository.findAllByUser(pageable, user).map(booking -> BookingMapper.toDto(booking));
     }
 
@@ -55,6 +56,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse getBookingById(Long id, User user) {
         Booking booking = findBookingById(id);
         validateUserAccess(booking, user);
+
         return BookingMapper.toDto(booking);
     }
 
@@ -67,7 +69,6 @@ public class BookingServiceImpl implements BookingService {
         flightService.bookSeats(request.flightId(), request.bookedSeats());
         flightService.updateAvailabilityIfNeeded(request.flightId());
         Booking savedBooking = bookingRepository.save(booking);
-
         emailService.sendBookingConfirmationEmail(savedBooking, user, flight);
 
         return BookingMapper.toDto(savedBooking);
@@ -78,17 +79,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = findBookingById(id);
         validateUserAccess(booking, user);
         validateStatusTransition(booking.getBookingStatus(), newStatus);
-
         BookingStatus previousStatus = booking.getBookingStatus();
-
         validateUserStatusChangePermissions(user, previousStatus, newStatus, booking);
-
         booking.setBookingStatus(newStatus);
-
         handleSeatReleaseIfNeeded(newStatus, previousStatus, booking);
-
         Booking updatedBooking = bookingRepository.save(booking);
-
         sendStatusChangeNotifications(newStatus, previousStatus, updatedBooking);
 
         return BookingMapper.toDto(updatedBooking);
@@ -108,11 +103,13 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse updatePassengerNames(Long id, List<String> names, User user) {
         Booking booking = findBookingById(id);
         validateUserAccess(booking, user);
+
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
             throw new BookingAccessDeniedException("Cannot modify passenger names after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerNames(names);
+
         return BookingMapper.toDto(bookingRepository.save(booking));
     }
 
@@ -120,11 +117,13 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user) {
         Booking booking = findBookingById(id);
         validateUserAccess(booking, user);
+
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
             throw new BookingAccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerBirthDates(birthDates);
+
         return BookingMapper.toDto(bookingRepository.save(booking));
     }
 
@@ -145,10 +144,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Pageable createPageable(int page, int size, String sortBy, String sortDirection) {
-        if (page < 0)
+
+        if (page < 0) {
             throw new IllegalArgumentException("Page index must be 0 or greater");
-        if (size <= 0)
+        }
+        if (size <= 0) {
             throw new IllegalArgumentException("Page size must be greater than 0");
+        }
 
         int maxSize = 10;
         size = Math.min(size, maxSize);
@@ -162,6 +164,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+
         return PageRequest.of(page, size, sort);
     }
 
@@ -170,12 +173,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void validateUserAccess(Booking booking, User user) {
+
         if (user.getRole() == Role.USER && !booking.getUser().getId().equals(user.getId())) {
             throw new BookingAccessDeniedException("User cannot access this booking");
         }
     }
 
     private void validateUserStatusChangePermissions(User user, BookingStatus currentStatus, BookingStatus newStatus, Booking booking) {
+
         if (user.getRole() != Role.USER) {
             return;
         }
@@ -185,6 +190,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void validateUserCannotConfirm(BookingStatus newStatus) {
+
         if (newStatus == BookingStatus.CONFIRMED) {
             throw new BookingAccessDeniedException("Users cannot confirm bookings");
         }
@@ -228,6 +234,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void validateFlightBookingEligibility(Long flightId, int requestedSeats) {
+
         if (!flightService.isFlightAvailable(flightId)) {
             throw new InvalidBookingOperationException("Flight not available for booking");
         }
@@ -239,6 +246,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Double calculateTotalPrice(Flight flight, int bookedSeats) {
+
         if (bookedSeats <= 0) {
             throw new IllegalArgumentException("Number of seats booked mut be positive");
         }
@@ -247,6 +255,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void validateStatusTransition(BookingStatus current, BookingStatus target) {
+
         if (current == target) {
             throw new InvalidBookingOperationException("Booking is already in " + target + " status");
         }
