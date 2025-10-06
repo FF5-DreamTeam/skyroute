@@ -45,8 +45,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<BookingResponse> getAllBookingsUser(User user, int page, int size, String sortBy,
-                                                    String sortDirection) {
+    public Page<BookingResponse> getAllBookingsUser(User user, int page, int size, String sortBy, String sortDirection) {
         Pageable pageable = createPageable(page, size, sortBy, sortDirection);
         return bookingRepository.findAllByUser(pageable, user).map(booking -> BookingMapper.toDto(booking));
     }
@@ -74,7 +73,6 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toDto(savedBooking);
     }
 
-
     @Override
     public BookingResponse updateBookingStatus(Long id, BookingStatus newStatus, User user) {
         Booking booking = findBookingById(id);
@@ -83,39 +81,15 @@ public class BookingServiceImpl implements BookingService {
 
         BookingStatus previousStatus = booking.getBookingStatus();
 
-        if (user.getRole() == Role.USER) {
-            if (newStatus == BookingStatus.CONFIRMED) {
-                throw new BookingAccessDeniedException("Users cannot confirm booking");
-            }
-
-            if (previousStatus == BookingStatus.CONFIRMED && newStatus == BookingStatus.CANCELLED) {
-                LocalDateTime now = LocalDateTime.now();
-                LocalDateTime departure = booking.getFlight().getDepartureTime();
-
-                if (departure.minusHours(24).isBefore(now)) {
-                    throw new InvalidBookingOperationException(
-                            "You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance");
-                }
-            }
-        }
+        validateUserStatusChangePermissions(user, previousStatus, newStatus, booking);
 
         booking.setBookingStatus(newStatus);
 
-        if (newStatus == BookingStatus.CANCELLED && previousStatus != BookingStatus.CANCELLED) {
-            flightService.releaseSeats(booking.getFlight().getId(), booking.getBookedSeats());
-        }
+        handleSeatReleaseIfNeeded(newStatus, previousStatus, booking);
 
         Booking updatedBooking = bookingRepository.save(booking);
 
-        if (newStatus == BookingStatus.CONFIRMED && previousStatus != BookingStatus.CONFIRMED) {
-            emailService.sendBookingConfirmationStatusEmail(updatedBooking, updatedBooking.getUser(),
-                    updatedBooking.getFlight());
-        }
-
-        if (newStatus == BookingStatus.CANCELLED && previousStatus != BookingStatus.CANCELLED) {
-            emailService.sendBookingCancellationEmail(updatedBooking, updatedBooking.getUser(),
-                    updatedBooking.getFlight());
-        }
+        sendStatusChangeNotifications(newStatus, previousStatus, updatedBooking);
 
         return BookingMapper.toDto(updatedBooking);
     }
@@ -134,8 +108,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse updatePassengerNames(Long id, List<String> names, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new BookingAccessDeniedException(
-                    "Cannot modify passenger names after booking is CONFORMED or CANCELLED");
+            throw new BookingAccessDeniedException("Cannot modify passenger names after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerNames(names);
@@ -146,8 +119,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse updatePassengerBirthDates(Long id, List<LocalDate> birthDates, User user) {
         Booking booking = findBookingById(id);
         if (user.getRole() == Role.USER && booking.getBookingStatus() != BookingStatus.CREATED) {
-            throw new BookingAccessDeniedException(
-                    "Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
+            throw new BookingAccessDeniedException("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED");
         }
 
         booking.setPassengerBirthDates(birthDates);
@@ -201,6 +173,58 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    private void validateUserStatusChangePermissions(User user, BookingStatus currentStatus, BookingStatus newStatus, Booking booking) {
+        if (user.getRole() != Role.USER) {
+            return;
+        }
+
+        validateUserCannotConfirm(newStatus);
+        validateCancellationTimeLimit(currentStatus, newStatus, booking);
+    }
+
+    private void validateUserCannotConfirm(BookingStatus newStatus) {
+        if (newStatus == BookingStatus.CONFIRMED) {
+            throw new BookingAccessDeniedException("Users cannot confirm booking");
+        }
+    }
+
+    private void validateCancellationTimeLimit(BookingStatus currentStatus, BookingStatus newStatus, Booking booking) {
+        boolean isCancellingConfirmedBooking = currentStatus == BookingStatus.CONFIRMED && newStatus == BookingStatus.CANCELLED;
+
+        if (!isCancellingConfirmedBooking) {
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime departure = booking.getFlight().getDepartureTime();
+        LocalDateTime cancellationDeadLine = departure.minusHours(24);
+
+        if (now.isAfter(cancellationDeadLine)) {
+            throw new InvalidBookingOperationException("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance");
+        }
+    }
+
+    private void handleSeatReleaseIfNeeded(BookingStatus newStatus, BookingStatus previousStatus, Booking booking) {
+        boolean shouldReleaseSeats = newStatus == BookingStatus.CANCELLED && previousStatus != BookingStatus.CANCELLED;
+
+        if (shouldReleaseSeats) {
+            flightService.releaseSeats(booking.getFlight().getId(), booking.getBookedSeats());
+        }
+    }
+
+    private void sendStatusChangeNotifications(BookingStatus newStatus, BookingStatus previousStatus, Booking booking) {
+        boolean isNewlyConfirmed = newStatus == BookingStatus.CONFIRMED && previousStatus != BookingStatus.CONFIRMED;
+        boolean isNewlyCancelled = newStatus == BookingStatus.CANCELLED && previousStatus != BookingStatus.CANCELLED;
+
+        if (isNewlyConfirmed) {
+            emailService.sendBookingConfirmationStatusEmail(booking, booking.getUser(), booking.getFlight());
+        }
+
+        if (isNewlyCancelled) {
+            emailService.sendBookingCancellationEmail(booking, booking.getUser(), booking.getFlight());
+        }
+    }
+
     private void validateFlightBookingEligibility(Long flightId, int requestedSeats) {
         if (!flightService.isFlightAvailable(flightId)) {
             throw new InvalidBookingOperationException("Flight not available for booking");
@@ -208,9 +232,7 @@ public class BookingServiceImpl implements BookingService {
 
         if (!flightService.hasAvailableSeats(flightId, requestedSeats)) {
             Flight flight = flightService.findById(flightId);
-            throw new NotEnoughSeatsException(
-                    "Not enough seats available. Requested: " + requestedSeats + ". Available: "
-                            + flight.getAvailableSeats());
+            throw new NotEnoughSeatsException("Not enough seats available. Requested: " + requestedSeats + ". Available: " + flight.getAvailableSeats());
         }
     }
 
