@@ -12,6 +12,7 @@ import com.skyroute.skyroute.shared.exception.custom_exception.*;
 import com.skyroute.skyroute.booking.repository.BookingRepository;
 import com.skyroute.skyroute.user.entity.User;
 import com.skyroute.skyroute.user.enums.Role;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,7 @@ import java.util.Set;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final FlightService flightService;
@@ -33,13 +35,6 @@ public class BookingServiceImpl implements BookingService {
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "bookingNumber", "bookingStatus", "createdAt",
             "flightNumber");
-
-    public BookingServiceImpl(BookingRepository bookingRepository, FlightService flightService,
-                              EmailService emailService) {
-        this.bookingRepository = bookingRepository;
-        this.flightService = flightService;
-        this.emailService = emailService;
-    }
 
     @Override
     @Transactional(readOnly = true)
