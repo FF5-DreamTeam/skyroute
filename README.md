@@ -6,18 +6,18 @@ A comprehensive Spring Boot application for flight booking and management, built
 
 ## Table of Contents
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Technology Stack](#-technology-stack)
-- [Project Structure](#-project-structure)
-- [Database Schema](#-database-schema)
-- [API Documentation](#-api-documentation)
-- [Getting Started](#-getting-started)
+- [Overview](#overview)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Database Schema](#database-schema)
+- [API Documentation](#api-documentation)
+- [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Configuration](#configuration)
   - [Running the Application](#running-the-application)
-- [API Endpoints](#-api-endpoints)
+- [API Endpoints examples](#api-endpoints-examples)
   - [Authentication](#authentication)
   - [User Management](#user-management)
   - [Aircraft Management](#aircraft-management)
@@ -25,12 +25,12 @@ A comprehensive Spring Boot application for flight booking and management, built
   - [Route Management](#route-management)
   - [Flight Management](#flight-management)
   - [Booking Management](#booking-management)
-- [Security](#-security)
-- [Email System](#-email-system)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [Contributing](#-contributing)
-- [Authors](#-authors)
+- [Security](#security)
+- [Email System](#email-system)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [Authors](#authors)
 
 ## Overview
 
@@ -302,90 +302,42 @@ docker-compose up -d
 
 The application will be available at `http://localhost:8080`
 
-## API Endpoints
+## API Endpoints examples
 
 ### Authentication
 
-| Method | Endpoint             | Description       | Access        |
-| ------ | -------------------- | ----------------- | ------------- |
-| POST   | `/api/auth/register` | Register new user | Public        |
-| POST   | `/api/auth/login`    | User login        | Public        |
-| POST   | `/api/auth/refresh`  | Refresh JWT token | Public        |
-| POST   | `/api/auth/logout`   | User logout       | Authenticated |
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
 
 ### User Management
 
-| Method | Endpoint          | Description               | Access        |
-| ------ | ----------------- | ------------------------- | ------------- |
-| POST   | `/api/users`      | Create user               | Public        |
-| GET    | `/api/users/{id}` | Get user by ID            | Authenticated |
-| GET    | `/api/users`      | Get all users (paginated) | Admin         |
-| PUT    | `/api/users/{id}` | Update user               | Admin         |
-| DELETE | `/api/users/{id}` | Delete user               | Admin         |
+- `POST /api/users` - Create user
+- `PUT /api/users/profile` - Update user profile
 
 ### Aircraft Management
 
-| Method | Endpoint              | Description        | Access |
-| ------ | --------------------- | ------------------ | ------ |
-| POST   | `/api/aircrafts`      | Create aircraft    | Admin  |
-| GET    | `/api/aircrafts`      | Get all aircrafts  | Public |
-| GET    | `/api/aircrafts/{id}` | Get aircraft by ID | Public |
-| PUT    | `/api/aircrafts/{id}` | Update aircraft    | Admin  |
-| DELETE | `/api/aircrafts/{id}` | Delete aircraft    | Admin  |
+- `GET /api/aircrafts` - Get all aircrafts
+- `POST /api/aircrafts` - Create aircraft
 
 ### Airport Management
 
-| Method | Endpoint             | Description       | Access |
-| ------ | -------------------- | ----------------- | ------ |
-| POST   | `/api/airports`      | Create airport    | Admin  |
-| GET    | `/api/airports`      | Get all airports  | Public |
-| GET    | `/api/airports/{id}` | Get airport by ID | Public |
-| PUT    | `/api/airports/{id}` | Update airport    | Admin  |
-| DELETE | `/api/airports/{id}` | Delete airport    | Admin  |
+- `GET /api/airports` - Get all airports
+- `POST /api/airports` - Create airport
 
 ### Route Management
 
-| Method | Endpoint           | Description     | Access |
-| ------ | ------------------ | --------------- | ------ |
-| POST   | `/api/routes`      | Create route    | Admin  |
-| GET    | `/api/routes`      | Get all routes  | Public |
-| GET    | `/api/routes/{id}` | Get route by ID | Public |
-| PUT    | `/api/routes/{id}` | Update route    | Admin  |
-| DELETE | `/api/routes/{id}` | Delete route    | Admin  |
+- `GET /api/routes` - Get all routes
+- `POST /api/routes` - Create route
 
 ### Flight Management
 
-#### Admin Endpoints
-
-| Method | Endpoint                  | Description             | Access |
-| ------ | ------------------------- | ----------------------- | ------ |
-| POST   | `/api/admin/flights`      | Create flight           | Admin  |
-| GET    | `/api/admin/flights/{id}` | Get flight by ID        | Admin  |
-| GET    | `/api/admin/flights/page` | Get flights (paginated) | Admin  |
-| PUT    | `/api/admin/flights/{id}` | Update flight           | Admin  |
-| DELETE | `/api/admin/flights/{id}` | Delete flight           | Admin  |
-
-#### Public Endpoints
-
-| Method | Endpoint              | Description      | Access |
-| ------ | --------------------- | ---------------- | ------ |
-| GET    | `/api/flights/search` | Search flights   | Public |
-| GET    | `/api/flights/{id}`   | Get flight by ID | Public |
+- `GET /api/flights/search` - Search flights by parameters
+- `GET /api/flights/min-prices` - Get minimum prices by destinations
 
 ### Booking Management
 
-| Method | Endpoint                                   | Description                   | Access        |
-| ------ | ------------------------------------------ | ----------------------------- | ------------- |
-| GET    | `/api/bookings`                            | Get all bookings (paginated)  | Admin         |
-| GET    | `/api/bookings/user`                       | Get user bookings (paginated) | User          |
-| GET    | `/api/bookings/{id}`                       | Get booking by ID             | Authenticated |
-| POST   | `/api/bookings`                            | Create booking                | Authenticated |
-| PUT    | `/api/bookings/{id}/status`                | Update booking status         | Authenticated |
-| POST   | `/api/bookings/{id}/confirm`               | Confirm booking               | Authenticated |
-| POST   | `/api/bookings/{id}/cancel`                | Cancel booking                | Authenticated |
-| PUT    | `/api/bookings/{id}/passenger-names`       | Update passenger names        | Authenticated |
-| PUT    | `/api/bookings/{id}/passenger-birth-dates` | Update birth dates            | Authenticated |
-| DELETE | `/api/bookings/{id}`                       | Delete booking                | Authenticated |
+- `POST /api/bookings` - Create booking
+- `POST /api/bookings/{id}/confirm` - Confirm booking
 
 ## Security
 
