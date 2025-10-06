@@ -186,7 +186,7 @@ public class BookingServiceImpl implements BookingService {
 
     private void validateUserCannotConfirm(BookingStatus newStatus) {
         if (newStatus == BookingStatus.CONFIRMED) {
-            throw new BookingAccessDeniedException("Users cannot confirm booking");
+            throw new BookingAccessDeniedException("Users cannot confirm bookings");
         }
     }
 
