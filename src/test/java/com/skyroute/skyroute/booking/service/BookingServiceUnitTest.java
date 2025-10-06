@@ -334,7 +334,7 @@ public class BookingServiceUnitTest {
 
             BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class, () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
 
-            assertEquals("Users cannot confirm booking", exception.getMessage());
+            assertEquals("Users cannot confirm bookings", exception.getMessage());
         }
 
         @Test
