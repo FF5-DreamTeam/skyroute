@@ -616,7 +616,7 @@ public class BookingServiceUnitTest {
         }
 
         @Test
-        void validateUserStatusChangePermissions_shouldAllowCancellation_whenMoreThan24HoursBeforeFlight() {
+        void validateCancellationTimeLimit_shouldAllowCancellation_whenMoreThan24HoursBeforeFlight() {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             testBooking.getFlight().setDepartureTime(LocalDateTime.now().plusDays(2));
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
@@ -632,7 +632,7 @@ public class BookingServiceUnitTest {
         }
 
         @Test
-        void validateUserStatusChangePermissions_shouldPreventCancellation_whenWithin24HoursBeforeFlight() {
+        void validateCancellationTimeLimit_shouldPreventCancellation_whenWithin24HoursBeforeFlight() {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             testBooking.getFlight().setDepartureTime(LocalDateTime.now().plusHours(10));
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
