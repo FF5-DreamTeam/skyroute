@@ -94,10 +94,15 @@ public class FlightSpecification {
                         criteriaBuilder.greaterThanOrEqualTo(root.get("availableSeats"), passengers);
     }
 
-    public static Specification<Flight> isOnlyAvailable(LocalDateTime now) {
+    public static Specification<Flight> isOnlyAvailable(LocalDateTime now, boolean filterOnlyAvailable) {
+        if (!filterOnlyAvailable) {
+            return (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+        }
+
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.and(criteriaBuilder.isTrue(root.get("available")),
-                        criteriaBuilder.greaterThan(root.get("departureTime"), now)
+                        criteriaBuilder.greaterThan(root.get("departureTime"), now),
+                        criteriaBuilder.greaterThan(root.get("availableSeats"), 0)
                 );
     }
 
@@ -114,5 +119,4 @@ public class FlightSpecification {
                         criteriaBuilder.lessThan(root.get("departureTime"), now)
                 );
     }
-
 }

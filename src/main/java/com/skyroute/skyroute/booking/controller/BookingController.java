@@ -36,7 +36,6 @@ public class BookingController {
     private final BookingService bookingService;
     private final UserService userService;
 
-
     @Operation(
             summary = "Get all bookings (Admin only)",
             description = "Retrieve all bookings with pagination and sorting")
@@ -51,14 +50,14 @@ public class BookingController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<BookingResponse>> getAllBookingsAdmin(
             @RequestParam(defaultValue = "0") @Parameter(description = "Page number (0-based") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Parameter(description = "Number of items per page (1-100)") @Min(1) @Max(10) int size,
+            @RequestParam(defaultValue = "10") @Parameter(description = "Number of items per page (1-10)") @Min(1) @Max(10) int size,
             @RequestParam(defaultValue = "createdAt") @Parameter(description = "Field to sort by") String sortBy,
             @RequestParam(defaultValue = "DESC") @Parameter(description = "Sort direction (ASC/DESC)") String sortDirection) {
         Page<BookingResponse> bookingsResponse = bookingService.getAllBookingsAdmin(page, size, sortBy, sortDirection);
+
         return ResponseEntity.status(HttpStatus.OK).body(bookingsResponse);
     }
 
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @Operation(
             summary = "Get user's bookings",
             description = "Retrieve bookings for the authenticated user")
@@ -70,13 +69,15 @@ public class BookingController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content)
     })
     @GetMapping("/user")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Page<BookingResponse>> getAllBookingsUser(
             @Parameter(description = "Page number (0-based)") @RequestParam(defaultValue = "0") @Min(0) int page,
-            @Parameter(description = "Page size (1-100)") @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size,
+            @Parameter(description = "Page size (1-10)") @RequestParam(defaultValue = "10") @Min(1) @Max(10) int size,
             @Parameter(description = "Sort field") @RequestParam(defaultValue = "createdAt") String sortBy,
             @Parameter(description = "Sort direction (ASC/DESC)") @RequestParam(defaultValue = "ASC") String sortDirection) {
         User user = userService.getCurrentUser();
         Page<BookingResponse> bookingsResponse = bookingService.getAllBookingsUser(user, page, size, sortBy, sortDirection);
+
         return ResponseEntity.status(HttpStatus.OK).body(bookingsResponse);
     }
 
@@ -98,6 +99,7 @@ public class BookingController {
     public ResponseEntity<BookingResponse> getBookingById(@Parameter(description = "Booking ID", required = true) @PathVariable Long id) {
         User user = userService.getCurrentUser();
         BookingResponse bookingResponse = bookingService.getBookingById(id, user);
+
         return ResponseEntity.status(HttpStatus.OK).body(bookingResponse);
     }
 
@@ -120,6 +122,7 @@ public class BookingController {
     public ResponseEntity<BookingResponse> createBooking(@Parameter(description = "Booking request details", required = true) @Valid @RequestBody BookingRequest bookingRequest) {
         User user = userService.getCurrentUser();
         BookingResponse bookingResponse = bookingService.createBooking(bookingRequest, user);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(bookingResponse);
     }
 
@@ -142,6 +145,7 @@ public class BookingController {
     public ResponseEntity<BookingResponse> updateBookingStatus(@Parameter(description = "Booking ID", required = true) @PathVariable Long id, @Parameter(description = "New booking status", required = true) @RequestParam BookingStatus status) {
         User user = userService.getCurrentUser();
         BookingResponse bookingResponse = bookingService.updateBookingStatus(id, status, user);
+
         return ResponseEntity.status(HttpStatus.OK).body(bookingResponse);
     }
 
@@ -164,6 +168,7 @@ public class BookingController {
     public ResponseEntity<BookingResponse> confirmBooking(@Parameter(description = "Booking ID", required = true) @PathVariable Long id) {
         User user = userService.getCurrentUser();
         BookingResponse bookingResponse = bookingService.confirmBooking(id, user);
+
         return ResponseEntity.status(HttpStatus.OK).body(bookingResponse);
     }
 
@@ -182,6 +187,7 @@ public class BookingController {
     public ResponseEntity<Void> cancelBooking(@PathVariable Long id) {
         User user = userService.getCurrentUser();
         bookingService.cancelBooking(id, user);
+
         return ResponseEntity.noContent().build();
     }
 
@@ -204,6 +210,7 @@ public class BookingController {
     public ResponseEntity<BookingResponse> updatePassengerNames(@Parameter(description = "Booking ID", required = true) @PathVariable Long id, @Parameter(description = "List of passenger names", required = true) @RequestBody List<String> names) {
         User user = userService.getCurrentUser();
         BookingResponse bookingResponse = bookingService.updatePassengerNames(id, names, user);
+
         return ResponseEntity.status(HttpStatus.OK).body(bookingResponse);
     }
 
@@ -226,6 +233,7 @@ public class BookingController {
     public ResponseEntity<BookingResponse> updatePassengerBirthDates(@Parameter(description = "Booking ID", required = true) @PathVariable Long id, @Parameter(description = "List of passenger birth dates (yyyy-MM-dd format)", required = true) @RequestBody List<LocalDate> birthDates) {
         User user = userService.getCurrentUser();
         BookingResponse bookingResponse = bookingService.updatePassengerBirthDates(id, birthDates, user);
+
         return ResponseEntity.status(HttpStatus.OK).body(bookingResponse);
     }
 
@@ -243,6 +251,7 @@ public class BookingController {
     public ResponseEntity<Void> deleteBooking(@Parameter(description = "Booking ID", required = true) @PathVariable Long id) {
         User user = userService.getCurrentUser();
         bookingService.deleteBooking(id, user);
+
         return ResponseEntity.noContent().build();
     }
  }

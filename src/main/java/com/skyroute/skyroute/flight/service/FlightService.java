@@ -58,4 +58,6 @@ public interface FlightService {
 
     FlightResponse updateFlightStatus(Long id, FlightStatusUpdateRequest request);
 
+    void updateAvailabilityIfNeeded(Long flightId);
+
 }

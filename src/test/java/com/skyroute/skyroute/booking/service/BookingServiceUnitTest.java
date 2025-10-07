@@ -14,6 +14,7 @@ import com.skyroute.skyroute.shared.exception.custom_exception.EntityNotFoundExc
 import com.skyroute.skyroute.booking.repository.BookingRepository;
 import com.skyroute.skyroute.flight.entity.Flight;
 import com.skyroute.skyroute.route.entity.Route;
+import com.skyroute.skyroute.shared.exception.custom_exception.InvalidBookingOperationException;
 import com.skyroute.skyroute.user.entity.User;
 import com.skyroute.skyroute.user.enums.Role;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +33,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -138,8 +139,7 @@ public class BookingServiceUnitTest {
             when(flightService.hasAvailableSeats(1L, 2)).thenReturn(true);
             when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
             doNothing().when(flightService).bookSeats(1L, 2);
-            doNothing().when(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class),
-                    any(Flight.class));
+            doNothing().when(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class), any(Flight.class));
 
             BookingResponse result = bookingServiceImpl.createBooking(testRequest, testUser);
 
@@ -152,6 +152,7 @@ public class BookingServiceUnitTest {
             verify(flightService).isFlightAvailable(1L);
             verify(flightService).hasAvailableSeats(1L, 2);
             verify(flightService).bookSeats(1L, 2);
+            verify(flightService).updateAvailabilityIfNeeded(1L);
             verify(bookingRepository).save(any(Booking.class));
             verify(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class), any(Flight.class));
         }
@@ -160,8 +161,7 @@ public class BookingServiceUnitTest {
         void createBooking_shouldThrowException_whenFlightNotFound() {
             when(flightService.findById(1L)).thenThrow(new EntityNotFoundException("Flight with id: 1 not found"));
 
-            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-                    () -> bookingServiceImpl.createBooking(testRequest, testUser));
+            EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
 
             assertEquals("Flight with id: 1 not found", exception.getMessage());
 
@@ -192,8 +192,7 @@ public class BookingServiceUnitTest {
             when(flightService.isFlightAvailable(1L)).thenReturn(true);
             when(flightService.hasAvailableSeats(1L, 2)).thenReturn(false);
 
-            BusinessException exception = assertThrows(BusinessException.class,
-                    () -> bookingServiceImpl.createBooking(testRequest, testUser));
+            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.createBooking(testRequest, testUser));
 
             assertTrue(exception.getMessage().contains("Not enough seats available"));
 
@@ -217,8 +216,7 @@ public class BookingServiceUnitTest {
                 return booking;
             });
             doNothing().when(flightService).bookSeats(1L, 2);
-            doNothing().when(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class),
-                    any(Flight.class));
+            doNothing().when(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class), any(Flight.class));
 
             BookingResponse result = bookingServiceImpl.createBooking(testRequest, testUser);
 
@@ -237,15 +235,11 @@ public class BookingServiceUnitTest {
             when(flightService.hasAvailableSeats(1L, 2)).thenReturn(true);
             when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
             doNothing().when(flightService).bookSeats(1L, 2);
-            doNothing().when(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class),
-                    any(Flight.class));
+            doNothing().when(emailService).sendBookingConfirmationEmail(any(Booking.class), any(User.class), any(Flight.class));
 
             bookingServiceImpl.createBooking(testRequest, testUser);
 
-            verify(emailService).sendBookingConfirmationEmail(
-                    any(Booking.class),
-                    eq(testUser),
-                    any(Flight.class));
+            verify(emailService).sendBookingConfirmationEmail(any(Booking.class), eq(testUser), any(Flight.class));
         }
 
         @Test
@@ -294,6 +288,7 @@ public class BookingServiceUnitTest {
 
             verify(flightService).releaseSeats(1L, 2);
             verify(bookingRepository).save(testBooking);
+            verify(emailService).sendBookingCancellationEmail(any(Booking.class), any(User.class), any(Flight.class));
         }
 
         @Test
@@ -306,6 +301,7 @@ public class BookingServiceUnitTest {
                     () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser));
 
             assertEquals("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance", exception.getMessage());
+
             verify(flightService, never()).releaseSeats(anyLong(), anyInt());
             verify(bookingRepository, never()).save(any());
         }
@@ -315,10 +311,10 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BusinessException exception = assertThrows(BusinessException.class,
-                    () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser));
+            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser));
 
             assertEquals("Booking is already in CANCELLED status", exception.getMessage());
+
             verify(flightService, never()).releaseSeats(anyLong(), anyInt());
         }
 
@@ -327,8 +323,7 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BusinessException exception = assertThrows(BusinessException.class,
-                    () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
+            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
 
             assertEquals("Cannot change status of a CANCELLED booking", exception.getMessage());
         }
@@ -337,10 +332,9 @@ public class BookingServiceUnitTest {
         void updateBookingStatus_shouldThrowException_whenUserInvalidTransition() {
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
-                    () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class, () -> bookingServiceImpl.updateBookingStatus(1l, BookingStatus.CONFIRMED, testUser));
 
-            assertEquals("Users cannot confirm booking", exception.getMessage());
+            assertEquals("Users cannot confirm bookings", exception.getMessage());
         }
 
         @Test
@@ -348,8 +342,7 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BusinessException exception = assertThrows(BusinessException.class,
-                    () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, testUser));
+            BusinessException exception = assertThrows(BusinessException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, testUser));
 
             assertEquals("Booking is already in CONFIRMED status", exception.getMessage());
         }
@@ -358,8 +351,7 @@ public class BookingServiceUnitTest {
         void updateBookingStatus_shouldThrowException_whenUserAccessDenied() {
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
-                    () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, anotherUser));
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, anotherUser));
 
             assertEquals("User cannot access this booking", exception.getMessage());
         }
@@ -393,6 +385,7 @@ public class BookingServiceUnitTest {
 
             verify(flightService).releaseSeats(1L, 2);
             verify(bookingRepository).save(testBooking);
+            verify(emailService).sendBookingCancellationEmail(any(Booking.class), any(User.class), any(Flight.class));
         }
     }
 
@@ -410,6 +403,7 @@ public class BookingServiceUnitTest {
             assertEquals(BookingStatus.CONFIRMED, testBooking.getBookingStatus());
 
             verify(bookingRepository).save(testBooking);
+            verify(emailService).sendBookingConfirmationStatusEmail(any(Booking.class), any(User.class), any(Flight.class));
         }
     }
 
@@ -427,6 +421,7 @@ public class BookingServiceUnitTest {
 
             assertNotNull(result);
             assertEquals(newNames, testBooking.getPassengerNames());
+
             verify(bookingRepository).save(testBooking);
         }
 
@@ -435,11 +430,10 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
-                    () -> bookingServiceImpl.updatePassengerNames(1L, List.of("Pepa"), testUser));
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class, () -> bookingServiceImpl.updatePassengerNames(1L, List.of("Pepa"), testUser));
 
-            assertEquals("Cannot modify passenger names after booking is CONFORMED or CANCELLED",
-                    exception.getMessage());
+            assertEquals("Cannot modify passenger names after booking is CONFORMED or CANCELLED", exception.getMessage());
+
             verify(bookingRepository, never()).save(any());
         }
 
@@ -448,8 +442,7 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
-                    () -> bookingServiceImpl.updatePassengerNames(1L, List.of("Pepa"), testUser));
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class, () -> bookingServiceImpl.updatePassengerNames(1L, List.of("Pepa"), testUser));
 
             assertEquals("Cannot modify passenger names after booking is CONFORMED or CANCELLED",
                     exception.getMessage());
@@ -490,12 +483,9 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
-                    () -> bookingServiceImpl.updatePassengerBirthDates(1L,
-                            List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class, () -> bookingServiceImpl.updatePassengerBirthDates(1L, List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
 
-            assertEquals("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED",
-                    exception.getMessage());
+            assertEquals("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED", exception.getMessage());
 
             verify(bookingRepository, never()).save(any());
         }
@@ -505,12 +495,9 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CANCELLED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
-                    () -> bookingServiceImpl.updatePassengerBirthDates(1L,
-                            List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class, () -> bookingServiceImpl.updatePassengerBirthDates(1L, List.of(LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 2)), testUser));
 
-            assertEquals("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED",
-                    exception.getMessage());
+            assertEquals("Cannot modify passenger birth dates after booking is CONFORMED or CANCELLED", exception.getMessage());
 
             verify(bookingRepository, never()).save(any());
         }
@@ -550,8 +537,7 @@ public class BookingServiceUnitTest {
             testBooking.setBookingStatus(BookingStatus.CONFIRMED);
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
 
-            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class,
-                    () -> bookingServiceImpl.deleteBooking(1L, testUser));
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class, () -> bookingServiceImpl.deleteBooking(1L, testUser));
 
             assertEquals("Users can only delete bookings in CREATED status", exception.getMessage());
         }
@@ -565,6 +551,97 @@ public class BookingServiceUnitTest {
             bookingServiceImpl.deleteBooking(1L, testAdmin);
 
             verify(bookingRepository).delete(testBooking);
+        }
+    }
+
+    @Nested
+    class ValidationTests {
+
+        @Test
+        void createPageable_ShouldUseDefaults_WhenInvalidSortField() {
+            when(bookingRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+            assertDoesNotThrow(() -> bookingServiceImpl.getAllBookingsAdmin(0, 10, "invalidField", "DESC"));
+
+            verify(bookingRepository).findAll(argThat((Pageable pageable) -> pageable.getSort().getOrderFor("createdAt") != null));
+        }
+
+        @Test
+        void createPageable_ShouldUseDefaults_WhenInvalidSortDirection() {
+            when(bookingRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+            assertDoesNotThrow(() -> bookingServiceImpl.getAllBookingsAdmin(0, 10, "id", "INVALID"));
+
+            verify(bookingRepository).findAll(argThat((Pageable pageable) -> pageable.getSort().getOrderFor("id").getDirection() == Sort.Direction.DESC));
+        }
+
+        @Test
+        void createPageable_ShouldLimitPageSize_WhenTooLarge() {
+            when(bookingRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+            assertDoesNotThrow(() -> bookingServiceImpl.getAllBookingsAdmin(0, 20, "id", "ASC"));
+
+            verify(bookingRepository).findAll(argThat((Pageable pageable) -> pageable.getPageSize() == 10));
+        }
+
+        @Test
+        void createPageable_ShouldThrowException_WhenNegativePage() {
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> bookingServiceImpl.getAllBookingsAdmin(-1, 10, "id", "ASC"));
+
+            assertEquals("Page index must be 0 or greater", exception.getMessage());
+        }
+
+        @Test
+        void validateUserStatusChangePermissions_shouldAllowConfirmBooking_whenAdmin() {
+            testBooking.setBookingStatus(BookingStatus.CREATED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+
+            BookingResponse result = bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, testAdmin);
+
+            assertNotNull(result);
+            assertEquals(BookingStatus.CONFIRMED, testBooking.getBookingStatus());
+
+            verify(bookingRepository).save(testBooking);
+        }
+
+        @Test
+        void validateUserStatusChangePermissions_shouldPreventConfirming_whenUser() {
+            testBooking.setBookingStatus(BookingStatus.CREATED);
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            BookingAccessDeniedException exception = assertThrows(BookingAccessDeniedException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CONFIRMED, testUser));
+
+            assertEquals("Users cannot confirm bookings", exception.getMessage());
+        }
+
+        @Test
+        void validateCancellationTimeLimit_shouldAllowCancellation_whenMoreThan24HoursBeforeFlight() {
+            testBooking.setBookingStatus(BookingStatus.CONFIRMED);
+            testBooking.getFlight().setDepartureTime(LocalDateTime.now().plusDays(2));
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+            when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+            doNothing().when(flightService).releaseSeats(1L, 2);
+
+            BookingResponse result = bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser);
+
+            assertNotNull(result);
+            assertEquals(BookingStatus.CANCELLED, testBooking.getBookingStatus());
+
+            verify(flightService).releaseSeats(1L, 2);
+        }
+
+        @Test
+        void validateCancellationTimeLimit_shouldPreventCancellation_whenWithin24HoursBeforeFlight() {
+            testBooking.setBookingStatus(BookingStatus.CONFIRMED);
+            testBooking.getFlight().setDepartureTime(LocalDateTime.now().plusHours(10));
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(testBooking));
+
+            InvalidBookingOperationException exception = assertThrows(InvalidBookingOperationException.class, () -> bookingServiceImpl.updateBookingStatus(1L, BookingStatus.CANCELLED, testUser));
+
+            assertEquals("You can only cancel the booking up to 24 hours before the flight departure. Please contact our customer service for further assistance", exception.getMessage());
+
+            verify(flightService, never()).releaseSeats(anyLong(), anyInt());
         }
     }
 
