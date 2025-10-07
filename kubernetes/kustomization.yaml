@@ -15,7 +15,7 @@ resources:
 # Image customization - override image tags
 images:
   - name: fyrfigrabbaf6kyhpi/skyroute
-    newTag: v0.0.2
+    newTag: v0.0.3
 
 # Add prefix to all resource names to avoid conflicts
 namePrefix: skyroute-
