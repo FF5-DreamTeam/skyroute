@@ -47,6 +47,6 @@ public class Flight extends BaseEntity {
     @JoinColumn(name = "route_id", nullable = false)
     private Route route;
 
-    @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "flight")
     private List<Booking> booking;
 }

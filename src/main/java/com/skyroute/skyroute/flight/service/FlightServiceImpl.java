@@ -123,8 +123,13 @@ public class FlightServiceImpl implements FlightService {
     @Override
     @Transactional
     public void deleteFlight(Long id) {
-        flightRepository.delete(findById(id));
+        Flight flight = findById(id);
+        if (flight.getBooking() != null && !flight.getBooking().isEmpty()) {
+            throw new IllegalStateException("Cannot delete flight with active bookings");
+        }
+        flightRepository.delete(flight);
     }
+
 
     @Override
     @Transactional(readOnly = true)
