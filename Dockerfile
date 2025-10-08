@@ -14,7 +14,8 @@ COPY --from=build /app/target/*.jar app.jar
 
 ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+UseZGC"
 ENV SPRING_PROFILES_ACTIVE=docker
+ENV SERVER_ADDRESS=0.0.0.0
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.address=0.0.0.0 -jar app.jar"]
