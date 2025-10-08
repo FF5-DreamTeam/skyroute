@@ -51,6 +51,13 @@ grace_period = "30s"
 method = "GET"
 path = "/actuator/health"
 
+  [[http_service.checks]]
+    interval = '15s'
+    timeout = '10s'
+    grace_period = '30s'
+    method = 'GET'
+    path = '/actuator/health'
+
 [[vm]]
 memory = '1gb'
 cpu_kind = 'shared'
