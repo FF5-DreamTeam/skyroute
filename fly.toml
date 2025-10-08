@@ -1,23 +1,51 @@
-# fly.toml app configuration file generated for skyroute on 2025-10-06T20:39:21Z
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'skyroute'
-primary_region = 'cdg'
+app = "skyroute"
+primary_region = "cdg"
 
 [build]
+dockerfile = "Dockerfile"
+
+[env]
+SPRING_PROFILES_ACTIVE = "fly"
+SERVER_ADDRESS = "0.0.0.0"
+SERVER_PORT = "8080"
+
+# MySQL environment variables from Fly secrets
+MYSQL_URL = "${MYSQL_URL}"
+MYSQL_USER = "${MYSQL_USER}"
+MYSQL_PASSWORD = "${MYSQL_PASSWORD}"
+
+# Spring datasource variables (optional, mirrors MySQL)
+SPRING_DATASOURCE_URL = "${SPRING_DATASOURCE_URL}"
+SPRING_DATASOURCE_USERNAME = "${SPRING_DATASOURCE_USERNAME}"
+SPRING_DATASOURCE_PASSWORD = "${SPRING_DATASOURCE_PASSWORD}"
+
+# Mail environment variables from Fly secrets
+MAIL_HOST = "${MAIL_HOST}"
+MAIL_PORT = "${MAIL_PORT}"
+MAIL_USERNAME = "${MAIL_USERNAME}"
+MAIL_PASSWORD = "${MAIL_PASSWORD}"
+MAIL_PROPERTIES_MAIL_SMTP_AUTH = "${MAIL_PROPERTIES_MAIL_SMTP_AUTH}"
+MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE = "${MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE}"
+MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED = "${MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED}"
 
 [http_service]
-  internal_port = 8080
-  force_https = true
-  auto_stop_machines = 'stop'
-  auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
+internal_port = 8080
+force_https = true
+auto_stop_machines = "off"
+auto_start_machines = false
+min_machines_running = 1
+processes = ["app"]
+
+[http_service.checks.alive]
+type = "http"
+interval = "15s"
+timeout = "10s"
+grace_period = "30s"
+method = "GET"
+path = "/actuator/health"
 
 [[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
-  memory_mb = 1024
+memory = "1gb"
+cpu_kind = "shared"
+cpus = 1
+memory_mb = 1024
