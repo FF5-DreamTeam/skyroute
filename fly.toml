@@ -1,5 +1,6 @@
-app = "skyroute"
-primary_region = "cdg"
+# fly.toml app configuration file
+app = 'skyroute'
+primary_region = 'cdg'
 
 [build]
 dockerfile = "Dockerfile"
@@ -28,14 +29,20 @@ MAIL_PROPERTIES_MAIL_SMTP_AUTH = "${MAIL_PROPERTIES_MAIL_SMTP_AUTH}"
 MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE = "${MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE}"
 MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED = "${MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_REQUIRED}"
 
+[env]
+SPRING_PROFILES_ACTIVE = "fly"
+SERVER_ADDRESS = "0.0.0.0"
+
 [http_service]
 internal_port = 8080
 force_https = true
-auto_stop_machines = "off"
-auto_start_machines = false
-min_machines_running = 1
-processes = ["app"]
+auto_stop_machines = 'stop'
+auto_start_machines = true
+min_machines_running = 0
+processes = ['app']
 
+# Health check configuration
+[http_service.checks]
 [http_service.checks.alive]
 type = "http"
 interval = "15s"
@@ -45,7 +52,7 @@ method = "GET"
 path = "/actuator/health"
 
 [[vm]]
-memory = "1gb"
-cpu_kind = "shared"
+memory = '1gb'
+cpu_kind = 'shared'
 cpus = 1
 memory_mb = 1024
