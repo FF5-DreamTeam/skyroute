@@ -19,4 +19,3 @@ ENV SERVER_ADDRESS=0.0.0.0
 EXPOSE 8080
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.address=0.0.0.0 -jar app.jar"]
-
